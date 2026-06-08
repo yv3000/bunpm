@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+// Unix-style shebang for PowerShell/Git Bash compatibility
+// Passes 'npx' as invokedAs so wrapper.js knows context
+process.argv.splice(2, 0, 'npx');
+require('../lib/wrapper.js');
