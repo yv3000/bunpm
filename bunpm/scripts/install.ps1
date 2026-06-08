@@ -102,7 +102,11 @@ try {
 # ─── Step 5: Copy project files ─────────────────────────────────────────────
 try {
     # Determine where the source project is (relative to this script)
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $scriptDir = if ($MyInvocation.MyCommand.Path) {
+        Split-Path -Parent $MyInvocation.MyCommand.Path
+    } else {
+        Get-Location
+    }
     $projectRoot = Split-Path -Parent $scriptDir
 
     # Copy lib/ folder
