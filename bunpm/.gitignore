@@ -1,0 +1,18 @@
+# Dependencies — never commit these
+node_modules/
+package-lock.json
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp
+*.tmp
+*.temp

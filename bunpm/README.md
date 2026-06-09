@@ -1,75 +1,108 @@
-# bunpm — npm at the speed of Bun
+<p align="center">
+  <img src="https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm" />
+  <img src="https://img.shields.io/badge/powered%20by-Bun-f472b6?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" />
+  <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
+  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" />
+</p>
 
-Types `npm`, runs **Bun**. Completely transparent.
+<h1 align="center">bunpm</h1>
+<p align="center"><b>npm at the speed of Bun.</b></p>
+<p align="center">Type <code>npm</code>, run <b>Bun</b>. Completely transparent. 10-25x faster installs.</p>
 
-Your existing workflow stays exactly the same — `npm install`, `npm run dev`, `npx create-vite` — but everything runs through Bun under the hood. The only thing you'll notice is speed.
+---
+
+## What is bunpm?
+
+**bunpm** is a transparent drop-in wrapper that intercepts all `npm` and `npx` commands and silently runs them through [Bun](https://bun.sh) — the blazing-fast JavaScript runtime and package manager.
+
+- You keep typing `npm install`, `npm run dev`, `npx create-vite` — same commands, same flags, same muscle memory.
+- Under the hood, Bun does the heavy lifting at 10-25x the speed.
+- Your original npm is **never touched or modified**. bunpm uses a PATH priority trick to intercept calls first.
+
+> **Think of it as a turbocharger for npm.** You don't change how you drive — the car just goes faster.
 
 ---
 
 ## Install
 
-Open PowerShell and run:
+Open **Windows PowerShell** and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+irm https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm/bootstrap.js -OutFile "$env:TEMP\bunpm_bootstrap.js"; node "$env:TEMP\bunpm_bootstrap.js"
 ```
 
-Or, if you cloned the repo:
+Or clone and run:
 
 ```powershell
-npm run install-wrapper
+git clone https://github.com/yv3000/bunpm.git
+cd bunpm
+node bootstrap.js
 ```
 
-That's it. No other steps.
+That's it. **One command. No other steps.**
+
+The installer will:
+1. Auto-install Bun if not present
+2. Verify Node.js is available
+3. Copy wrapper files to `~/.bunpm/`
+4. Prepend to both User and System PATH
+5. Verify everything works
 
 ---
 
-## What happens
+## Uninstall bunpm
 
-- ✅ **Bun is installed automatically** if not already present
-- ✅ **Your existing npm is untouched** — we never modify or replace it
-- ✅ **All npm commands work exactly as before** — same syntax, same flags
-- ✅ **Installs are 10–25x faster** — the only visible difference
-- ✅ **No admin privileges required** — uses User-level PATH only
+```powershell
+powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
+```
 
-### How it works
-
-bunpm uses a **PATH hijack approach**: it places lightweight wrapper scripts in `~/.bunpm/bin/` and prepends that directory to your User PATH. Windows finds our wrapper first, translates your npm command to the bun equivalent, runs it, and formats the output to look like npm. The original npm binary is never touched — it's just lower priority on PATH.
+This removes the `~/.bunpm` folder and cleans your PATH entirely — both User and System level. Original npm is instantly restored. Bun stays installed (it's a separate tool).
 
 ---
 
-## Uninstall
+## Proof it works
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1
+npm --version        # shows 10.8.2 (wrapper active, not real npm)
+npm install express  # installed in ~0.2s instead of 3-5s
+npm run dev          # runs via bun
+npx create-vite      # runs via bunx
+where npm            # shows C:\Users\you\.bunpm\bin\npm.cmd first
 ```
 
-Or:
+---
 
-```powershell
-npm run uninstall-wrapper
+## What Happens After Install
+
+```
+Before bunpm                          After bunpm
+--------------                        ---------------
+npm install express  (3.2s)    -->    npm install express  (0.2s)
+npm run build        (npm)     -->    npm run build        (bun)
+npx create-vite      (npm)     -->    npx create-vite      (bunx)
+npm test             (npm)     -->    npm test             (bun)
 ```
 
-This removes the `~/.bunpm` folder and cleans your PATH. Original npm is instantly restored.
+Same commands. Same output. Just faster.
 
 ---
 
 ## Command Mapping
 
-### Commands that use Bun
+### Commands routed through Bun
 
-| npm command | runs as | notes |
+| npm command | Bun equivalent | Notes |
 |---|---|---|
 | `npm install` | `bun install` | Install all deps from package.json |
 | `npm install <pkg>` | `bun add <pkg>` | Add a specific package |
-| `npm install -D <pkg>` | `bun add -d <pkg>` | Add as dev dependency |
-| `npm install -g <pkg>` | `bun add -g <pkg>` | Global install |
+| `npm i -D <pkg>` | `bun add -d <pkg>` | Add as dev dependency |
+| `npm i -g <pkg>` | `bun add -g <pkg>` | Global install |
 | `npm uninstall <pkg>` | `bun remove <pkg>` | Remove a package |
 | `npm run <script>` | `bun run <script>` | Run package.json scripts |
-| `npm start` | `bun run start` | Shorthand for run start |
+| `npm start` | `bun run start` | Start script shorthand |
 | `npm test` | `bun test` | Run tests |
 | `npm update` | `bun update` | Update dependencies |
-| `npm ci` | `bun install --frozen-lockfile` | Clean install |
+| `npm ci` | `bun install --frozen-lockfile` | Clean/reproducible install |
 | `npm init` | `bun init` | Initialize new project |
 | `npm create <X>` | `bun create <X>` | Create from template |
 | `npm exec <X>` | `bun x <X>` | Execute package binary |
@@ -80,13 +113,11 @@ This removes the `~/.bunpm` folder and cleans your PATH. Original npm is instant
 
 ### Commands that fall back to original npm
 
-These commands use the original npm since Bun doesn't support them:
-
-`publish` · `login` · `logout` · `whoami` · `audit` · `pack` · `fund` · `deprecate` · `dist-tag` · `access` · `team` · `profile` · `org` · `token` · `hook` · `adduser`
+> `publish` · `login` · `logout` · `whoami` · `audit` · `pack` · `fund` · `deprecate` · `dist-tag` · `access` · `team` · `profile` · `org` · `token` · `hook` · `adduser`
 
 ### Flag Translation
 
-| npm flag | bun flag |
+| npm flag | Bun equivalent |
 |---|---|
 | `--save-dev` / `-D` | `-d` |
 | `--save-exact` / `-E` | `-E` |
@@ -100,32 +131,66 @@ These commands use the original npm since Bun doesn't support them:
 
 ---
 
-## Architecture
+## How It Works
+
+### Architecture
 
 ```
 ~/.bunpm/
 ├── bin/
-│   ├── npm.cmd          ← Windows CMD launcher
-│   ├── npm              ← Unix-style shebang (PowerShell/Git Bash)
-│   ├── npx.cmd          ← Windows CMD launcher
-│   └── npx              ← Unix-style shebang
+│   ├── npm.cmd          # Windows CMD launcher
+│   ├── npm              # Unix-style shebang (PowerShell/Git Bash)
+│   ├── npx.cmd          # Windows CMD launcher
+│   └── npx              # Unix-style shebang
 ├── lib/
-│   ├── wrapper.js       ← Main entry point
-│   ├── mapper.js        ← npm → bun command translation
-│   ├── formatter.js     ← bun output → npm style output
-│   └── detector.js      ← Detects bun path, version, system info
+│   ├── wrapper.js       # Main entry point - orchestrates everything
+│   ├── mapper.js        # npm command → bun command translation
+│   ├── formatter.js     # bun output → npm-style output
+│   └── detector.js      # Finds bun/bunx executables on system
 └── package.json
 ```
 
-**Flow:** `npm install express` → `npm.cmd` → `node wrapper.js npm install express` → mapper translates to `bun add express` → bun runs → formatter rewrites output → user sees npm-style output.
+### The Flow
+
+```
+User types: npm install express
+        |
+        v
+    npm.cmd (in ~/.bunpm/bin/ — found first on PATH)
+        |
+        v
+    node wrapper.js npm install express
+        |
+        v
+    detector.js  -->  finds bun at ~/.bun/bin/bun.exe
+    mapper.js    -->  translates to: bun add express
+    formatter.js -->  reformats output to look like npm
+        |
+        v
+    User sees: added express@4.18.2  (in 0.2s instead of 3.2s)
+```
+
+### PATH Hijack (Safe)
+
+bunpm works by **prepending** `~/.bunpm/bin/` to your PATH. When you type `npm`, Windows searches PATH left-to-right:
+
+1. **`C:\Users\you\.bunpm\bin\npm.cmd`** ← Found first. Our wrapper runs.
+2. `C:\Program Files\nodejs\npm.cmd` ← Original npm, untouched, still there as fallback.
+
+The original npm is never modified, deleted, or renamed.
 
 ---
 
-## Requirements
+## Fallback Behavior
 
-- **Windows 10 / 11**
-- **Node.js** ≥ 16 (already installed if you use npm)
-- **Bun** (auto-installed if missing)
+bunpm is designed to **never break your workflow**:
+
+| Scenario | What happens |
+|---|---|
+| Bun not found at runtime | Falls back to original npm silently |
+| Command not supported by Bun | Falls back to original npm |
+| Bun crashes mid-command | Falls back to original npm + prints warning |
+| Unknown/new npm command | Falls back to original npm |
 
 ---
 
@@ -133,54 +198,76 @@ These commands use the original npm since Bun doesn't support them:
 
 | Shell | Status |
 |---|---|
-| CMD | ✅ Full support via `.cmd` files |
-| PowerShell | ✅ Full support |
-| Windows Terminal | ✅ Full support |
-| Git Bash | ✅ Supported via shebang scripts |
+| CMD | ✅ Fully supported |
+| PowerShell | ✅ Fully supported |
+| Windows Terminal | ✅ Fully supported |
+| Git Bash | ✅ Supported |
 
 ---
 
-## Troubleshooting
+## Requirements
 
-### `npm --version` still shows original npm version
-Restart your terminal. The PATH change requires a new session to take effect.
+| Requirement | Details |
+|---|---|
+| **OS** | Windows 10 / Windows 11 |
+| **Node.js** | v16+ |
+| **Bun** | Auto-installed if missing |
+| **Admin** | Only for System PATH step (optional) |
 
-### `where npm` shows original npm first
-The install script may not have prepended correctly. Check your User PATH:
-```powershell
-[Environment]::GetEnvironmentVariable("PATH", "User")
-```
-Ensure `%USERPROFILE%\.bunpm\bin` is at the **beginning** of the PATH string.
+---
 
-### Bun crashes on a specific command
-bunpm automatically falls back to original npm if bun encounters an internal error. If a command consistently fails, check if it's in the fallback list or report it as an issue.
+## FAQ
 
-### Need to bypass bunpm temporarily
-Use the full path to original npm:
+**Will this break my existing projects?**
+No. Your `package.json`, `node_modules`, and lockfiles all work the same way.
+
+**Does this affect `node` or other commands?**
+No. Only `npm` and `npx` are intercepted.
+
+**Can I temporarily bypass bunpm?**
+Yes — call original npm directly:
 ```powershell
 & "C:\Program Files\nodejs\npm.cmd" install express
 ```
 
+**How do I update bunpm?**
+```powershell
+git pull
+node bootstrap.js
+```
+
 ---
 
-## Testing Checklist
+## Platform Support
 
-After install, these must all work:
+| Platform | Status |
+|---|---|
+| Windows | ✅ Supported |
+| macOS / Linux | 🔜 Coming soon |
 
-- [ ] `npm --version` → prints npm version (not bun version)
-- [ ] `npm install express` → installs via bun, output looks like npm
-- [ ] `npm install` → installs all deps from package.json via bun
-- [ ] `npm run dev` → runs dev script via bun
-- [ ] `npx create-vite` → runs via bunx
-- [ ] `npm uninstall express` → removes via bun
-- [ ] `npm publish` → falls back to original npm
-- [ ] Uninstall script → `where npm` shows only original npm again
-- [ ] `npm ci` → runs `bun install --frozen-lockfile`
-- [ ] `npm install -D typescript` → runs `bun add -d typescript`
-- [ ] `npm install -g serve` → runs `bun add -g serve`
+---
+
+## Tech Stack
+
+- Plain JavaScript — CommonJS, Node.js built-ins only
+- PowerShell installer — no external dependencies
+- Zero `node_modules` needed for bunpm itself
+- No build step — runs as plain `.js` files
 
 ---
 
 ## License
 
 MIT
+
+---
+
+## Author
+
+Built by **YV** ([@yv3000](https://github.com/yv3000)) · [linktr.ee/yv_3000](https://linktr.ee/yv_3000)
+
+---
+
+<p align="center">
+  <sub>I EXPECT NOTHING FROM YOU...</sub>
+</p>
