@@ -1,25 +1,25 @@
-# install.ps1 — bunpm one-time setup script
+﻿# install.ps1 - bunpm one-time setup script
 # Installs bun (if needed), copies wrapper files, prepends to User PATH.
 # Does NOT require admin/elevated privileges.
 
 $ErrorActionPreference = "Stop"
 
-# ─── Configuration ───────────────────────────────────────────────────────────
+# --- Configuration ---
 $installDir = Join-Path $env:USERPROFILE ".bunpm"
 $binDir     = Join-Path $installDir "bin"
 
-# ─── Helper: colored output ─────────────────────────────────────────────────
-function Write-Success { param([string]$msg) Write-Host "  ✓ $msg" -ForegroundColor Green }
+# --- Helper: colored output ---
+function Write-Success { param([string]$msg) Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Warn    { param([string]$msg) Write-Host "  ! $msg" -ForegroundColor Yellow }
-function Write-Err     { param([string]$msg) Write-Host "  ✗ $msg" -ForegroundColor Red }
-function Write-Info    { param([string]$msg) Write-Host "  → $msg" -ForegroundColor Cyan }
+function Write-Err     { param([string]$msg) Write-Host "  [ERR] $msg" -ForegroundColor Red }
+function Write-Info    { param([string]$msg) Write-Host "  -> $msg" -ForegroundColor Cyan }
 
 Write-Host ""
 Write-Host "  bunpm installer" -ForegroundColor White
-Write-Host "  ───────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  ---" -ForegroundColor DarkGray
 Write-Host ""
 
-# ─── Step 1: Check if already installed ──────────────────────────────────────
+# --- Step 1: Check if already installed ---
 try {
     if (Test-Path $installDir) {
         Write-Warn "bunpm is already installed at $installDir"
@@ -33,7 +33,7 @@ try {
     exit 1
 }
 
-# ─── Step 2: Check / install Bun ────────────────────────────────────────────
+# --- Step 2: Check / install Bun ---
 $bunAvailable = $false
 try {
     $bunVersion = & bun --version 2>$null
@@ -42,7 +42,7 @@ try {
         $bunAvailable = $true
     }
 } catch {
-    # bun not found — will install below
+    # bun not found - will install below
 }
 
 if (-not $bunAvailable) {
@@ -76,7 +76,7 @@ if (-not $bunAvailable) {
     }
 }
 
-# ─── Step 3: Check Node.js ──────────────────────────────────────────────────
+# --- Step 3: Check Node.js ---
 try {
     $nodeVersion = & node --version 2>$null
     if ($LASTEXITCODE -ne 0 -or -not $nodeVersion) {
@@ -90,7 +90,7 @@ try {
     exit 1
 }
 
-# ─── Step 4: Create installation directory ───────────────────────────────────
+# --- Step 4: Create installation directory ---
 try {
     New-Item -ItemType Directory -Path $binDir -Force | Out-Null
     Write-Success "Created $installDir"
@@ -99,7 +99,7 @@ try {
     exit 1
 }
 
-# ─── Step 5: Copy project files ─────────────────────────────────────────────
+# --- Step 5: Copy project files ---
 try {
     # Determine where the source project is (relative to this script)
     $scriptDir = if ($MyInvocation.MyCommand.Path) {
@@ -142,14 +142,14 @@ try {
     exit 1
 }
 
-# ─── Step 6: Prepend to User PATH ───────────────────────────────────────────
+# --- Step 6: Prepend to User PATH ---
 try {
     $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
     if (-not $currentPath) { $currentPath = "" }
 
     # Only add if not already present
     if ($currentPath -notlike "*$binDir*") {
-        # PREPEND — our bin must come FIRST so Windows finds it before original npm
+        # PREPEND - our bin must come FIRST so Windows finds it before original npm
         $newPath = "$binDir;$currentPath"
         [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
         Write-Success "Added $binDir to User PATH (prepended)"
@@ -161,7 +161,7 @@ try {
     Write-Info "You may need to manually add $binDir to your PATH."
 }
 
-# ─── Step 7: Refresh current session PATH ───────────────────────────────────
+# --- Step 7: Refresh current session PATH ---
 try {
     # Make sure our bin dir is at the FRONT of the current session PATH too
     if ($env:PATH -notlike "*$binDir*") {
@@ -172,22 +172,22 @@ try {
     Write-Warn "Could not refresh session PATH. Restart your terminal."
 }
 
-# ─── Step 8: Verify installation ────────────────────────────────────────────
+# --- Step 8: Verify installation ---
 try {
-    # Quick sanity check — our npm.cmd should exist
+    # Quick sanity check - our npm.cmd should exist
     $npmCmd = Join-Path $binDir "npm.cmd"
     if (Test-Path $npmCmd) {
         Write-Success "Wrapper scripts verified"
     } else {
-        Write-Warn "npm.cmd not found in $binDir — installation may be incomplete"
+        Write-Warn "npm.cmd not found in $binDir - installation may be incomplete"
     }
 } catch {
     Write-Warn "Could not verify installation"
 }
 
-# ─── Step 9: Print success summary ──────────────────────────────────────────
+# --- Step 9: Print success summary ---
 Write-Host ""
-Write-Host "  ───────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  ---" -ForegroundColor DarkGray
 Write-Host ""
 Write-Success "bunpm installed successfully"
 Write-Success "Bun v$bunVersion detected"
