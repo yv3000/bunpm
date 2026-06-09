@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm" />
-  <img src="https://img.shields.io/badge/powered%20by-Bun-f472b6?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" />
-  <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
-  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" />
+  <a href="https://www.npmjs.com"><img src="https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm" /></a>
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/powered%20by-Bun-f472b6?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" /></a>
+  <a href="https://www.microsoft.com/windows"><img src="https://img.shields.io/badge/platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" /></a>
 </p>
 
 <h1 align="center">bunpm</h1>
@@ -50,13 +50,13 @@ The installer will:
 
 ---
 
-## Uninstall bunpm
+## Uninstall
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
 ```
 
-This removes the `~/.bunpm` folder and cleans your PATH entirely — both User and System level. Original npm is instantly restored. Bun stays installed (it's a separate tool).
+This removes the `~/.bunpm` folder and cleans your PATH entirely — both User and System level. Original npm is instantly restored. Bun stays installed.
 
 ---
 
@@ -72,15 +72,14 @@ where npm            # shows C:\Users\you\.bunpm\bin\npm.cmd first
 
 ---
 
-## What Happens After Install
+## Speed Comparison
 
 ```
 Before bunpm                          After bunpm
 --------------                        ---------------
-npm install express  (3.2s)    -->    npm install express  (0.2s)
-npm run build        (npm)     -->    npm run build        (bun)
-npx create-vite      (npm)     -->    npx create-vite      (bunx)
-npm test             (npm)     -->    npm test             (bun)
+npm install express  (~10s)    -->    npm install express  (2.46s)
+react + react-dom    (~15s)    -->    react + react-dom    (2.64s)
+135 packages         (~3 min)  -->    135 packages         (1.98s cached)
 ```
 
 Same commands. Same output. Just faster.
@@ -167,12 +166,12 @@ User types: npm install express
     formatter.js -->  reformats output to look like npm
         |
         v
-    User sees: added express@4.18.2  (in 0.2s instead of 3.2s)
+    User sees: added express@4.18.2  (in ~2s instead of ~10s)
 ```
 
 ### PATH Hijack (Safe)
 
-bunpm works by **prepending** `~/.bunpm/bin/` to your PATH. When you type `npm`, Windows searches PATH left-to-right:
+bunpm works by **prepending** `~/.bunpm/bin/` to your PATH:
 
 1. **`C:\Users\you\.bunpm\bin\npm.cmd`** ← Found first. Our wrapper runs.
 2. `C:\Program Files\nodejs\npm.cmd` ← Original npm, untouched, still there as fallback.
@@ -182,8 +181,6 @@ The original npm is never modified, deleted, or renamed.
 ---
 
 ## Fallback Behavior
-
-bunpm is designed to **never break your workflow**:
 
 | Scenario | What happens |
 |---|---|
@@ -216,6 +213,15 @@ bunpm is designed to **never break your workflow**:
 
 ---
 
+## Platform Support
+
+| Platform | Status |
+|---|---|
+| Windows | ✅ Supported |
+| macOS / Linux | 🔜 Coming soon |
+
+---
+
 ## FAQ
 
 **Will this break my existing projects?**
@@ -238,15 +244,6 @@ node bootstrap.js
 
 ---
 
-## Platform Support
-
-| Platform | Status |
-|---|---|
-| Windows | ✅ Supported |
-| macOS / Linux | 🔜 Coming soon |
-
----
-
 ## Tech Stack
 
 - Plain JavaScript — CommonJS, Node.js built-ins only
@@ -256,18 +253,32 @@ node bootstrap.js
 
 ---
 
-## License
+## License <a name="license"></a>
 
-MIT
+MIT License
 
----
+Copyright (c) 2026 THE YV
 
-## Author
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Built by **YV** ([@yv3000](https://github.com/yv3000)) · [linktr.ee/yv_3000](https://linktr.ee/yv_3000)
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ---
 
 <p align="center">
-  <sub>I EXPECT NOTHING FROM YOU...</sub>
+  <sub>YV 🖤 ~ I EXPECT NOTHING FROM YOU...</sub>
 </p>
