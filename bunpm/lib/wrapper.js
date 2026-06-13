@@ -74,12 +74,20 @@ function main() {
     const subcommand = mapped.bunArgs ? mapped.bunArgs[0] : 'run';
     const context = { subcommand, invokedAs };
 
+    // ── Build bun-aware environment ─────────────────────────────────────────
+    const bunVersion = detector.getBunVersion() || '1.0.0';
+    const bunEnv = {
+      ...process.env,
+      npm_config_user_agent: 'bun/' + bunVersion + ' npm/0.0.0 node/' + process.version + ' win32 x64',
+      npm_execpath: detector.getBunPath() || process.env.npm_execpath,
+    };
+
     // ── Run bun with output interception ────────────────────────────────────
     const result = spawnSync(execPath, execArgs, {
       encoding: 'utf8',
       stdio: ['inherit', 'pipe', 'pipe'],
       shell: false,
-      env: process.env,
+      env: bunEnv,
       cwd: process.cwd(),
     });
 
