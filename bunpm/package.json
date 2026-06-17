@@ -1,6 +1,6 @@
 {
   "name": "bunpm",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Transparent npm wrapper that uses Bun under the hood for 10x faster installs",
   "main": "lib/wrapper.js",
   "bin": {
