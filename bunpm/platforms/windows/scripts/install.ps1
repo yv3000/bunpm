@@ -132,6 +132,20 @@ try {
         Copy-Item -Path $pkgSrc -Destination $installDir -Force
     }
 
+    try {
+        $scriptsSrc = Join-Path $projectRoot "scripts"
+        $scriptsDst = Join-Path $installDir "scripts"
+        if (Test-Path $scriptsSrc) {
+            New-Item -ItemType Directory -Path $scriptsDst -Force | Out-Null
+            Copy-Item -Path (Join-Path $scriptsSrc "*") -Destination $scriptsDst -Recurse -Force
+            Write-Success "Copied scripts/ folder to $installDir"
+        } else {
+            Write-Warn "scripts/ folder not found at $scriptsSrc — uninstall.ps1 will not be available"
+        }
+    } catch {
+        Write-Err "Failed to copy scripts/ folder: $($_.Exception.Message)"
+    }
+
     Write-Success "Copied project files to $installDir"
 } catch {
     Write-Err "Failed to copy project files: $($_.Exception.Message)"
