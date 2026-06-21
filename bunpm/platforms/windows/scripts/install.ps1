@@ -1,4 +1,4 @@
-﻿# install.ps1 - bunpm one-time setup script
+# install.ps1 - bunpm one-time setup script
 # Installs bun (if needed), copies wrapper files, prepends to User PATH.
 # Does NOT require admin/elevated privileges.
 
@@ -109,13 +109,13 @@ try {
     }
     $projectRoot = Split-Path -Parent $scriptDir
 
-    # Copy lib/ folder
-    $libSrc = Join-Path $projectRoot "lib"
-    $libDst = Join-Path $installDir "lib"
-    if (Test-Path $libSrc) {
-        Copy-Item -Path $libSrc -Destination $libDst -Recurse -Force
+    # Copy core/ folder
+    $coreSrc = Join-Path $projectRoot "core"
+    $coreDst = Join-Path $installDir "core"
+    if (Test-Path $coreSrc) {
+        Copy-Item -Path $coreSrc -Destination $coreDst -Recurse -Force
     } else {
-        throw "Source lib/ folder not found at $libSrc"
+        throw "Source core/ folder not found at $coreSrc"
     }
 
     # Copy bin/ folder
@@ -140,6 +140,24 @@ try {
         Remove-Item -Path $installDir -Recurse -Force -ErrorAction SilentlyContinue
     }
     exit 1
+}
+
+# --- Step 5b: Verify yarn/pnpm launchers were copied (NEW IN V2) ---
+try {
+    $yarnCmd = Join-Path $binDir "yarn.cmd"
+    $pnpmCmd = Join-Path $binDir "pnpm.cmd"
+    if (Test-Path $yarnCmd) {
+        Write-Success "yarn launcher installed"
+    } else {
+        Write-Warn "yarn.cmd not found in $binDir — yarn command interception will not work"
+    }
+    if (Test-Path $pnpmCmd) {
+        Write-Success "pnpm launcher installed"
+    } else {
+        Write-Warn "pnpm.cmd not found in $binDir — pnpm command interception will not work"
+    }
+} catch {
+    Write-Warn "Could not verify yarn/pnpm launchers"
 }
 
 # --- Step 6: Prepend to User PATH ---
@@ -191,7 +209,7 @@ Write-Host "  ---" -ForegroundColor DarkGray
 Write-Host ""
 Write-Success "bunpm installed successfully"
 Write-Success "Bun v$bunVersion detected"
-Write-Success "npm commands will now run via Bun"
+Write-Success "npm, npx, yarn, and pnpm commands will now run via Bun"
 Write-Host ""
 Write-Info "Restart your terminal for changes to take full effect."
 Write-Info "Run 'npm --version' to verify."
