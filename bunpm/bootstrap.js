@@ -1,270 +1,219 @@
-// bootstrap.js — bunpm installer
-// Downloads all files from GitHub and runs the install script.
-// Works when piped via: irm <url> -OutFile $TEMP\b.js; node $TEMP\b.js
+// bootstrap.js — bunpm v2 cross-platform installer entry point
+// Detects the user's OS, downloads ONLY the relevant core/ + platform-specific
+// files from GitHub, then invokes the platform-correct install script.
+//
+// Windows usage (PowerShell):
+//   irm https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -OutFile "$env:TEMP\bunpm_bootstrap.js"; node "$env:TEMP\bunpm_bootstrap.js"
+//
+// macOS/Linux usage (bash/zsh):
+//   curl -fsSL https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -o /tmp/bunpm_bootstrap.js && node /tmp/bunpm_bootstrap.js
 
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const os = require('os');
 const { execSync } = require('child_process');
 
-const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm';
-const home = process.env.USERPROFILE;
-const dest = path.join(home, 'bunpm');
+const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main';
 
-const files = [
-    'bin/npm.cmd', 'bin/npm', 'bin/npx.cmd', 'bin/npx',
-    'lib/detector.js', 'lib/mapper.js', 'lib/formatter.js', 'lib/wrapper.js',
-    'package.json'
+/**
+ * Detect platform exactly the same way core/platform-detect.js does.
+ * bootstrap.js cannot import core/platform-detect.js directly because at
+ * the moment bootstrap.js runs, core/ has not been downloaded to disk yet —
+ * this is the one and only place in the entire project where platform
+ * detection logic is duplicated rather than imported from a single source,
+ * and it is duplicated for exactly this unavoidable bootstrapping reason.
+ * The logic itself MUST stay byte-for-byte identical to
+ * core/platform-detect.js's detectPlatform() function — if you ever change
+ * one, you must change the other to match, or bootstrap.js could download
+ * the wrong platform subtree while core/wrapper.js (running later, on every
+ * subsequent npm/yarn/pnpm invocation after install) detects a DIFFERENT
+ * platform for itself, which would be a deeply confusing class of bug.
+ *
+ * @returns {'windows'|'macos'|'linux'}
+ */
+function detectPlatform() {
+  const platform = process.platform;
+  if (platform === 'win32') return 'windows';
+  if (platform === 'darwin') return 'macos';
+  if (platform === 'linux') return 'linux';
+  throw new Error(
+    `bunpm does not support this platform (${platform}). ` +
+    `Supported platforms: Windows, macOS, Linux.`
+  );
+}
+
+const platform = detectPlatform();
+const home = os.homedir();
+
+// Staging directory — separate from the final install destination
+// (~/.bunpm with a dot), matching the v1.2.2 convention of using a
+// no-dot staging folder during bootstrap.
+const stagingRoot = path.join(home, 'bunpm');
+
+// ── Core files — identical set downloaded regardless of platform ─────────
+const CORE_FILES = [
+  'core/platform-detect.js',
+  'core/detector.js',
+  'core/mapper.js',
+  'core/formatter.js',
+  'core/wrapper.js',
 ];
 
+// ── Platform-specific files — ONLY the matching platform's subtree ───────
+// This object is the literal enforcement mechanism for "only download
+// what's needed for my OS." Notice there is no code path anywhere in this
+// file that ever references 'platforms/windows/' while platform is
+// 'linux', or vice versa — the PLATFORM_FILES object is looked up by the
+// detected platform key ONCE, and only that one array of paths is ever
+// touched by the download loop below.
+const PLATFORM_FILES = {
+  windows: [
+    'platforms/windows/bin/npm.cmd',
+    'platforms/windows/bin/npm',
+    'platforms/windows/bin/npx.cmd',
+    'platforms/windows/bin/npx',
+    'platforms/windows/bin/yarn.cmd',
+    'platforms/windows/bin/yarn',
+    'platforms/windows/bin/pnpm.cmd',
+    'platforms/windows/bin/pnpm',
+    'platforms/windows/scripts/install.ps1',
+    'platforms/windows/scripts/uninstall.ps1',
+  ],
+  macos: [
+    'platforms/macos/bin/npm',
+    'platforms/macos/bin/npx',
+    'platforms/macos/bin/yarn',
+    'platforms/macos/bin/pnpm',
+    'platforms/macos/scripts/install.sh',
+    'platforms/macos/scripts/uninstall.sh',
+  ],
+  linux: [
+    'platforms/linux/bin/npm',
+    'platforms/linux/bin/npx',
+    'platforms/linux/bin/yarn',
+    'platforms/linux/bin/pnpm',
+    'platforms/linux/scripts/install.sh',
+    'platforms/linux/scripts/uninstall.sh',
+  ],
+};
+
+const PACKAGE_JSON_FILE = 'package.json';
+
+/**
+ * Download a single file from a GitHub raw URL to a local path,
+ * following redirects (GitHub raw URLs sometimes 301/302 redirect).
+ *
+ * @param {string} url
+ * @param {string} destPath
+ * @returns {Promise<void>}
+ */
 function download(url, destPath) {
-    return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream(destPath);
-        function get(u) {
-            https.get(u, res => {
-                if (res.statusCode === 301 || res.statusCode === 302) {
-                    return get(res.headers.location);
-                }
-                if (res.statusCode !== 200) {
-                    return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
-                }
-                res.pipe(file);
-                file.on('finish', () => { file.close(); resolve(); });
-            }).on('error', reject);
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(destPath);
+    function get(u) {
+      https.get(u, res => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          return get(res.headers.location);
         }
-        get(url);
-    });
-}
-
-const installPs1 = `
-$ErrorActionPreference = "Stop"
-$installDir = Join-Path $env:USERPROFILE ".bunpm"
-$binDir = Join-Path $installDir "bin"
-
-function Write-OK { param([string]$msg) Write-Host "  [OK] $msg" -ForegroundColor Green }
-function Write-WRN { param([string]$msg) Write-Host "  [!] $msg" -ForegroundColor Yellow }
-function Write-ERR { param([string]$msg) Write-Host "  [ERR] $msg" -ForegroundColor Red }
-function Write-NFO { param([string]$msg) Write-Host "  -> $msg" -ForegroundColor Cyan }
-
-Write-Host ""
-Write-Host "  bunpm installer" -ForegroundColor White
-Write-Host "  ------------------------------------" -ForegroundColor DarkGray
-Write-Host ""
-
-try {
-    if (Test-Path $installDir) {
-        Write-WRN "bunpm is already installed at $installDir"
-        Write-NFO "To reinstall, run the uninstall script first."
-        Write-Host ""
-        exit 0
+        if (res.statusCode !== 200) {
+          return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
+        }
+        res.pipe(file);
+        file.on('finish', () => { file.close(); resolve(); });
+      }).on('error', reject);
     }
-} catch {
-    Write-ERR "Failed to check existing installation: $($_.Exception.Message)"
-    exit 1
+    get(url);
+  });
 }
 
-$bunAvailable = $false
-try {
-    $bunVersion = & bun --version 2>$null
-    if ($LASTEXITCODE -eq 0 -and $bunVersion) {
-        Write-OK "Bun v$bunVersion detected"
-        $bunAvailable = $true
-    }
-} catch {}
-
-if (-not $bunAvailable) {
-    Write-NFO "Bun not found. Installing Bun automatically..."
-    try {
-        Invoke-RestMethod bun.sh/install.ps1 | Invoke-Expression
-        $bunBinDir = Join-Path $env:USERPROFILE ".bun\\bin"
-        if (Test-Path $bunBinDir) { $env:PATH = "$bunBinDir;$env:PATH" }
-        $bunVersion = & bun --version 2>$null
-        if ($LASTEXITCODE -eq 0 -and $bunVersion) {
-            Write-OK "Bun v$bunVersion installed successfully"
-            $bunAvailable = $true
-        } else { throw "Bun installed but not responding" }
-    } catch {
-        Write-ERR "Failed to install Bun: $($_.Exception.Message)"
-        Write-NFO "Please install Bun manually from https://bun.sh"
-        exit 1
-    }
+/**
+ * Given a repo-relative file path like 'platforms/macos/bin/npm', compute
+ * the correct local staging path. Platform-specific files get their
+ * 'platforms/<platform>/' prefix stripped when staged locally, because the
+ * end user's machine should only ever see a flat bin/ and scripts/ folder
+ * matching THEIR platform — it should never see a nested platforms/macos/
+ * folder structure on disk, that nesting only exists in the GitHub repo
+ * for selective-download purposes as established in Part 1.
+ *
+ * @param {string} repoRelativePath
+ * @returns {string} local staging-relative path
+ */
+function toLocalStagingPath(repoRelativePath) {
+  const platformPrefix = `platforms/${platform}/`;
+  if (repoRelativePath.startsWith(platformPrefix)) {
+    return repoRelativePath.slice(platformPrefix.length);
+  }
+  return repoRelativePath;
 }
-
-try {
-    $nodeVersion = & node --version 2>$null
-    if ($LASTEXITCODE -ne 0 -or -not $nodeVersion) { throw "Node.js not found" }
-    Write-OK "Node.js $nodeVersion detected"
-} catch {
-    Write-ERR "Node.js is required but was not found."
-    Write-NFO "Install Node.js from https://nodejs.org"
-    exit 1
-}
-
-try {
-    New-Item -ItemType Directory -Path $binDir -Force | Out-Null
-    Write-OK "Created $installDir"
-} catch {
-    Write-ERR "Failed to create directory: $($_.Exception.Message)"
-    exit 1
-}
-
-try {
-    $sourceDir = Join-Path $env:USERPROFILE "bunpm"
-    $libSrc = Join-Path $sourceDir "lib"
-    $libDst = Join-Path $installDir "lib"
-    Copy-Item -Path $libSrc -Destination $libDst -Recurse -Force
-    $binSrc = Join-Path $sourceDir "bin"
-    Copy-Item -Path (Join-Path $binSrc "*") -Destination $binDir -Recurse -Force
-    $pkgSrc = Join-Path $sourceDir "package.json"
-    if (Test-Path $pkgSrc) { Copy-Item -Path $pkgSrc -Destination $installDir -Force }
-    Write-OK "Copied project files to $installDir"
-} catch {
-    Write-ERR "Failed to copy files: $($_.Exception.Message)"
-    if (Test-Path $installDir) { Remove-Item -Path $installDir -Recurse -Force -ErrorAction SilentlyContinue }
-    exit 1
-}
-
-try {
-    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-    if (-not $currentPath) { $currentPath = "" }
-    if ($currentPath -notlike "*$binDir*") {
-        [Environment]::SetEnvironmentVariable("PATH", "$binDir;$currentPath", "User")
-        Write-OK "Added $binDir to User PATH"
-    } else { Write-WRN "$binDir already in User PATH" }
-} catch { Write-ERR "Failed to update User PATH: $($_.Exception.Message)" }
-
-try {
-    $machinePath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-    if ($machinePath -notlike "*$binDir*") {
-        Start-Process powershell -Verb RunAs -Wait -ArgumentList "-ExecutionPolicy Bypass -Command \`"[Environment]::SetEnvironmentVariable('PATH', '$binDir;' + [Environment]::GetEnvironmentVariable('PATH','Machine'), 'Machine')\`""
-        Write-OK "Added to System PATH (admin)"
-    } else { Write-OK "Already in System PATH" }
-} catch {
-    Write-WRN "Could not update System PATH automatically."
-    Write-NFO "Run this manually as admin:"
-    Write-NFO "  [Environment]::SetEnvironmentVariable('PATH', '$binDir;' + $env:PATH, 'Machine')"
-}
-
-try {
-    if ($env:PATH -notlike "*$binDir*") { $env:PATH = "$binDir;$env:PATH" }
-    Write-OK "Refreshed current session PATH"
-} catch { Write-WRN "Restart your terminal." }
-
-try {
-    $npmCmd = Join-Path $binDir "npm.cmd"
-    if (Test-Path $npmCmd) { Write-OK "Wrapper scripts verified" }
-    else { Write-WRN "npm.cmd not found in $binDir" }
-} catch { Write-WRN "Could not verify" }
-
-Write-Host ""
-Write-Host "  ------------------------------------" -ForegroundColor DarkGray
-Write-Host ""
-Write-OK "bunpm installed successfully"
-Write-OK "Bun v$bunVersion detected"
-Write-OK "npm commands will now run via Bun"
-Write-Host ""
-Write-NFO "Restart your terminal for changes to take full effect."
-Write-NFO "Run 'npm --version' to verify."
-Write-Host ""
-`;
-
-const uninstallPs1 = `
-$ErrorActionPreference = "Stop"
-$installDir = Join-Path $env:USERPROFILE ".bunpm"
-$binDir = Join-Path $installDir "bin"
-
-function Write-OK { param([string]$msg) Write-Host "  [OK] $msg" -ForegroundColor Green }
-function Write-WRN { param([string]$msg) Write-Host "  [!] $msg" -ForegroundColor Yellow }
-function Write-ERR { param([string]$msg) Write-Host "  [ERR] $msg" -ForegroundColor Red }
-function Write-NFO { param([string]$msg) Write-Host "  -> $msg" -ForegroundColor Cyan }
-
-Write-Host ""
-Write-Host "  bunpm uninstaller" -ForegroundColor White
-Write-Host "  ------------------------------------" -ForegroundColor DarkGray
-Write-Host ""
-
-try {
-    if (-not (Test-Path $installDir)) {
-        Write-WRN "bunpm is not installed"
-        exit 0
-    }
-} catch { Write-ERR "Failed: $($_.Exception.Message)"; exit 1 }
-
-try {
-    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-    if ($currentPath) {
-        $entries = $currentPath -split ';' | Where-Object { $_ -ne $binDir -and $_ -ne "" }
-        [Environment]::SetEnvironmentVariable("PATH", ($entries -join ';'), "User")
-        Write-OK "Removed from User PATH"
-    }
-} catch { Write-ERR "Failed to update User PATH: $($_.Exception.Message)" }
-
-try {
-    $machinePath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-    if ($machinePath -like "*$binDir*") {
-        Start-Process powershell -Verb RunAs -Wait -ArgumentList "-ExecutionPolicy Bypass -Command \`"$entries = [Environment]::GetEnvironmentVariable('PATH','Machine') -split ';' | Where-Object { $_ -ne '$binDir' -and $_ -ne '' }; [Environment]::SetEnvironmentVariable('PATH', ($entries -join ';'), 'Machine')\`""
-        Write-OK "Removed from System PATH (admin)"
-    }
-} catch { Write-WRN "Could not update System PATH. Remove manually if needed." }
-
-try {
-    Remove-Item -Path $installDir -Recurse -Force
-    Write-OK "Deleted $installDir"
-} catch { Write-ERR "Failed to delete: $($_.Exception.Message)"; exit 1 }
-
-try {
-    $sessionEntries = $env:PATH -split ';' | Where-Object { $_ -ne $binDir -and $_ -ne "" }
-    $env:PATH = $sessionEntries -join ';'
-    Write-OK "Refreshed session PATH"
-} catch { Write-WRN "Restart your terminal." }
-
-Write-Host ""
-Write-Host "  ------------------------------------" -ForegroundColor DarkGray
-Write-Host ""
-Write-OK "bunpm uninstalled"
-Write-OK "Original npm restored"
-Write-Host ""
-Write-NFO "Restart your terminal for changes to take full effect."
-Write-Host ""
-`;
 
 async function main() {
-    console.log('\n  bunpm bootstrap\n  ------------------------------------');
+  console.log('');
+  console.log(`  bunpm bootstrap (detected platform: ${platform})`);
+  console.log('  ------------------------------------');
 
-    // Create staging dirs
-    ['bin', 'lib', 'scripts'].forEach(d =>
-        fs.mkdirSync(path.join(dest, d), { recursive: true })
-    );
+  const filesToDownload = [
+    ...CORE_FILES,
+    ...PLATFORM_FILES[platform],
+    PACKAGE_JSON_FILE,
+  ];
 
-    // Download all files from GitHub
-    console.log('\n  Downloading files from GitHub...');
-    for (const f of files) {
-        const url = REPO_BASE + '/' + f;
-        const dst = path.join(dest, f);
-        await download(url, dst);
-        console.log('  Downloaded: ' + f);
-    }
+  // Create every staging subdirectory that will be needed, derived
+  // from the actual file list rather than hardcoded, so this stays
+  // correct even if the file lists above change in the future.
+  const dirsNeeded = new Set();
+  for (const f of filesToDownload) {
+    const localPath = toLocalStagingPath(f);
+    dirsNeeded.add(path.dirname(path.join(stagingRoot, localPath)));
+  }
+  for (const d of dirsNeeded) {
+    fs.mkdirSync(d, { recursive: true });
+  }
 
-    // Write PS1 files with UTF-8 BOM
-    const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
-    const ps1Path = path.join(dest, 'scripts', 'install.ps1');
-    const uninstPath = path.join(dest, 'scripts', 'uninstall.ps1');
-    fs.writeFileSync(ps1Path, Buffer.concat([bom, Buffer.from(installPs1, 'utf8')]));
-    fs.writeFileSync(uninstPath, Buffer.concat([bom, Buffer.from(uninstallPs1, 'utf8')]));
-    console.log('  Wrote: scripts/install.ps1');
-    console.log('  Wrote: scripts/uninstall.ps1');
+  console.log('');
+  console.log(`  Downloading ${filesToDownload.length} files for ${platform}...`);
+  for (const f of filesToDownload) {
+    const url = `${REPO_BASE}/${f}`;
+    const localPath = toLocalStagingPath(f);
+    const destPath = path.join(stagingRoot, localPath);
+    await download(url, destPath);
+    console.log(`  Downloaded: ${localPath}`);
+  }
 
-    console.log('\n  Running installer...\n');
+  console.log('');
+  console.log('  Running platform installer...');
+  console.log('');
 
+  if (platform === 'windows') {
+    const ps1Path = path.join(stagingRoot, 'scripts', 'install.ps1');
     try {
-        execSync('powershell -ExecutionPolicy Bypass -File "' + ps1Path + '"', { stdio: 'inherit' });
+      execSync(`powershell -ExecutionPolicy Bypass -File "${ps1Path}"`, { stdio: 'inherit' });
     } catch (e) {
-        console.error('Install failed with code:', e.status);
-        process.exit(e.status || 1);
+      console.error('Install failed with code:', e.status);
+      process.exit(e.status || 1);
     }
+  } else {
+    // macOS or Linux
+    const shPath = path.join(stagingRoot, 'scripts', 'install.sh');
+    try {
+      fs.chmodSync(shPath, 0o755);
+    } catch {
+      // if chmod fails here, the shell invocation below via `bash` rather
+      // than direct execution still works, since we're explicitly invoking
+      // the bash interpreter on the file rather than relying on the file's
+      // own execute bit — this fallback is intentional, not a bug
+    }
+    try {
+      execSync(`bash "${shPath}"`, { stdio: 'inherit' });
+    } catch (e) {
+      console.error('Install failed with code:', e.status);
+      process.exit(e.status || 1);
+    }
+  }
 }
 
 main().catch(e => {
-    console.error('\n  Bootstrap error:', e.message);
-    process.exit(1);
+  console.error('');
+  console.error('  Bootstrap error:', e.message);
+  process.exit(1);
 });

@@ -25,38 +25,44 @@
 
 ## Install
 
-Open **Windows PowerShell** and run:
+### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm/bootstrap.js -OutFile "$env:TEMP\bunpm_bootstrap.js"; node "$env:TEMP\bunpm_bootstrap.js"
+irm https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -OutFile "$env:TEMP\bunpm_bootstrap.js"; node "$env:TEMP\bunpm_bootstrap.js"
 ```
 
-Or clone and run:
+### macOS (Terminal, zsh or bash)
 
-```powershell
-git clone https://github.com/yv3000/bunpm.git
-cd bunpm
-node bootstrap.js
+```bash
+curl -fsSL https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -o /tmp/bunpm_bootstrap.js && node /tmp/bunpm_bootstrap.js
 ```
 
-That's it. **One command. No other steps.**
+### Linux (Terminal, any distro with Node.js installed)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -o /tmp/bunpm_bootstrap.js && node /tmp/bunpm_bootstrap.js
+```
+
+The bootstrapper automatically detects your operating system and downloads **only** the files relevant to your platform — a Linux install never touches Windows-specific files and vice versa.
 
 The installer will:
 1. Auto-install Bun if not present
 2. Verify Node.js is available
-3. Copy wrapper files to `~/.bunpm/`
-4. Prepend to both User and System PATH
+3. Copy wrapper files into `~/.bunpm/` (or `%USERPROFILE%\.bunpm\` on Windows)
+4. Update your PATH (registry on Windows; shell profile file on macOS/Linux)
 5. Verify everything works
-
----
 
 ## Uninstall
 
+### Windows
 ```powershell
 powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
 ```
 
-This removes the `~/.bunpm` folder and cleans your PATH entirely — both User and System level. Original npm is instantly restored. Bun stays installed.
+### macOS / Linux
+```bash
+bash "$HOME/.bunpm/scripts/uninstall.sh"
+```
 
 ---
 
@@ -217,8 +223,25 @@ The original npm is never modified, deleted, or renamed.
 
 | Platform | Status |
 |---|---|
-| Windows | ✅ Supported |
-| macOS / Linux | 🔜 Coming soon |
+| Windows 10/11 | ✅ Supported |
+| macOS (Intel & Apple Silicon) | ✅ Supported |
+| Linux (any distro with Node.js) | ✅ Supported |
+
+## Package Manager Support
+
+| Tool | Status |
+|---|---|
+| npm / npx | ✅ Fully routed through Bun |
+| yarn (Classic & Berry common subset) | ✅ Fully routed through Bun |
+| pnpm | ✅ Fully routed through Bun, except workspace-filtered commands (`-r`, `--filter`) which fall back to real pnpm for safety |
+
+---
+
+## Known Behavioral Differences
+
+- **pnpm users**: pnpm normally enforces strict, non-phantom `node_modules` structure. When bunpm routes pnpm commands through Bun, you get Bun's flatter `node_modules` layout instead — closer to npm's behavior than pnpm's usual strictness. If your project relies on pnpm's strict dependency isolation to catch phantom dependency bugs, be aware this safety net is not preserved while bunpm is active.
+- **yarn users**: yarn's `[1/4] Resolving / Fetching / Linking / Building` phase-by-phase progress display is not reproduced, since Bun's install pipeline doesn't have the same internal phase structure. You'll see a yarn-styled success summary, just without the phase breakdown.
+- **pnpm workspace commands**: any command using `-r`, `--recursive`, or `--filter` automatically falls back to your real pnpm installation rather than being routed through Bun, since workspace-scoped operations need pnpm's own filtering logic to target the correct set of packages safely.
 
 ---
 
