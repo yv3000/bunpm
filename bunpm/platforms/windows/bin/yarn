@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+// Unix-style shebang for PowerShell/Git Bash compatibility on Windows
+// Passes 'yarn' as invokedAs so core/wrapper.js knows context
+process.argv.splice(2, 0, 'yarn');
+require('../core/wrapper.js');
