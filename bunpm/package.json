@@ -1,16 +1,8 @@
 {
   "name": "bunpm",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Transparent npm wrapper that uses Bun under the hood for 10x faster installs",
-  "main": "lib/wrapper.js",
-  "bin": {
-    "bunpm-install": "scripts/install.ps1",
-    "bunpm-uninstall": "scripts/uninstall.ps1"
-  },
-  "scripts": {
-    "install-wrapper": "powershell -ExecutionPolicy Bypass -File scripts/install.ps1",
-    "uninstall-wrapper": "powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1"
-  },
+  "main": "core/wrapper.js",
   "keywords": [
     "npm",
     "bun",

@@ -14,7 +14,7 @@ const https = require('https');
 const os = require('os');
 const { execSync } = require('child_process');
 
-const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main';
+const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm';
 
 /**
  * Detect platform exactly the same way core/platform-detect.js does.
