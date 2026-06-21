@@ -1,2 +1,2 @@
 @ECHO OFF
-node "%~dp0..\lib\wrapper.js" npm %*
+node "%~dp0..\core\wrapper.js" npm %*

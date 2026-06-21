@@ -1,2 +1,2 @@
 @ECHO OFF
-node "%~dp0..\lib\wrapper.js" npx %*
+node "%~dp0..\core\wrapper.js" npx %*
