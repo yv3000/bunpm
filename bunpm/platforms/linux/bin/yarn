@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# bunpm launcher for yarn — macOS/Linux
+# NEW IN V2: intercepts yarn invocations the same way npm/npx are intercepted.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node "$SCRIPT_DIR/../core/wrapper.js" yarn "$@"
