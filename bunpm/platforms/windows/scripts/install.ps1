@@ -1,4 +1,4 @@
-# install.ps1 - bunpm one-time setup script
+﻿# install.ps1 - bunpm one-time setup script
 # Installs bun (if needed), copies wrapper files, prepends to User PATH.
 # Does NOT require admin/elevated privileges.
 
@@ -140,7 +140,7 @@ try {
             Copy-Item -Path (Join-Path $scriptsSrc "*") -Destination $scriptsDst -Recurse -Force
             Write-Success "Copied scripts/ folder to $installDir"
         } else {
-            Write-Warn "scripts/ folder not found at $scriptsSrc — uninstall.ps1 will not be available"
+            Write-Warn "scripts/ folder not found at $scriptsSrc - uninstall.ps1 will not be available"
         }
     } catch {
         Write-Err "Failed to copy scripts/ folder: $($_.Exception.Message)"
@@ -163,12 +163,12 @@ try {
     if (Test-Path $yarnCmd) {
         Write-Success "yarn launcher installed"
     } else {
-        Write-Warn "yarn.cmd not found in $binDir — yarn command interception will not work"
+        Write-Warn "yarn.cmd not found in $binDir - yarn command interception will not work"
     }
     if (Test-Path $pnpmCmd) {
         Write-Success "pnpm launcher installed"
     } else {
-        Write-Warn "pnpm.cmd not found in $binDir — pnpm command interception will not work"
+        Write-Warn "pnpm.cmd not found in $binDir - pnpm command interception will not work"
     }
 } catch {
     Write-Warn "Could not verify yarn/pnpm launchers"
