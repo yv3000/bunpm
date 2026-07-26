@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# bunpm launcher for npm — macOS/Linux
+# Resolves the absolute path to this script's own directory so that the
+# launcher works correctly no matter which directory the user's shell's
+# current working directory happens to be in when they invoke "npm".
+# This mirrors the Windows .cmd launcher's use of %~dp0 for the same purpose.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node "$SCRIPT_DIR/../core/wrapper.js" npm "$@"

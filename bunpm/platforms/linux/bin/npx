@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# bunpm launcher for npx — macOS/Linux
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node "$SCRIPT_DIR/../core/wrapper.js" npx "$@"
