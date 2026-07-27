@@ -1,0 +1,383 @@
+name: bunpm CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Windows ─────────────────────────────────────────────────────────────
+  test-windows:
+    name: Test Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run bootstrap installer
+        shell: pwsh
+        run: node bunpm/bootstrap.js
+
+      - name: Verify npm version (wrapper active)
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.bunpm\bin;$env:PATH"
+          $version = node "$env:USERPROFILE\.bunpm\bin\..\core\wrapper.js" npm --version
+          Write-Host "npm version: $version"
+          if ($version -ne "10.8.2") {
+            Write-Error "Expected 10.8.2 but got $version"
+            exit 1
+          }
+
+      - name: Verify yarn version (wrapper active)
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.bunpm\bin;$env:PATH"
+          $version = node "$env:USERPROFILE\.bunpm\bin\..\core\wrapper.js" yarn --version
+          Write-Host "yarn version: $version"
+          if ($version -ne "1.22.22") {
+            Write-Error "Expected 1.22.22 but got $version"
+            exit 1
+          }
+
+      - name: Verify pnpm version (wrapper active)
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.bunpm\bin;$env:PATH"
+          $version = node "$env:USERPROFILE\.bunpm\bin\..\core\wrapper.js" pnpm --version
+          Write-Host "pnpm version: $version"
+          if ($version -ne "9.12.0") {
+            Write-Error "Expected 9.12.0 but got $version"
+            exit 1
+          }
+
+      - name: Test npm install
+        shell: pwsh
+        run: |
+          mkdir test-windows && cd test-windows
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm init -y
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm install express
+          if (-not (Test-Path "node_modules\express")) {
+            Write-Error "express not found in node_modules"
+            exit 1
+          }
+          Write-Host "npm install express: PASS"
+
+      - name: Test yarn add
+        shell: pwsh
+        run: |
+          mkdir test-yarn && cd test-yarn
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm init -y
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" yarn add express
+          if (-not (Test-Path "node_modules\express")) {
+            Write-Error "express not found after yarn add"
+            exit 1
+          }
+          Write-Host "yarn add express: PASS"
+
+      - name: Test pnpm add
+        shell: pwsh
+        run: |
+          mkdir test-pnpm && cd test-pnpm
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm init -y
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" pnpm add express
+          if (-not (Test-Path "node_modules\express")) {
+            Write-Error "express not found after pnpm add"
+            exit 1
+          }
+          Write-Host "pnpm add express: PASS"
+
+      - name: Test npm uninstall
+        shell: pwsh
+        run: |
+          cd test-windows
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm uninstall express
+          if (Test-Path "node_modules\express") {
+            Write-Error "express still exists after uninstall"
+            exit 1
+          }
+          Write-Host "npm uninstall express: PASS"
+
+      - name: Test fallback commands (npm whoami should not crash)
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.bunpm\bin;$env:PATH"
+          node "$env:USERPROFILE\.bunpm\core\wrapper.js" npm whoami
+          Write-Host "fallback test: PASS (exit code doesnt matter, just no crash)"
+
+      - name: Verify scripts folder exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1")) {
+            Write-Error "uninstall.ps1 not found in .bunpm\scripts\"
+            exit 1
+          }
+          Write-Host "scripts folder: PASS"
+
+      - name: Run uninstall
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
+
+      - name: Verify uninstall cleaned up
+        shell: pwsh
+        run: |
+          if (Test-Path "$env:USERPROFILE\.bunpm") {
+            Write-Error ".bunpm folder still exists after uninstall"
+            exit 1
+          }
+          Write-Host "uninstall cleanup: PASS"
+
+  # ── macOS ────────────────────────────────────────────────────────────────
+  test-macos:
+    name: Test macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run bootstrap installer
+        run: node bunpm/bootstrap.js
+
+      - name: Verify install
+        run: |
+          ls -la ~/.bunpm/bin/
+          # Check execute bits
+          for f in npm npx yarn pnpm; do
+            if [ ! -x "$HOME/.bunpm/bin/$f" ]; then
+              echo "ERROR: $f is not executable"
+              exit 1
+            fi
+            echo "$f: executable OK"
+          done
+
+      - name: Verify npm version (wrapper active)
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js npm --version)
+          echo "npm version: $version"
+          if [ "$version" != "10.8.2" ]; then
+            echo "ERROR: Expected 10.8.2 got $version"
+            exit 1
+          fi
+
+      - name: Verify yarn version
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js yarn --version)
+          echo "yarn version: $version"
+          if [ "$version" != "1.22.22" ]; then
+            echo "ERROR: Expected 1.22.22 got $version"
+            exit 1
+          fi
+
+      - name: Verify pnpm version
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js pnpm --version)
+          echo "pnpm version: $version"
+          if [ "$version" != "9.12.0" ]; then
+            echo "ERROR: Expected 9.12.0 got $version"
+            exit 1
+          fi
+
+      - name: Test npm install
+        run: |
+          mkdir test-macos && cd test-macos
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js npm install express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found in node_modules"
+            exit 1
+          fi
+          echo "npm install express: PASS"
+
+      - name: Test yarn add
+        run: |
+          mkdir test-yarn && cd test-yarn
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js yarn add express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found after yarn add"
+            exit 1
+          fi
+          echo "yarn add express: PASS"
+
+      - name: Test pnpm add
+        run: |
+          mkdir test-pnpm && cd test-pnpm
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js pnpm add express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found after pnpm add"
+            exit 1
+          fi
+          echo "pnpm add express: PASS"
+
+      - name: Test npm uninstall
+        run: |
+          cd test-macos
+          node ~/.bunpm/core/wrapper.js npm uninstall express
+          if [ -d "node_modules/express" ]; then
+            echo "ERROR: express still exists after uninstall"
+            exit 1
+          fi
+          echo "npm uninstall express: PASS"
+
+      - name: Verify scripts folder exists
+        run: |
+          if [ ! -f "$HOME/.bunpm/scripts/uninstall.sh" ]; then
+            echo "ERROR: uninstall.sh not found"
+            exit 1
+          fi
+          echo "scripts folder: PASS"
+
+      - name: Run uninstall
+        run: bash ~/.bunpm/scripts/uninstall.sh
+
+      - name: Verify uninstall cleaned up
+        run: |
+          if [ -d "$HOME/.bunpm" ]; then
+            echo "ERROR: .bunpm still exists after uninstall"
+            exit 1
+          fi
+          echo "uninstall cleanup: PASS"
+
+  # ── Linux ────────────────────────────────────────────────────────────────
+  test-linux:
+    name: Test Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run bootstrap installer
+        run: node bunpm/bootstrap.js
+
+      - name: Verify install
+        run: |
+          ls -la ~/.bunpm/bin/
+          for f in npm npx yarn pnpm; do
+            if [ ! -x "$HOME/.bunpm/bin/$f" ]; then
+              echo "ERROR: $f is not executable"
+              exit 1
+            fi
+            echo "$f: executable OK"
+          done
+
+      - name: Verify npm version (wrapper active)
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js npm --version)
+          echo "npm version: $version"
+          if [ "$version" != "10.8.2" ]; then
+            echo "ERROR: Expected 10.8.2 got $version"
+            exit 1
+          fi
+
+      - name: Verify yarn version
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js yarn --version)
+          echo "yarn version: $version"
+          if [ "$version" != "1.22.22" ]; then
+            echo "ERROR: Expected 1.22.22 got $version"
+            exit 1
+          fi
+
+      - name: Verify pnpm version
+        run: |
+          version=$(node ~/.bunpm/core/wrapper.js pnpm --version)
+          echo "pnpm version: $version"
+          if [ "$version" != "9.12.0" ]; then
+            echo "ERROR: Expected 9.12.0 got $version"
+            exit 1
+          fi
+
+      - name: Test npm install
+        run: |
+          mkdir test-linux && cd test-linux
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js npm install express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found"
+            exit 1
+          fi
+          echo "npm install express: PASS"
+
+      - name: Test yarn add
+        run: |
+          mkdir test-yarn && cd test-yarn
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js yarn add express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found after yarn add"
+            exit 1
+          fi
+          echo "yarn add express: PASS"
+
+      - name: Test pnpm add
+        run: |
+          mkdir test-pnpm && cd test-pnpm
+          node ~/.bunpm/core/wrapper.js npm init -y
+          node ~/.bunpm/core/wrapper.js pnpm add express
+          if [ ! -d "node_modules/express" ]; then
+            echo "ERROR: express not found after pnpm add"
+            exit 1
+          fi
+          echo "pnpm add express: PASS"
+
+      - name: Test npm uninstall
+        run: |
+          cd test-linux
+          node ~/.bunpm/core/wrapper.js npm uninstall express
+          if [ -d "node_modules/express" ]; then
+            echo "ERROR: express still exists after uninstall"
+            exit 1
+          fi
+          echo "npm uninstall express: PASS"
+
+      - name: Verify scripts folder exists
+        run: |
+          if [ ! -f "$HOME/.bunpm/scripts/uninstall.sh" ]; then
+            echo "ERROR: uninstall.sh not found"
+            exit 1
+          fi
+          echo "scripts folder: PASS"
+
+      - name: Run uninstall
+        run: bash ~/.bunpm/scripts/uninstall.sh
+
+      - name: Verify uninstall cleaned up
+        run: |
+          if [ -d "$HOME/.bunpm" ]; then
+            echo "ERROR: .bunpm still exists after uninstall"
+            exit 1
+          fi
+          echo "uninstall cleanup: PASS"
