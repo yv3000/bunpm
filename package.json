@@ -1,0 +1,25 @@
+{
+  "name": "bunpm-repo",
+  "version": "2.0.4",
+  "private": true,
+  "description": "Repo-level tooling for bunpm. The published package lives in bunpm/ and has zero dependencies — eslint and prettier are declared here so they never ship to end users, because bootstrap.js downloads bunpm/package.json onto their machines.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "test": "bun test bunpm/core/",
+    "lint": "eslint bunpm/core",
+    "format": "prettier --check bunpm/core",
+    "format:write": "prettier --write bunpm/core",
+    "check-syntax": "node --check bunpm/core/wrapper.js && node --check bunpm/core/mapper.js && node --check bunpm/core/formatter.js && node --check bunpm/core/detector.js && node --check bunpm/core/platform-detect.js && node --check bunpm/core/errors.js && node --check bunpm/bootstrap.js"
+  },
+  "devDependencies": {
+    "eslint": "8.57.1",
+    "prettier": "3.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yv3000/bunpm.git"
+  }
+}
