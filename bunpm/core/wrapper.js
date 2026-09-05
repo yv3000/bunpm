@@ -14,6 +14,7 @@ const detector = require('./detector');
 const { mapCommand } = require('./mapper');
 const { formatLine } = require('./formatter');
 const { detectPlatform } = require('./platform-detect');
+const { BunpmError } = require('./errors');
 
 // Bun subcommands that must own the terminal directly (stdio: 'inherit').
 // These are long-running (dev servers, watchers) or interactive (test
@@ -22,11 +23,26 @@ const { detectPlatform } = require('./platform-detect');
 // `test` is included both as its own bun subcommand and via run scripts.
 const PASSTHROUGH_SUBCOMMANDS = new Set(['run', 'test', 'start', 'stop', 'restart']);
 
+/**
+ * detectPlatform() throws a plain Error for unsupported operating systems.
+ * Re-raise it as a typed BunpmError so the top-level handler prints
+ * "UNSUPPORTED_PLATFORM: ..." like every other expected failure.
+ *
+ * @returns {'windows'|'macos'|'linux'}
+ */
+function detectPlatformOrThrow() {
+  try {
+    return detectPlatform();
+  } catch {
+    throw BunpmError.unsupportedPlatform(process.platform);
+  }
+}
+
 function main() {
   try {
     const invokedAs = process.argv[2]; // 'npm', 'npx', 'yarn', or 'pnpm'
     const userArgs = process.argv.slice(3);
-    const platform = detectPlatform();
+    const platform = detectPlatformOrThrow();
 
     const bunPath = detector.getBunPath();
     const mapped = mapCommand(invokedAs, userArgs);
@@ -45,16 +61,16 @@ function main() {
         process.exit(result.status || 0);
       } else {
         // No bun AND no original binary found either — this is the one
-        // genuinely unrecoverable case. Print a clear, specific error
-        // rather than a generic crash.
+        // genuinely unrecoverable case. Raise a typed error so callers that
+        // wrap bunpm can tell "bun is missing" apart from "bun refused this
+        // command" without parsing English.
         if (!bunPath) {
-          console.error(`${invokedAs} error: Bun is required but was not found, and the original ${fallbackBinaryName} binary could not be located either.`);
-          console.error(`${invokedAs} error: Please install Bun from https://bun.sh, or reinstall ${fallbackBinaryName}.`);
-        } else {
-          console.error(`${invokedAs} error: This command ("${(mapped.fallbackArgs || userArgs).join(' ')}") is not supported by Bun, and the original ${fallbackBinaryName} binary could not be located on this system.`);
-          console.error(`${invokedAs} error: Please install ${fallbackBinaryName} normally to use this specific command.`);
+          throw BunpmError.bunNotFound(fallbackBinaryName);
         }
-        process.exit(1);
+        throw BunpmError.unsupportedCommand(
+          (mapped.fallbackArgs || userArgs).join(' '),
+          fallbackBinaryName
+        );
       }
       return;
     }
@@ -166,12 +182,19 @@ function main() {
         process.exit(fallbackResult.status || 0);
         return;
       }
+      // Nothing to fall back to. Without this throw, a spawn failure
+      // (result.status is null in that case) would exit 0 and look like
+      // a success to whatever called us.
+      throw BunpmError.spawnError(execPath, result.error.message || String(result.error));
     }
 
     process.exit(result.status || 0);
   } catch (err) {
-    console.error(`bunpm error: An unexpected error occurred.`);
-    console.error(`bunpm error: ${err.message || err}`);
+    // Print `CODE: message` on a single line. Anything that isn't a
+    // BunpmError is a genuine bug in bunpm, so it gets a distinct code
+    // rather than being disguised as one of the expected failures.
+    const code = err instanceof BunpmError ? err.code : 'UNEXPECTED_ERROR';
+    console.error(`${code}: ${err.message || err}`);
     try {
       const invokedAs = process.argv[2] || 'npm';
       const userArgs = process.argv.slice(3);
