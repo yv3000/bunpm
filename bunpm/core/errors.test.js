@@ -20,6 +20,11 @@ const FACTORIES = [
   ],
   ['unsupportedPlatform', () => BunpmError.unsupportedPlatform('aix'), CODES.UNSUPPORTED_PLATFORM],
   ['spawnError', () => BunpmError.spawnError('/usr/bin/bun', 'EACCES'), CODES.SPAWN_ERROR],
+  [
+    'invalidInvocation',
+    () => BunpmError.invalidInvocation('Unknown package manager "brew".'),
+    CODES.INVALID_INVOCATION,
+  ],
 ];
 
 describe('BunpmError', () => {
@@ -101,6 +106,12 @@ describe('BunpmError factories', () => {
     const message = BunpmError.spawnError('/usr/bin/bun', 'EACCES').message;
     expect(message).toContain('/usr/bin/bun');
     expect(message).toContain('EACCES');
+  });
+
+  it('spells out the expected argv shape in invalidInvocation()', () => {
+    const message = BunpmError.invalidInvocation('Unknown package manager "brew".').message;
+    expect(message).toContain('brew');
+    expect(message).toContain('<npm|npx|yarn|pnpm>');
   });
 
   it('has exactly one factory per declared code', () => {

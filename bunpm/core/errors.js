@@ -24,6 +24,8 @@ const CODES = Object.freeze({
   UNSUPPORTED_PLATFORM: 'UNSUPPORTED_PLATFORM',
   /** The child process could not be started at all (permissions, ENOENT). */
   SPAWN_ERROR: 'SPAWN_ERROR',
+  /** wrapper.js was called with arguments it cannot act on safely. */
+  INVALID_INVOCATION: 'INVALID_INVOCATION',
 });
 
 class BunpmError extends Error {
@@ -99,6 +101,22 @@ class BunpmError extends Error {
     return new BunpmError(
       CODES.SPAWN_ERROR,
       `Failed to run "${execPath}": ${reason}`
+    );
+  }
+
+  /**
+   * wrapper.js received arguments it cannot act on. This is not a user
+   * mistake in normal use — the launcher scripts always pass a valid
+   * package manager name — so it usually means a hand-written or
+   * mis-generated launcher.
+   *
+   * @param {string} detail - what specifically was wrong
+   * @returns {BunpmError}
+   */
+  static invalidInvocation(detail) {
+    return new BunpmError(
+      CODES.INVALID_INVOCATION,
+      `${detail} Expected: node core/wrapper.js <npm|npx|yarn|pnpm> [args...]`
     );
   }
 }
