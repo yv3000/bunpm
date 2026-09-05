@@ -7,9 +7,45 @@ on:
     branches: [main]
 
 jobs:
+  # ── Unit tests, lint, syntax (fast offline gate) ─────────────────────────
+  # Runs first and on Linux only: mapper, formatter, platform-detect and
+  # errors are pure logic with no OS-specific behaviour, so running them
+  # three times would cost minutes and prove nothing extra. The live install
+  # jobs below depend on this one, so a broken mapping table fails in
+  # seconds instead of after three full network installs.
+  test-unit:
+    name: Unit tests and lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dev tooling from the committed lockfile
+        run: bun install --frozen-lockfile
+
+      - name: Verify every source file is valid JavaScript
+        run: bun run check-syntax
+
+      - name: Run unit tests
+        run: bun test bunpm/core/
+
+      - name: Lint
+        run: bun run lint
+
   # ── Windows ─────────────────────────────────────────────────────────────
   test-windows:
     name: Test Windows
+    needs: [test-unit]
     runs-on: windows-latest
     steps:
       - name: Checkout repo
@@ -142,6 +178,7 @@ jobs:
   # ── macOS ────────────────────────────────────────────────────────────────
   test-macos:
     name: Test macOS
+    needs: [test-unit]
     runs-on: macos-latest
     steps:
       - name: Checkout repo
@@ -264,6 +301,7 @@ jobs:
   # ── Linux ────────────────────────────────────────────────────────────────
   test-linux:
     name: Test Linux
+    needs: [test-unit]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
