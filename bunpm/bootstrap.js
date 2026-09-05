@@ -113,11 +113,16 @@ function download(url, destPath) {
     const file = fs.createWriteStream(destPath);
     function get(u) {
       https.get(u, res => {
+        // These are early exits, not value returns — https.get ignores
+        // whatever its listener returns, so returning get()/reject()'s
+        // result would just be a misleading way to spell "stop here".
         if (res.statusCode === 301 || res.statusCode === 302) {
-          return get(res.headers.location);
+          get(res.headers.location);
+          return;
         }
         if (res.statusCode !== 200) {
-          return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
+          reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
+          return;
         }
         res.pipe(file);
         file.on('finish', () => { file.close(); resolve(); });
