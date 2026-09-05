@@ -57,6 +57,7 @@ const CORE_FILES = [
   'core/detector.js',
   'core/mapper.js',
   'core/formatter.js',
+  'core/errors.js',
   'core/wrapper.js',
 ];
 
