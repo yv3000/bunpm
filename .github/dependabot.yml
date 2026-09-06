@@ -34,6 +34,16 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: chore
+    ignore:
+      # eslint 9 removed .eslintrc support in favour of flat config, so any
+      # major bump lands a version that cannot read .eslintrc.json and the
+      # "Run ESLint" step fails. Minor and patch updates still come through.
+      #
+      # This is a deliberate hold, not a fix. Migrating .eslintrc.json to
+      # eslint.config.js would let eslint move forward again; until someone
+      # does that, an eslint major PR can only ever be red.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
