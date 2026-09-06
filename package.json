@@ -1,6 +1,6 @@
 {
   "name": "bunpm-repo",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "private": true,
   "description": "Repo-level tooling for bunpm. The published package lives in bunpm/ and has zero dependencies — eslint and prettier are declared here so they never ship to end users, because bootstrap.js downloads bunpm/package.json onto their machines.",
   "license": "MIT",
