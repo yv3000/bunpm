@@ -2,12 +2,21 @@
 #
 # Two ecosystems, both at the repo root:
 #
-#   npm            — package.json / bun.lock, which hold eslint and prettier.
+#   bun            — package.json + bun.lock, which hold eslint and prettier.
 #                    These are the project's only dependencies and they are
-#                    dev-only. bunpm/package.json is deliberately NOT listed:
-#                    it has zero dependencies by design (see Hard rules in
-#                    CONTRIBUTING.md), so an entry pointing at it would be
-#                    dead config with nothing to ever update.
+#                    dev-only.
+#
+#                    It must be `bun`, not `npm`. The npm updater edits
+#                    package.json and a yarn/npm lockfile but does not know how
+#                    to regenerate bun.lock, so every PR it opened left the
+#                    lockfile stale and CI failed at
+#                    `bun install --frozen-lockfile`. Dependabot's bun updater
+#                    handles the text-based bun.lock (bun >= 1.1.39).
+#
+#                    bunpm/package.json is deliberately NOT listed: it has zero
+#                    dependencies by design (see Hard rules in CONTRIBUTING.md),
+#                    so an entry pointing at it would be dead config with
+#                    nothing to ever update.
 #
 #   github-actions — the pinned action versions in .github/workflows/ci.yml
 #                    (actions/checkout, actions/setup-node, oven-sh/setup-bun).
@@ -17,7 +26,7 @@
 # format the rest of the history uses.
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: bun
     directory: "/"
     schedule:
       interval: weekly
