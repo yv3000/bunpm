@@ -1,0 +1,17 @@
+# bunfig.toml — repo-level bun configuration
+#
+# bun.lock is the authoritative lockfile and the one CI installs from
+# (`bun install --frozen-lockfile`). It is bun's text format, which only
+# became the default in bun 1.2 — plenty of tooling (dependency scanners,
+# SBOM generators, license checkers, GitHub's own dependency graph) still
+# only recognises the older lockfile names.
+#
+# `print = "yarn"` makes bun ALSO write a yarn v1 format lockfile on every
+# install, derived from the exact same resolution as bun.lock. It is not a
+# second source of truth and it is not hand-maintained: bun regenerates it
+# automatically, so it cannot drift.
+#
+# This repo does NOT use yarn. Do not run `yarn install`. The yarn.lock file
+# exists purely so external tooling can read our dependency set.
+[install.lockfile]
+print = "yarn"
