@@ -79,3 +79,41 @@ describe('bootstrap.js CORE_FILES', () => {
     expect(coreFiles).toContain('core/wrapper.js');
   });
 });
+
+describe('published package manifest', () => {
+  const manifestPath = path.join(REPO_PACKAGE_DIR, 'package.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+  it('declares no dependencies of any kind', () => {
+    // bootstrap.js copies this manifest onto the user's machine and never runs
+    // an install against it, so anything declared here would simply be absent
+    // at runtime — the failure would surface as MODULE_NOT_FOUND on the user's
+    // first npm command, not as a failed install. eslint and prettier live in
+    // the repo-root manifest for exactly this reason.
+    //
+    // A lockfile next to this manifest cannot enforce the same thing: bun
+    // deletes empty lockfiles ("No packages! Deleted empty lockfile"), so a
+    // zero-dependency package has nothing to lock. This test is the guard.
+    for (const field of [
+      'dependencies',
+      'devDependencies',
+      'peerDependencies',
+      'optionalDependencies',
+    ]) {
+      expect(manifest[field]).toBeUndefined();
+    }
+  });
+
+  it('points main at a file bootstrap actually downloads', () => {
+    expect(CORE_FILES).toContain(manifest.main);
+  });
+
+  it('declares the same version as the repo-root manifest', () => {
+    // A release bumps both. Bumping one and forgetting the other produces a
+    // tag whose commit disagrees with itself about what version it is.
+    const rootManifest = JSON.parse(
+      fs.readFileSync(path.join(REPO_PACKAGE_DIR, '..', 'package.json'), 'utf8')
+    );
+    expect(manifest.version).toBe(rootManifest.version);
+  });
+});
