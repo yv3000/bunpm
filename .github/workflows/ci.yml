@@ -33,6 +33,17 @@ jobs:
       - name: Install dev tooling from the committed lockfile
         run: bun install --frozen-lockfile
 
+      # Audits the repo root, which is where the only dependencies this project
+      # has (eslint, prettier — both dev-only) are declared. Auditing bunpm/
+      # instead would always pass trivially: that manifest has zero
+      # dependencies by design and nothing to audit.
+      #
+      # --audit-level=high so a low or moderate advisory in a dev-only linter
+      # dependency reports without blocking unrelated work, while anything
+      # high or critical fails the build.
+      - name: Audit dependencies
+        run: bun audit --audit-level=high
+
       - name: Verify every source file is valid JavaScript
         run: bun run check-syntax
 
