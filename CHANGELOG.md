@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Every npm/npx/yarn/pnpm wrapper entry point uses the shared validator before
   detection or execution; rejected arguments never trigger fallback execution.
+- Live CI installs download the tested commit, including fork PRs, instead of
+  mixing the checked-out bootstrap with files from mutable `main`.
 
 ## [2.0.5] - 2026-09-06
 

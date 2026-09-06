@@ -91,6 +91,8 @@ jobs:
           bun-version: latest
 
       - name: Run bootstrap installer
+        env:
+          BUNPM_REPO_BASE: https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name || github.repository }}/${{ github.event.pull_request.head.sha || github.sha }}/bunpm
         shell: pwsh
         run: node bunpm/bootstrap.js
 
@@ -224,6 +226,8 @@ jobs:
           bun-version: latest
 
       - name: Run bootstrap installer
+        env:
+          BUNPM_REPO_BASE: https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name || github.repository }}/${{ github.event.pull_request.head.sha || github.sha }}/bunpm
         run: node bunpm/bootstrap.js
 
       - name: Verify install
@@ -347,6 +351,8 @@ jobs:
           bun-version: latest
 
       - name: Run bootstrap installer
+        env:
+          BUNPM_REPO_BASE: https://raw.githubusercontent.com/${{ github.event.pull_request.head.repo.full_name || github.repository }}/${{ github.event.pull_request.head.sha || github.sha }}/bunpm
         run: node bunpm/bootstrap.js
 
       - name: Verify install
