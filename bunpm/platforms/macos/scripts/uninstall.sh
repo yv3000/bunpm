@@ -67,7 +67,14 @@ write_ok "Deleted $INSTALL_DIR"
 # we cannot guarantee this export persists back to the calling shell.
 # We attempt it anyway for the case where it IS sourced, and print an
 # explicit instruction either way.
-export PATH="$(echo "$PATH" | tr ':' '\n' | grep -vF "$BIN_DIR" | tr '\n' ':')"
+# Split from the export deliberately. The combined `export PATH="$(...)"` form
+# hides the pipeline's exit status (shellcheck SC2155), but splitting it means
+# that status now reaches `set -o pipefail`: grep -vF exits 1 when it prints
+# nothing, which is exactly what happens if $BIN_DIR was the only entry on
+# PATH. That is a correct outcome here, not a failure, so `|| true` stops it
+# aborting the script two lines before the summary below.
+CLEANED_PATH="$(echo "$PATH" | tr ':' '\n' | grep -vF "$BIN_DIR" | tr '\n' ':')" || true
+export PATH="$CLEANED_PATH"
 
 echo ""
 echo "  ------------------------------------"

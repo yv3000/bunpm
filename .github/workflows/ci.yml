@@ -53,6 +53,19 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      # ubuntu-latest runners ship shellcheck, so no install step is needed.
+      #
+      # The glob is */scripts/*.sh rather than **/*.sh: bash does not expand **
+      # recursively unless globstar is set, so **/*.sh would only reach one
+      # level down and miss every one of these files. All four installer and
+      # uninstaller scripts live at platforms/<os>/scripts/.
+      #
+      # These scripts are exercised for real by the live install jobs below,
+      # but only on the happy path. Static analysis is what covers the branches
+      # a green install never reaches.
+      - name: Shellcheck bash scripts
+        run: shellcheck bunpm/platforms/*/scripts/*.sh
+
   # ── Windows ─────────────────────────────────────────────────────────────
   test-windows:
     name: Test Windows
