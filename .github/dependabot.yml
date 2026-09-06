@@ -1,0 +1,36 @@
+# Dependabot configuration
+#
+# Two ecosystems, both at the repo root:
+#
+#   npm            — package.json / bun.lock, which hold eslint and prettier.
+#                    These are the project's only dependencies and they are
+#                    dev-only. bunpm/package.json is deliberately NOT listed:
+#                    it has zero dependencies by design (see Hard rules in
+#                    CONTRIBUTING.md), so an entry pointing at it would be
+#                    dead config with nothing to ever update.
+#
+#   github-actions — the pinned action versions in .github/workflows/ci.yml
+#                    (actions/checkout, actions/setup-node, oven-sh/setup-bun).
+#                    These are real dependencies that go stale silently.
+#
+# commit-message.prefix keeps Dependabot's PRs inside the conventional commit
+# format the rest of the history uses.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
