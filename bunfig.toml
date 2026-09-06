@@ -7,9 +7,14 @@
 # only recognises the older lockfile names.
 #
 # `print = "yarn"` makes bun ALSO write a yarn v1 format lockfile on every
-# install, derived from the exact same resolution as bun.lock. It is not a
-# second source of truth and it is not hand-maintained: bun regenerates it
-# automatically, so it cannot drift.
+# install, derived from the exact same resolution as bun.lock.
+#
+# It is generated, never hand-edited, so any local `bun install` brings it back
+# in step with bun.lock. It is not byte-verified in CI: Dependabot updates
+# package.json and bun.lock without touching yarn.lock, so gating on it would
+# make every dependency PR unmergeable until someone ran an install by hand.
+# bun.lock is the file that is enforced, via `bun install --frozen-lockfile`.
+# Treat yarn.lock as an export for outside readers, not a source of truth.
 #
 # This repo does NOT use yarn. Do not run `yarn install`. The yarn.lock file
 # exists purely so external tooling can read our dependency set.
