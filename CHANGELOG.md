@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   detection or execution; rejected arguments never trigger fallback execution.
 - Live CI installs download the tested commit, including fork PRs, instead of
   mixing the checked-out bootstrap with files from mutable `main`.
+- All GitHub Actions references use verified full commit SHAs with version comments.
 
 ## [2.0.5] - 2026-09-06
 
