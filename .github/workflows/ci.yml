@@ -33,6 +33,15 @@ jobs:
       - name: Install dev tooling from the committed lockfile
         run: bun install --frozen-lockfile
 
+      # bunfig.toml makes the install above regenerate yarn.lock from bun.lock,
+      # so at this point an unchanged working tree is proof the committed
+      # yarn.lock still matches the real resolution. Without this the file
+      # could silently rot — a Dependabot PR updates package.json and bun.lock
+      # but never touches yarn.lock, and nothing else would notice.
+      # Fix a failure here by running `bun install` and committing yarn.lock.
+      - name: Verify the generated yarn.lock is up to date
+        run: git diff --exit-code -- yarn.lock
+
       # Audits the repo root, which is where the only dependencies this project
       # has (eslint, prettier — both dev-only) are declared. Auditing bunpm/
       # instead would always pass trivially: that manifest has zero
