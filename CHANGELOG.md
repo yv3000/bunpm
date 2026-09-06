@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   non-array arguments, and rejects non-string or over-4096-character arguments with
   `INVALID_INVOCATION`. Included in bootstrap downloads and syntax checks.
 
+### Changed
+
+- Every npm/npx/yarn/pnpm wrapper entry point uses the shared validator before
+  detection or execution; rejected arguments never trigger fallback execution.
+
 ## [2.0.5] - 2026-09-06
 
 ### Added
