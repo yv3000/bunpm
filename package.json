@@ -15,7 +15,7 @@
     "check-syntax": "node --check bunpm/core/wrapper.js && node --check bunpm/core/mapper.js && node --check bunpm/core/formatter.js && node --check bunpm/core/detector.js && node --check bunpm/core/platform-detect.js && node --check bunpm/core/errors.js && node --check bunpm/bootstrap.js"
   },
   "devDependencies": {
-    "eslint": "8.57.1",
+    "eslint": "10.9.1",
     "prettier": "3.3.3"
   },
   "repository": {
