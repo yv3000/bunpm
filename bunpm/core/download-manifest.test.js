@@ -9,24 +9,20 @@
 // derives the require graph from the source and compares it to the list, so
 // the whole class of mistake fails here instead of in the field.
 //
-// bootstrap.js is read as text rather than required, because requiring it
-// would immediately start downloading files and running the installer.
+// bootstrap.js exports CORE_FILES when it is required rather than executed.
+// main() is guarded behind `require.main === module`, so requiring it here
+// downloads nothing and installs nothing — bootstrap-local.test.js asserts
+// that guard still holds. Reading the exported array beats scraping the
+// source with a regex, which would quietly pass if the array were reformatted.
 
 const { describe, it, expect } = require('bun:test');
 const fs = require('fs');
 const path = require('path');
 
-const CORE_DIR = __dirname;
-const BOOTSTRAP_PATH = path.join(CORE_DIR, '..', 'bootstrap.js');
-const REPO_PACKAGE_DIR = path.join(CORE_DIR, '..');
+const { CORE_FILES } = require('../bootstrap.js');
 
-/** @returns {string[]} the repo-relative paths listed in bootstrap.js CORE_FILES */
-function readCoreFilesList() {
-  const source = fs.readFileSync(BOOTSTRAP_PATH, 'utf8');
-  const block = source.match(/const CORE_FILES = \[([\s\S]*?)\];/);
-  if (!block) throw new Error('CORE_FILES array not found in bootstrap.js');
-  return [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
-}
+const CORE_DIR = __dirname;
+const REPO_PACKAGE_DIR = path.join(CORE_DIR, '..');
 
 /** @returns {string[]} names of the shipped (non-test) modules in core/ */
 function shippedCoreModules() {
@@ -45,7 +41,7 @@ function relativeRequires(fileName) {
 }
 
 describe('bootstrap.js CORE_FILES', () => {
-  const coreFiles = readCoreFilesList();
+  const coreFiles = CORE_FILES;
 
   it('is not empty and is entirely core/ paths', () => {
     expect(coreFiles.length).toBeGreaterThan(0);

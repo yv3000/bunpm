@@ -162,10 +162,14 @@ function download(url, destPath) {
  * for selective-download purposes as established in Part 1.
  *
  * @param {string} repoRelativePath
+ * @param {'windows'|'macos'|'linux'} [forPlatform] defaults to the detected
+ *   platform. Only ever passed explicitly by tests: the stripping is
+ *   deliberately scoped to ONE platform's prefix, so a test running on Linux
+ *   could otherwise never assert the windows or macos behaviour.
  * @returns {string} local staging-relative path
  */
-function toLocalStagingPath(repoRelativePath) {
-  const platformPrefix = `platforms/${platform}/`;
+function toLocalStagingPath(repoRelativePath, forPlatform = platform) {
+  const platformPrefix = `platforms/${forPlatform}/`;
   if (repoRelativePath.startsWith(platformPrefix)) {
     return repoRelativePath.slice(platformPrefix.length);
   }
@@ -243,8 +247,26 @@ async function main() {
   }
 }
 
-main().catch(e => {
-  console.error('');
-  console.error('  Bootstrap error:', e.message);
-  process.exit(1);
-});
+// Run only when invoked directly (`node bootstrap.js`), which is the only way
+// this file is ever used in production — the README one-liners and every CI
+// job execute it as a script, and nothing in the repo requires it.
+//
+// The guard is what makes the file testable at all. main() downloads 17 files
+// and then executes an install script, so without it a bare
+// `require('../bootstrap.js')` from a test would perform a real install on
+// whatever machine ran the test suite.
+if (require.main === module) {
+  main().catch(e => {
+    console.error('');
+    console.error('  Bootstrap error:', e.message);
+    process.exit(1);
+  });
+} else {
+  module.exports = {
+    toLocalStagingPath,
+    REPO_BASE,
+    DEFAULT_REPO_BASE,
+    CORE_FILES,
+    PLATFORM_FILES,
+  };
+}
