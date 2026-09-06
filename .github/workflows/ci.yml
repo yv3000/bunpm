@@ -50,7 +50,7 @@ jobs:
       - name: Run unit tests
         run: bun test bunpm/core/
 
-      - name: Lint
+      - name: Run ESLint
         run: bun run lint
 
       # ubuntu-latest runners ship shellcheck, so no install step is needed.
