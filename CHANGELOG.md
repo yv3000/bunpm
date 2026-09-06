@@ -5,7 +5,7 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.6] - 2026-09-06
 
 ### Added
 
@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   all three operating systems, including aborting installation on HTTP errors.
 - CI measures Bun coverage with test files excluded and enforces 70% total line
   coverage. The unit job now reports `test-unit`, matching branch protection.
+- `.env.example` and contributor guidance document environment variables, trusted
+  local HTTP overrides, and coverage scope. Local `.env` files are ignored.
 
 ### Changed
 
@@ -139,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib/mapper.js`, `lib/formatter.js`, `lib/detector.js`, and a PowerShell
   install/uninstall pair driven by a PATH prepend.
 
+[2.0.6]: https://github.com/yv3000/bunpm/compare/v2.0.5...v2.0.6
 [2.0.5]: https://github.com/yv3000/bunpm/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/yv3000/bunpm/compare/v2.0.0...v2.0.4
 [2.0.0]: https://github.com/yv3000/bunpm/compare/v1.2.2...v2.0.0
