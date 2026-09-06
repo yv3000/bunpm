@@ -12,7 +12,7 @@
     "lint": "eslint bunpm/core bunpm/bootstrap.js",
     "format": "prettier --check bunpm/core",
     "format:write": "prettier --write bunpm/core",
-    "check-syntax": "node --check bunpm/core/wrapper.js && node --check bunpm/core/mapper.js && node --check bunpm/core/formatter.js && node --check bunpm/core/detector.js && node --check bunpm/core/platform-detect.js && node --check bunpm/core/errors.js && node --check bunpm/bootstrap.js"
+    "check-syntax": "node --check bunpm/core/wrapper.js && node --check bunpm/core/mapper.js && node --check bunpm/core/formatter.js && node --check bunpm/core/detector.js && node --check bunpm/core/platform-detect.js && node --check bunpm/core/errors.js && node --check bunpm/core/validate-args.js && node --check bunpm/bootstrap.js"
   },
   "devDependencies": {
     "eslint": "8.57.1",

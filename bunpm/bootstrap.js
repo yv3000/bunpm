@@ -69,6 +69,7 @@ const CORE_FILES = [
   'core/mapper.js',
   'core/formatter.js',
   'core/errors.js',
+  'core/validate-args.js',
   'core/wrapper.js',
 ];
 
