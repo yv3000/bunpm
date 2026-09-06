@@ -14,7 +14,7 @@ jobs:
   # jobs below depend on this one, so a broken mapping table fails in
   # seconds instead of after three full network installs.
   test-unit:
-    name: Unit tests and lint
+    name: test-unit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -47,8 +47,13 @@ jobs:
       - name: Verify every source file is valid JavaScript
         run: bun run check-syntax
 
-      - name: Run unit tests
-        run: bun test bunpm/core/
+      - name: Run unit tests with coverage
+        shell: bash
+        run: bun test --coverage bunpm/core/ 2>&1 | tee coverage.log
+
+      - name: Require at least 70 percent line coverage
+        shell: bash
+        run: awk -F '|' '/^All files[[:space:]]*\|/ { found = 1; coverage = $3 + 0 } END { exit (!found || coverage < 70) }' coverage.log
 
       - name: Run ESLint
         run: bun run lint

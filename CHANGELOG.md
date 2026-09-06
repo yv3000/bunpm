@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `INVALID_INVOCATION`. Included in bootstrap downloads and syntax checks.
 - Offline bootstrap path/manifest tests and mocked download-to-installer checks for
   all three operating systems, including aborting installation on HTTP errors.
+- CI measures Bun coverage with test files excluded and enforces 70% total line
+  coverage. The unit job now reports `test-unit`, matching branch protection.
 
 ### Changed
 

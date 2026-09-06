@@ -20,3 +20,6 @@
 # exists purely so external tooling can read our dependency set.
 [install.lockfile]
 print = "yarn"
+
+[test]
+coverageSkipTestFiles = true
