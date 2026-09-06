@@ -154,3 +154,26 @@ bash ~/.bunpm/scripts/uninstall.sh    # or uninstall.ps1 on Windows
 
 Open a new shell for that last check — PATH changes do not apply retroactively to the
 shell that ran the installer.
+
+### Testing an installer change without pushing to main
+
+`bunpm/bootstrap.js` downloads the file set from a raw GitHub URL, which normally means a
+change to `CORE_FILES` or `PLATFORM_FILES` can only be verified after it has landed on
+`main`. `BUNPM_REPO_BASE` overrides that base URL:
+
+```bash
+# serve the repo's bunpm/ directory over http, then point bootstrap at it
+cd bunpm && python3 -m http.server 8000 &
+BUNPM_REPO_BASE=http://localhost:8000 node bunpm/bootstrap.js
+```
+
+It also works against a fork or branch:
+
+```bash
+BUNPM_REPO_BASE=https://raw.githubusercontent.com/<you>/bunpm/<branch>/bunpm \
+  node bunpm/bootstrap.js
+```
+
+Bootstrap prints the override in its output when it is set. Treat that line as a security
+notice, not decoration: the base URL is where install scripts are fetched from and those
+scripts are then executed. Never set it to a host you do not control or trust.

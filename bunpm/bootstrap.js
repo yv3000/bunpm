@@ -11,10 +11,21 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const http = require('http');
 const os = require('os');
 const { execSync } = require('child_process');
 
-const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm';
+// Where the installer fetches files from. Overridable via BUNPM_REPO_BASE so
+// a change to the file lists above can be exercised end to end against a
+// local static server or a fork's branch, instead of having to land on main
+// first and only then discover the install is broken.
+//
+// SECURITY: this is the origin of code that is downloaded and then EXECUTED
+// (install.sh / install.ps1 run at the end of main()). Point it only at a
+// source you trust. An override is announced in the install output rather
+// than applied silently, so an unexpected value is visible, not hidden.
+const DEFAULT_REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm';
+const REPO_BASE = process.env.BUNPM_REPO_BASE || DEFAULT_REPO_BASE;
 
 /**
  * Detect platform exactly the same way core/platform-detect.js does.
@@ -102,8 +113,8 @@ const PLATFORM_FILES = {
 const PACKAGE_JSON_FILE = 'package.json';
 
 /**
- * Download a single file from a GitHub raw URL to a local path,
- * following redirects (GitHub raw URLs sometimes 301/302 redirect).
+ * Download a single file from REPO_BASE to a local path, following redirects
+ * (GitHub raw URLs sometimes 301/302 redirect).
  *
  * @param {string} url
  * @param {string} destPath
@@ -113,7 +124,15 @@ function download(url, destPath) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
     function get(u) {
-      https.get(u, res => {
+      // Pick the client from the URL scheme rather than always using https.
+      // The default REPO_BASE is https, but BUNPM_REPO_BASE is allowed to be
+      // a plain http:// local static server — serving this over https would
+      // mean generating and trusting a certificate just to test a file list,
+      // which nobody would bother doing, so the override would go unused.
+      // Anything non-http:// is treated as https, so a malformed override
+      // cannot silently downgrade the default GitHub source to plaintext.
+      const client = u.startsWith('http://') ? http : https;
+      client.get(u, res => {
         // These are early exits, not value returns — https.get ignores
         // whatever its listener returns, so returning get()/reject()'s
         // result would just be a misleading way to spell "stop here".
@@ -157,6 +176,12 @@ async function main() {
   console.log('');
   console.log(`  bunpm bootstrap (detected platform: ${platform})`);
   console.log('  ------------------------------------');
+
+  if (REPO_BASE !== DEFAULT_REPO_BASE) {
+    console.log('');
+    console.log(`  [!] BUNPM_REPO_BASE override active — downloading from:`);
+    console.log(`      ${REPO_BASE}`);
+  }
 
   const filesToDownload = [
     ...CORE_FILES,
