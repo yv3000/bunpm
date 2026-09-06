@@ -24,12 +24,28 @@ bun install --frozen-lockfile
 `bun.lock`. It installs nothing for the shipped package — `bunpm/package.json` has no
 dependencies and must stay that way.
 
+### Environment Variables
+
+[`.env.example`](.env.example) documents every environment variable read by the
+project, its default, and local examples. You can copy it to `.env` as a local
+reference, but remove the sample OS paths and any overrides you do not need.
+There is no dotenv dependency: the Node.js entry points read real `process.env`
+values supplied by your shell or CI, not the file. Prefer exporting only the
+variable you need. Bun can auto-load `.env` during tests, so leave
+`BUNPM_REPO_BASE` unset for the default-configuration tests. Never commit `.env`.
+
+`BUNPM_REPO_BASE=http://localhost:8000` overrides the GitHub raw download base for
+local installer testing. Only use trusted sources: bootstrap executes the
+downloaded installer. `file://` URLs are unsupported; serve a local directory with
+`python3 -m http.server 8000 --directory bunpm` instead.
+
 ## Everyday commands
 
 Run these from the repo root:
 
 ```bash
 bun test bunpm/core/     # unit tests
+bun test --coverage bunpm/core/ # coverage report (test files excluded)
 bun run lint             # eslint over bunpm/core and bunpm/bootstrap.js
 bun run format           # prettier check (does not write)
 bun run check-syntax     # node --check on every shipped file
@@ -41,7 +57,10 @@ Or from inside the package directory:
 cd bunpm && bun test core/
 ```
 
-CI runs exactly these, in the `test-unit` job, before any live-install job starts.
+CI runs tests with a 70% reported line-coverage gate, syntax checks, and ESLint in
+the `test-unit` job before live-install jobs start; formatting is a local check.
+Coverage measures modules loaded by the test process, not subprocess-only wrapper
+execution or the VM-mocked installer. Those paths have separate behavioral tests.
 `no-console` is a **warning**, not an error — this is a CLI tool and `console.error` is the
 correct way to talk to the user. Lint must stay at **0 errors**.
 

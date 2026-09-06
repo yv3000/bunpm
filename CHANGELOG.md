@@ -5,6 +5,28 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.6] - 2026-09-06
+
+### Added
+
+- Dependency-free `core/validate-args.js` validates package-manager names, normalizes
+  non-array arguments, and rejects non-string or over-4096-character arguments with
+  `INVALID_INVOCATION`. Included in bootstrap downloads and syntax checks.
+- Offline bootstrap path/manifest tests and mocked download-to-installer checks for
+  all three operating systems, including aborting installation on HTTP errors.
+- CI measures Bun coverage with test files excluded and enforces 70% total line
+  coverage. The unit job now reports `test-unit`, matching branch protection.
+- `.env.example` and contributor guidance document environment variables, trusted
+  local HTTP overrides, and coverage scope. Local `.env` files are ignored.
+
+### Changed
+
+- Every npm/npx/yarn/pnpm wrapper entry point uses the shared validator before
+  detection or execution; rejected arguments never trigger fallback execution.
+- Live CI installs download the tested commit, including fork PRs, instead of
+  mixing the checked-out bootstrap with files from mutable `main`.
+- All GitHub Actions references use verified full commit SHAs with version comments.
+
 ## [2.0.5] - 2026-09-06
 
 ### Added
@@ -119,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib/mapper.js`, `lib/formatter.js`, `lib/detector.js`, and a PowerShell
   install/uninstall pair driven by a PATH prepend.
 
+[2.0.6]: https://github.com/yv3000/bunpm/compare/v2.0.5...v2.0.6
 [2.0.5]: https://github.com/yv3000/bunpm/compare/v2.0.4...v2.0.5
 [2.0.4]: https://github.com/yv3000/bunpm/compare/v2.0.0...v2.0.4
 [2.0.0]: https://github.com/yv3000/bunpm/compare/v1.2.2...v2.0.0

@@ -16,3 +16,6 @@ npm-debug.log*
 # Temp
 *.tmp
 *.temp
+
+# Local environment values; keep the documented example tracked.
+.env

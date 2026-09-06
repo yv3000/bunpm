@@ -15,6 +15,7 @@ const { mapCommand } = require('./mapper');
 const { formatLine } = require('./formatter');
 const { detectPlatform } = require('./platform-detect');
 const { BunpmError } = require('./errors');
+const { validateArgs } = require('./validate-args.js');
 
 // Bun subcommands that must own the terminal directly (stdio: 'inherit').
 // These are long-running (dev servers, watchers) or interactive (test
@@ -22,35 +23,6 @@ const { BunpmError } = require('./errors');
 // them appear hung. npm start/stop/restart already map to bun `run`, and
 // `test` is included both as its own bun subcommand and via run scripts.
 const PASSTHROUGH_SUBCOMMANDS = new Set(['run', 'test', 'start', 'stop', 'restart']);
-
-// The only values wrapper.js knows how to translate. argv[2] is set by the
-// launcher scripts in platforms/*/bin/, never typed by a user, so anything
-// outside this set means a hand-written or mis-generated launcher — and
-// continuing would mean mapping a command vocabulary we don't know.
-const SUPPORTED_INVOCATIONS = new Set(['npm', 'npx', 'yarn', 'pnpm']);
-
-/**
- * Validate argv before any detection, mapping, or spawning happens.
- * Every launcher passes [node, wrapper.js, invokedAs, ...userArgs]; this
- * checks that shape holds instead of letting an undefined invokedAs reach
- * mapCommand() and surface as a cryptic stack trace.
- *
- * @param {string[]} argv - process.argv
- * @returns {{invokedAs: string, userArgs: string[]}}
- * @throws {BunpmError} INVALID_INVOCATION
- */
-function validateInvocation(argv) {
-  if (argv.length < 3) {
-    throw BunpmError.invalidInvocation(
-      'No package manager name was passed to wrapper.js.'
-    );
-  }
-  const invokedAs = argv[2];
-  if (!SUPPORTED_INVOCATIONS.has(invokedAs)) {
-    throw BunpmError.invalidInvocation(`Unknown package manager "${invokedAs}".`);
-  }
-  return { invokedAs, userArgs: argv.slice(3) };
-}
 
 /**
  * detectPlatform() throws a plain Error for unsupported operating systems.
@@ -69,7 +41,7 @@ function detectPlatformOrThrow() {
 
 function main() {
   try {
-    const { invokedAs, userArgs } = validateInvocation(process.argv);
+    const { invokedAs, args: userArgs } = validateArgs(process.argv[2], process.argv.slice(3));
     const platform = detectPlatformOrThrow();
 
     const bunPath = detector.getBunPath();
