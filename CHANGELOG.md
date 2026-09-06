@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependency-free `core/validate-args.js` validates package-manager names, normalizes
   non-array arguments, and rejects non-string or over-4096-character arguments with
   `INVALID_INVOCATION`. Included in bootstrap downloads and syntax checks.
+- Offline bootstrap path/manifest tests and mocked download-to-installer checks for
+  all three operating systems, including aborting installation on HTTP errors.
 
 ### Changed
 
