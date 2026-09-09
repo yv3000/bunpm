@@ -38,9 +38,11 @@ bash bunpm/platforms/linux/scripts/install.sh
 ```
 
 Restart your terminal. Unix setup updates the first existing supported shell
-profile (or creates `.zprofile` on macOS / `.bashrc` on Linux). Windows setup
-changes **User PATH only**; System PATH can still precede it. To activate in the
-current PowerShell session explicitly:
+profile (or creates `.zprofile` on macOS / `.bashrc` on Linux) without adding a
+duplicate bunpm PATH entry. Windows setup changes **User PATH only** and treats
+case, quotes, and trailing separators as the same existing bunpm PATH entry;
+System PATH can still precede it. To activate in the current PowerShell session
+explicitly:
 
 ```powershell
 $env:PATH = "$env:USERPROFILE\.bunpm\bin;$env:PATH"

@@ -23,7 +23,13 @@ try {
     Copy-Item -LiteralPath (Join-Path $coreRoot 'package.json') -Destination $installDir
     if (-not $NoPath) {
         $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
-        if (($current -split ';') -notcontains $binDir) {
+        $normalizedBin = $binDir.Trim('"').TrimEnd('\')
+        $hasBin = @(
+            $current -split ';' |
+                ForEach-Object { $_.Trim('"').TrimEnd('\') } |
+                Where-Object { $_ -ieq $normalizedBin }
+        ).Count -gt 0
+        if (-not $hasBin) {
             [Environment]::SetEnvironmentVariable('PATH', "$binDir;$current", 'User')
         }
     }

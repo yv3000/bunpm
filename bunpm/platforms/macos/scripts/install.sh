@@ -28,7 +28,9 @@ if [ "${1:-}" != '--no-path' ]; then
   done
   # Literal HOME expansion avoids injecting special characters from a home path.
   # shellcheck disable=SC2016
-  printf '\n# Added by bunpm installer\nexport PATH="$HOME/.bunpm/bin:$PATH"\n' >> "$PROFILE"
+  if ! grep -Fqx 'export PATH="$HOME/.bunpm/bin:$PATH"' "$PROFILE"; then
+    printf '\n# Added by bunpm installer\nexport PATH="$HOME/.bunpm/bin:$PATH"\n' >> "$PROFILE"
+  fi
 fi
 trap - ERR
 echo 'bunpm installed. Restart your terminal; original managers remain unchanged.'
