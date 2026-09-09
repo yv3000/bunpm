@@ -30,7 +30,10 @@ function spawnCommand(binary, args, options = {}) {
     } else {
       // Generic batch shims require cmd.exe. Fail closed on shell syntax rather
       // than guessing escape rules through a potentially nested batch script.
-      if ([binary, ...args].some((value) => /["%!*^&|<>\r\n()]/.test(value)))
+      if (
+        /["%!^&|<>\r\n]/.test(binary) ||
+        args.some((value) => /["%!^&|<>\r\n()]/.test(value))
+      )
         throw new Error(
           'Unsafe batch argument; use the original Node CLI entrypoint instead',
         );

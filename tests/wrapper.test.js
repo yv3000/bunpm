@@ -247,11 +247,16 @@ test.skipIf(process.platform !== 'win32')(
   'Windows batch fallback preserves safe args and rejects shell injection',
   () => {
     const root = fixture();
-    const shim = path.join(root, 'original.cmd');
+    const bin = path.join(root, 'Program Files (x86)');
+    fs.mkdirSync(bin);
+    const shim = path.join(bin, 'original.cmd');
     fs.writeFileSync(shim, '@echo off\r\necho %~1\r\nexit /b 19\r\n');
     const result = spawnCommand(shim, ['space here'], { encoding: 'utf8' });
     expect(result.status).toBe(19);
     expect(result.stdout.trim()).toBe('space here');
+    const wildcard = spawnCommand(shim, ['*'], { encoding: 'utf8' });
+    expect(wildcard.status).toBe(19);
+    expect(wildcard.stdout.trim()).toBe('*');
     for (const arg of [
       'x&echo pwn',
       '%PATH%',

@@ -6,6 +6,29 @@ const cp = require('node:child_process');
 const { getBunPath, locateBinary } = require('../bunpm/core/detector');
 const { spawnCommand } = require('../bunpm/core/wrapper');
 
+test.skipIf(process.platform !== 'win32')(
+  'Windows PATH edits preserve raw values without touching the registry',
+  () => {
+    const result = cp.spawnSync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        path.resolve('tests/windows-path.ps1'),
+        '-Source',
+        path.resolve('bunpm/platforms/windows/scripts/path.ps1'),
+      ],
+      { encoding: 'utf8', timeout: 15000 },
+    );
+    expect({ status: result.status, stderr: result.stderr }).toEqual({
+      status: 0,
+      stderr: '',
+    });
+  },
+);
+
 test('native offline install, launcher, package script, fallback and uninstall', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-smoke-'));
   const windows = process.platform === 'win32';
@@ -75,6 +98,12 @@ test('native offline install, launcher, package script, fallback and uninstall',
     `bunpm/platforms/${platform}/scripts/uninstall.${windows ? 'ps1' : 'sh'}`,
   );
   try {
+    if (!windows)
+      expect(
+        fs.existsSync(
+          path.join(home, platform === 'macos' ? '.zprofile' : '.bashrc'),
+        ),
+      ).toBe(false);
     const result = script(install, windows);
     expect({
       status: result.status,
@@ -146,7 +175,11 @@ test('native offline install, launcher, package script, fallback and uninstall',
         platform === 'macos' ? '.zprofile' : '.bashrc',
       );
       fs.rmSync(installed, { recursive: true, force: true });
-      expect(script(install, false).status).toBe(0);
+      const reinstall = script(install, false);
+      expect({ status: reinstall.status, stderr: reinstall.stderr }).toEqual({
+        status: 0,
+        stderr: '',
+      });
       const profileContent = fs.readFileSync(profile, 'utf8');
       expect(profileContent.match(/# Added by bunpm installer/g)).toHaveLength(
         1,

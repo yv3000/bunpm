@@ -3,10 +3,10 @@ $ErrorActionPreference = 'Stop'
 $installDir = Join-Path $env:USERPROFILE '.bunpm'
 $binDir = Join-Path $installDir 'bin'
 if (-not $NoPath) {
-    $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
-    if ($null -ne $current) {
-        $entries = @($current -split ';' | Where-Object { $_.Trim('"').TrimEnd('\') -ine $binDir })
-        [Environment]::SetEnvironmentVariable('PATH', ($entries -join ';'), 'User')
+    . (Join-Path $PSScriptRoot 'path.ps1')
+    $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
+    if ($null -ne $key) {
+        try { Update-BunpmPath -Key $key -BinDir $binDir -Remove } finally { $key.Dispose() }
     }
 }
 if (Test-Path -LiteralPath $installDir) { Remove-Item -LiteralPath $installDir -Recurse -Force }

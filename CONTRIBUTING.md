@@ -3,6 +3,12 @@
 Development requires Node.js 22.13+ and Bun 1.3.14. Runtime code remains plain
 CommonJS with no external dependencies and no build step.
 
+Install [ShellCheck](https://www.shellcheck.net/) and
+[actionlint](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
+separately and put both executables on PATH for the full validation sequence.
+`bun install` provides neither tool. Bash is needed for Unix script checks;
+Windows installer checks require PowerShell.
+
 From a fresh clone:
 
 ```sh

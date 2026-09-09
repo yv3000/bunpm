@@ -32,6 +32,7 @@ function filesFor(platform) {
     files.push(
       `platforms/${platform}/scripts/${name}.${platform === 'windows' ? 'ps1' : 'sh'}`,
     );
+  if (platform === 'windows') files.push('platforms/windows/scripts/path.ps1');
   return [...files, 'package.json'];
 }
 

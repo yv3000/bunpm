@@ -22,16 +22,9 @@ try {
     Copy-Item -LiteralPath $PSScriptRoot -Destination (Join-Path $installDir 'scripts') -Recurse
     Copy-Item -LiteralPath (Join-Path $coreRoot 'package.json') -Destination $installDir
     if (-not $NoPath) {
-        $current = [Environment]::GetEnvironmentVariable('PATH', 'User')
-        $normalizedBin = $binDir.Trim('"').TrimEnd('\')
-        $hasBin = @(
-            $current -split ';' |
-                ForEach-Object { $_.Trim('"').TrimEnd('\') } |
-                Where-Object { $_ -ieq $normalizedBin }
-        ).Count -gt 0
-        if (-not $hasBin) {
-            [Environment]::SetEnvironmentVariable('PATH', "$binDir;$current", 'User')
-        }
+        . (Join-Path $PSScriptRoot 'path.ps1')
+        $key = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey('Environment')
+        try { Update-BunpmPath -Key $key -BinDir $binDir } finally { $key.Dispose() }
     }
 } catch {
     if (Test-Path -LiteralPath $installDir) { Remove-Item -LiteralPath $installDir -Recurse -Force }
