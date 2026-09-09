@@ -11,6 +11,8 @@ module.exports = [
       globals: Object.fromEntries(
         [
           'process',
+          '__dirname',
+          '__filename',
           'console',
           'Buffer',
           'URL',

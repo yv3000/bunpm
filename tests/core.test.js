@@ -88,6 +88,10 @@ test('parses scoped packages and formats known output, preserving unknown lines'
 });
 
 test('platform paths use the native home and reject non-Unix profiles', () => {
+  expect(platform.detectPlatform('win32')).toBe('windows');
+  expect(platform.detectPlatform('darwin')).toBe('macos');
+  expect(platform.detectPlatform('linux')).toBe('linux');
+  expect(() => platform.detectPlatform('aix')).toThrow('does not support');
   expect(platform.detectPlatform()).toBe(
     { win32: 'windows', darwin: 'macos', linux: 'linux' }[process.platform],
   );
@@ -111,4 +115,30 @@ test('platform paths use the native home and reject non-Unix profiles', () => {
   expect(() => platform.getShellProfileCandidates('windows')).toThrow(
     'non-Unix',
   );
+});
+
+test('formatter styles actual install counts and leaves versions unmodified', () => {
+  for (const invokedAs of ['npm', 'yarn', 'pnpm']) {
+    const context = { invokedAs, subcommand: 'add' };
+    expect(formatLine('  installed @scope/pkg@1.0.0', context)).toContain(
+      '@scope/pkg',
+    );
+    expect(formatLine('  1 package installed [1ms]', context)).toContain('1');
+    expect(formatLine('  2 packages installed [2ms]', context)).toContain('2');
+    expect(formatLine('  0 packages installed', context)).not.toContain(
+      'audit',
+    );
+    expect(formatLine('Done in 1s', context)).toBe(
+      invokedAs === 'npm'
+        ? null
+        : invokedAs === 'yarn'
+          ? 'Done in 1s.'
+          : 'Done in 1s',
+    );
+    expect(formatLine('$ build', { invokedAs, subcommand: 'run' })).toBeNull();
+    expect(formatLine('bun unknown', context)).toBeNull();
+    expect(formatLine('1.3.14', { invokedAs, subcommand: '--version' })).toBe(
+      '1.3.14',
+    );
+  }
 });
