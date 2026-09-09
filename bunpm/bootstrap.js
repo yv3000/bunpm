@@ -59,6 +59,13 @@ async function download(
   destination,
   { timeoutMs = 15000, maxBytes = 1024 * 1024 } = {},
 ) {
+  if (
+    !Number.isFinite(timeoutMs) ||
+    timeoutMs <= 0 ||
+    !Number.isSafeInteger(maxBytes) ||
+    maxBytes <= 0
+  )
+    throw new TypeError('Invalid download limits');
   let url = validateUrl(value);
   const initial = url;
   let activeRequest, activeResponse;
@@ -85,7 +92,7 @@ async function download(
       ]);
       activeResponse = response;
       if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
-        response.resume();
+        response.destroy();
         if (!response.headers.location || redirects === 5)
           throw new Error('Invalid or excessive redirect');
         url = validateUrl(new URL(response.headers.location, url));
@@ -94,7 +101,7 @@ async function download(
         continue;
       }
       if (response.statusCode !== 200) {
-        response.resume();
+        response.destroy();
         throw new Error(`HTTP ${response.statusCode}`);
       }
       let bytes = 0;
@@ -122,6 +129,8 @@ async function download(
     }
   } finally {
     clearTimeout(timer);
+    activeResponse?.destroy();
+    activeRequest?.destroy();
     if (created) fs.rmSync(partial, { force: true });
   }
 }

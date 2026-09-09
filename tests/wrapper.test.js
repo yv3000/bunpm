@@ -198,6 +198,25 @@ test('fallback runs only when safe and errors never become success', () => {
   expect(exitCode({ status: null })).toBe(1);
 });
 
+test('missing Bun falls back and pre-execution permission failure retries exactly once', () => {
+  mock(console, 'error', () => {});
+  const bun = mock(detector, 'getBunPath', () => null);
+  const original = mock(detector, 'locateBinary', () => process.execPath);
+  const spawn = mock(cp, 'spawnSync', () => ({ status: 31 }));
+  expect(main('npm', ['install'])).toBe(31);
+  expect(spawn.mock.calls[0][1]).toEqual(['install']);
+  original.mockImplementation(() => null);
+  expect(main('npm', ['install'])).toBe(1);
+  bun.mockImplementation(() => process.execPath);
+  original.mockImplementation(() => process.execPath);
+  spawn.mockImplementationOnce(() => ({
+    status: null,
+    error: Object.assign(new Error('denied'), { code: 'EACCES' }),
+  }));
+  expect(main('npm', ['install'])).toBe(31);
+  expect(spawn).toHaveBeenCalledTimes(3);
+});
+
 test('native child argv preserves metacharacters and exact nonzero exit', () => {
   const args = [
     'space here',

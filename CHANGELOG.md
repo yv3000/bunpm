@@ -23,3 +23,4 @@
   script automatically. Installers also work directly from the checked-out source.
 - Add explicit no-PATH installation/uninstallation modes for isolated testing and
   manual PATH management. Uninstall preserves unrelated shell-profile lines.
+- Close redirect/error responses promptly and validate download resource limits.
