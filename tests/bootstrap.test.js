@@ -78,6 +78,24 @@ test('bootstrap validates platform, manifest and URL trust boundary', () => {
     expect(() => validateUrl(url)).toThrow();
 });
 
+test('invalid limits and network failures fail before installation', async () => {
+  for (const options of [
+    { timeoutMs: 0 },
+    { timeoutMs: NaN },
+    { maxBytes: -1 },
+    { maxBytes: Infinity },
+  ]) {
+    await expect(
+      download(base + 'x', path.join(root, 'bad'), options),
+    ).rejects.toThrow('limits');
+  }
+  handler = (request, _response) => request.socket.destroy();
+  await expect(
+    download(base + 'x', path.join(root, 'bad'), { timeoutMs: 150 }),
+  ).rejects.toThrow();
+  expect(fs.existsSync(path.join(root, 'bad'))).toBe(false);
+});
+
 test('downloads publish only complete content and follow safe relative redirects', async () => {
   handler = (request, response) => {
     if (request.url.endsWith('/redirect')) {

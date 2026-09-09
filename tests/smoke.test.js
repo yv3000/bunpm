@@ -4,6 +4,7 @@ const path = require('node:path');
 const os = require('node:os');
 const cp = require('node:child_process');
 const { getBunPath, locateBinary } = require('../bunpm/core/detector');
+const { spawnCommand } = require('../bunpm/core/wrapper');
 
 test('native offline install, launcher, package script, fallback and uninstall', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-smoke-'));
@@ -31,6 +32,16 @@ test('native offline install, launcher, package script, fallback and uninstall',
     ),
     BUN_RUNTIME_TRANSPILER_CACHE_PATH: '0',
   };
+  // Node keeps the first spelling when Windows receives both Path and PATH.
+  for (const key of Object.keys(env)) {
+    if (
+      ['PATH', 'HOME', 'USERPROFILE', 'TEMP', 'TMP'].includes(
+        key.toUpperCase(),
+      ) &&
+      key !== key.toUpperCase()
+    )
+      delete env[key];
+  }
   // This command has no dependencies; it must not download or install anything.
   fs.writeFileSync(
     path.join(root, 'package.json'),
@@ -84,6 +95,51 @@ test('native offline install, launcher, package script, fallback and uninstall',
       });
     expect(invoke(['run', 'check']).status).toBe(27);
     expect(invoke(['test']).status).toBe(29);
+    if (windows) {
+      const batch = spawnCommand(
+        path.join(installed, 'bin', 'npm.cmd'),
+        ['run', 'check'],
+        { cwd: root, env, encoding: 'utf8', timeout: 15000 },
+      );
+      expect(batch.status).toBe(27);
+    }
+    const fallbackBin = path.join(root, 'original');
+    const cli = path.join(fallbackBin, 'node_modules', 'npm', 'bin');
+    fs.mkdirSync(cli, { recursive: true });
+    fs.writeFileSync(
+      path.join(cli, 'npm-cli.js'),
+      'console.log(process.argv.slice(2).join("|")); process.exitCode=37',
+    );
+    fs.writeFileSync(
+      path.join(fallbackBin, windows ? 'npm.cmd' : 'npm'),
+      windows
+        ? '@echo off\r\nexit /b 99\r\n'
+        : '#!/bin/sh\nprintf "%s\\n" "$*"\nexit 37\n',
+      { mode: 0o755 },
+    );
+    const fallback = cp.spawnSync(
+      node,
+      [path.join(installed, 'core', 'wrapper.js'), 'npm', 'run', 'literal'],
+      {
+        cwd: root,
+        env: {
+          ...env,
+          PATH: [path.join(installed, 'bin'), fallbackBin].join(path.delimiter),
+        },
+        encoding: 'utf8',
+        timeout: 15000,
+      },
+    );
+    expect({
+      status: fallback.status,
+      stdout: fallback.stdout,
+      stderr: fallback.stderr,
+    }).toEqual({
+      status: 37,
+      stdout: windows ? 'run|literal\n' : 'run literal\n',
+      stderr: '',
+    });
+    expect(fallback.stdout).toContain('literal');
     expect(script(install, windows).status).not.toBe(0);
     if (!windows) {
       const profile = path.join(
