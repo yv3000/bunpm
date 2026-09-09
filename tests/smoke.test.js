@@ -140,12 +140,21 @@ test('native offline install, launcher, package script, fallback and uninstall',
       stderr: '',
     });
     expect(fallback.stdout).toContain('literal');
-    expect(script(install, windows).status).not.toBe(0);
     if (!windows) {
       const profile = path.join(
         home,
         platform === 'macos' ? '.zprofile' : '.bashrc',
       );
+      fs.rmSync(installed, { recursive: true, force: true });
+      expect(script(install, false).status).toBe(0);
+      const profileContent = fs.readFileSync(profile, 'utf8');
+      expect(profileContent.match(/# Added by bunpm installer/g)).toHaveLength(
+        1,
+      );
+      expect(
+        profileContent.match(/export PATH="\$HOME\/\.bunpm\/bin:\$PATH"/g),
+      ).toHaveLength(1);
+      expect(script(install, false).status).not.toBe(0);
       fs.appendFileSync(
         profile,
         '# keep .bunpm/bin reference\nexport UNRELATED=ok\n',
