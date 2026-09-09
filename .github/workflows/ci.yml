@@ -28,6 +28,7 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test
       - run: bun run test:coverage
+        if: runner.os == 'Windows'
       - run: bun run test:repeat
       - run: bun run syntax:check
       - run: bun run lint

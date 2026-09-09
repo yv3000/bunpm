@@ -39,6 +39,9 @@ functions in **each** runtime JavaScript file, including bootstrap. Missing file
 fail the gate. Only tests and development scripts are excluded. Bun coverage does
 not provide a branch threshold here; native subprocess execution is covered by
 assertions, not counted as parent-process line coverage.
+The CI coverage gate runs on Windows, where the additional batch-spawn branches
+can execute. Unix jobs still execute their native tests and installer smoke;
+their local coverage can be lower because Windows code cannot run natively there.
 
 `test:repeat` launches three independent randomized runs with fixed printed seeds.
 `smoke` installs checked-out source into a disposable home, runs installed launchers
