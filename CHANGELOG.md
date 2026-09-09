@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Avoid missing-profile diagnostics on fresh Unix installs while retaining PATH
+  idempotence. Preserve raw Windows User PATH references and registry value type.
+- Permit quoted batch executable paths containing parentheses and literal wildcard
+  arguments, while retaining rejection of shell-sensitive argument syntax.
+
 - Return actual original-manager versions instead of fabricated version strings.
 - Run package test scripts through `bun run test`, preserving script arguments.
 - Fall back for unknown options, Yarn shorthand, `ci`, `init`, `exec`, version

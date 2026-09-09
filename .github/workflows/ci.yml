@@ -59,7 +59,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          foreach ($file in @('install.ps1', 'uninstall.ps1')) {
+          foreach ($file in @('install.ps1', 'uninstall.ps1', 'path.ps1')) {
             $tokens = $null
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile("$PWD/bunpm/platforms/windows/scripts/$file", [ref]$tokens, [ref]$errors) > $null
