@@ -16,3 +16,10 @@
   batch shims reject shell-sensitive arguments; use a Node CLI entrypoint for
   those arguments. Interactive commands retain the terminal.
 - Remove invented audit results from formatted output.
+- Require an immutable commit SHA for remote bootstrap. Restrict HTTPS URLs and
+  redirects to this repository/revision, cap time/size/redirects, propagate stream
+  errors, and never invoke an installer after a failed download.
+- Require Bun to be installed separately instead of executing a remote install
+  script automatically. Installers also work directly from the checked-out source.
+- Add explicit no-PATH installation/uninstallation modes for isolated testing and
+  manual PATH management. Uninstall preserves unrelated shell-profile lines.

@@ -1,228 +1,176 @@
-// bootstrap.js — bunpm v2 cross-platform installer entry point
-// Detects the user's OS, downloads ONLY the relevant core/ + platform-specific
-// files from GitHub, then invokes the platform-correct install script.
-//
-// Windows usage (PowerShell):
-//   irm https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -OutFile "$env:TEMP\bunpm_bootstrap.js"; node "$env:TEMP\bunpm_bootstrap.js"
-//
-// macOS/Linux usage (bash/zsh):
-//   curl -fsSL https://raw.githubusercontent.com/yv3000/bunpm/main/bootstrap.js -o /tmp/bunpm_bootstrap.js && node /tmp/bunpm_bootstrap.js
+// Standalone remote bootstrap: no imports from files not yet downloaded.
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+const https = require('node:https');
+const { pipeline } = require('node:stream/promises');
+const cp = require('node:child_process');
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const os = require('os');
-const { execSync } = require('child_process');
-
-const REPO_BASE = 'https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm';
-
-/**
- * Detect platform exactly the same way core/platform-detect.js does.
- * bootstrap.js cannot import core/platform-detect.js directly because at
- * the moment bootstrap.js runs, core/ has not been downloaded to disk yet —
- * this is the one and only place in the entire project where platform
- * detection logic is duplicated rather than imported from a single source,
- * and it is duplicated for exactly this unavoidable bootstrapping reason.
- * The logic itself MUST stay byte-for-byte identical to
- * core/platform-detect.js's detectPlatform() function — if you ever change
- * one, you must change the other to match, or bootstrap.js could download
- * the wrong platform subtree while core/wrapper.js (running later, on every
- * subsequent npm/yarn/pnpm invocation after install) detects a DIFFERENT
- * platform for itself, which would be a deeply confusing class of bug.
- *
- * @returns {'windows'|'macos'|'linux'}
- */
-function detectPlatform() {
-  const platform = process.platform;
-  if (platform === 'win32') return 'windows';
-  if (platform === 'darwin') return 'macos';
-  if (platform === 'linux') return 'linux';
-  throw new Error(
-    `bunpm does not support this platform (${platform}). ` +
-      `Supported platforms: Windows, macOS, Linux.`,
-  );
+function detectPlatform(platform = process.platform) {
+  const supported = { win32: 'windows', darwin: 'macos', linux: 'linux' };
+  if (!Object.hasOwn(supported, platform))
+    throw new Error(`Unsupported platform: ${platform}`);
+  return supported[platform];
 }
 
-const platform = detectPlatform();
-const home = os.homedir();
+function filesFor(platform) {
+  if (!['windows', 'macos', 'linux'].includes(platform))
+    throw new Error('Unsupported platform');
+  const files = [
+    'platform-detect.js',
+    'detector.js',
+    'mapper.js',
+    'formatter.js',
+    'wrapper.js',
+  ].map((file) => `core/${file}`);
+  for (const name of ['npm', 'npx', 'yarn', 'pnpm']) {
+    files.push(`platforms/${platform}/bin/${name}`);
+    if (platform === 'windows')
+      files.push(`platforms/${platform}/bin/${name}.cmd`);
+  }
+  for (const name of ['install', 'uninstall'])
+    files.push(
+      `platforms/${platform}/scripts/${name}.${platform === 'windows' ? 'ps1' : 'sh'}`,
+    );
+  return [...files, 'package.json'];
+}
 
-// Staging directory — separate from the final install destination
-// (~/.bunpm with a dot), matching the v1.2.2 convention of using a
-// no-dot staging folder during bootstrap.
-const stagingRoot = path.join(home, 'bunpm');
+function validateUrl(value) {
+  const url = new URL(value);
+  if (
+    url.protocol !== 'https:' ||
+    url.hostname !== 'raw.githubusercontent.com' ||
+    url.port ||
+    url.username ||
+    url.password ||
+    url.hash ||
+    url.search ||
+    !/^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//.test(url.pathname)
+  ) {
+    throw new Error(
+      'Unsafe download URL: expected this repository at an immutable HTTPS revision',
+    );
+  }
+  return url;
+}
 
-// ── Core files — identical set downloaded regardless of platform ─────────
-const CORE_FILES = [
-  'core/platform-detect.js',
-  'core/detector.js',
-  'core/mapper.js',
-  'core/formatter.js',
-  'core/wrapper.js',
-];
-
-// ── Platform-specific files — ONLY the matching platform's subtree ───────
-// This object is the literal enforcement mechanism for "only download
-// what's needed for my OS." Notice there is no code path anywhere in this
-// file that ever references 'platforms/windows/' while platform is
-// 'linux', or vice versa — the PLATFORM_FILES object is looked up by the
-// detected platform key ONCE, and only that one array of paths is ever
-// touched by the download loop below.
-const PLATFORM_FILES = {
-  windows: [
-    'platforms/windows/bin/npm.cmd',
-    'platforms/windows/bin/npm',
-    'platforms/windows/bin/npx.cmd',
-    'platforms/windows/bin/npx',
-    'platforms/windows/bin/yarn.cmd',
-    'platforms/windows/bin/yarn',
-    'platforms/windows/bin/pnpm.cmd',
-    'platforms/windows/bin/pnpm',
-    'platforms/windows/scripts/install.ps1',
-    'platforms/windows/scripts/uninstall.ps1',
-  ],
-  macos: [
-    'platforms/macos/bin/npm',
-    'platforms/macos/bin/npx',
-    'platforms/macos/bin/yarn',
-    'platforms/macos/bin/pnpm',
-    'platforms/macos/scripts/install.sh',
-    'platforms/macos/scripts/uninstall.sh',
-  ],
-  linux: [
-    'platforms/linux/bin/npm',
-    'platforms/linux/bin/npx',
-    'platforms/linux/bin/yarn',
-    'platforms/linux/bin/pnpm',
-    'platforms/linux/scripts/install.sh',
-    'platforms/linux/scripts/uninstall.sh',
-  ],
-};
-
-const PACKAGE_JSON_FILE = 'package.json';
-
-/**
- * Download a single file from a GitHub raw URL to a local path,
- * following redirects (GitHub raw URLs sometimes 301/302 redirect).
- *
- * @param {string} url
- * @param {string} destPath
- * @returns {Promise<void>}
- */
-function download(url, destPath) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destPath);
-    function get(u) {
-      https
-        .get(u, (res) => {
-          if (res.statusCode === 301 || res.statusCode === 302) {
-            return get(res.headers.location);
-          }
-          if (res.statusCode !== 200) {
-            return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
-          }
-          res.pipe(file);
-          file.on('finish', () => {
-            file.close();
-            resolve();
-          });
-        })
-        .on('error', reject);
-    }
-    get(url);
+async function download(
+  value,
+  destination,
+  { timeoutMs = 15000, maxBytes = 1024 * 1024 } = {},
+) {
+  let url = validateUrl(value);
+  const initial = url;
+  let activeRequest, activeResponse;
+  let rejectTimeout;
+  const deadline = new Promise((_resolve, reject) => {
+    rejectTimeout = reject;
   });
-}
-
-/**
- * Given a repo-relative file path like 'platforms/macos/bin/npm', compute
- * the correct local staging path. Platform-specific files get their
- * 'platforms/<platform>/' prefix stripped when staged locally, because the
- * end user's machine should only ever see a flat bin/ and scripts/ folder
- * matching THEIR platform — it should never see a nested platforms/macos/
- * folder structure on disk, that nesting only exists in the GitHub repo
- * for selective-download purposes as established in Part 1.
- *
- * @param {string} repoRelativePath
- * @returns {string} local staging-relative path
- */
-function toLocalStagingPath(repoRelativePath) {
-  const platformPrefix = `platforms/${platform}/`;
-  if (repoRelativePath.startsWith(platformPrefix)) {
-    return repoRelativePath.slice(platformPrefix.length);
-  }
-  return repoRelativePath;
-}
-
-async function main() {
-  console.log('');
-  console.log(`  bunpm bootstrap (detected platform: ${platform})`);
-  console.log('  ------------------------------------');
-
-  const filesToDownload = [
-    ...CORE_FILES,
-    ...PLATFORM_FILES[platform],
-    PACKAGE_JSON_FILE,
-  ];
-
-  // Create every staging subdirectory that will be needed, derived
-  // from the actual file list rather than hardcoded, so this stays
-  // correct even if the file lists above change in the future.
-  const dirsNeeded = new Set();
-  for (const f of filesToDownload) {
-    const localPath = toLocalStagingPath(f);
-    dirsNeeded.add(path.dirname(path.join(stagingRoot, localPath)));
-  }
-  for (const d of dirsNeeded) {
-    fs.mkdirSync(d, { recursive: true });
-  }
-
-  console.log('');
-  console.log(
-    `  Downloading ${filesToDownload.length} files for ${platform}...`,
-  );
-  for (const f of filesToDownload) {
-    const url = `${REPO_BASE}/${f}`;
-    const localPath = toLocalStagingPath(f);
-    const destPath = path.join(stagingRoot, localPath);
-    await download(url, destPath);
-    console.log(`  Downloaded: ${localPath}`);
-  }
-
-  console.log('');
-  console.log('  Running platform installer...');
-  console.log('');
-
-  if (platform === 'windows') {
-    const ps1Path = path.join(stagingRoot, 'scripts', 'install.ps1');
-    try {
-      execSync(`powershell -ExecutionPolicy Bypass -File "${ps1Path}"`, {
-        stdio: 'inherit',
+  const timer = setTimeout(() => {
+    const error = new Error('Download timed out');
+    rejectTimeout(error);
+    activeResponse?.destroy(error);
+    activeRequest?.destroy(error);
+  }, timeoutMs);
+  const partial = `${destination}.partial`;
+  let created = false;
+  try {
+    for (let redirects = 0; redirects <= 5; redirects++) {
+      const response = await Promise.race([
+        deadline,
+        new Promise((resolve, reject) => {
+          activeRequest = https.get(url, {}, resolve);
+          activeRequest.on('error', reject);
+        }),
+      ]);
+      activeResponse = response;
+      if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
+        response.resume();
+        if (!response.headers.location || redirects === 5)
+          throw new Error('Invalid or excessive redirect');
+        url = validateUrl(new URL(response.headers.location, url));
+        if (url.pathname.split('/')[3] !== initial.pathname.split('/')[3])
+          throw new Error('Redirect changed revision');
+        continue;
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        throw new Error(`HTTP ${response.statusCode}`);
+      }
+      let bytes = 0;
+      response.on('data', (chunk) => {
+        bytes += chunk.length;
+        if (bytes > maxBytes)
+          response.destroy(new Error('Download exceeds size limit'));
       });
-    } catch (e) {
-      console.error('Install failed with code:', e.status);
-      process.exit(e.status || 1);
+      // Exclusive creation prevents following an existing partial-file symlink.
+      let fd;
+      try {
+        fd = fs.openSync(partial, 'wx', 0o600);
+      } catch (error) {
+        response.destroy();
+        throw error;
+      }
+      created = true;
+      await Promise.race([
+        deadline,
+        pipeline(response, fs.createWriteStream(partial, { fd })),
+      ]);
+      if (!bytes) throw new Error('Empty download');
+      fs.renameSync(partial, destination);
+      return;
     }
-  } else {
-    // macOS or Linux
-    const shPath = path.join(stagingRoot, 'scripts', 'install.sh');
-    try {
-      fs.chmodSync(shPath, 0o755);
-    } catch {
-      // if chmod fails here, the shell invocation below via `bash` rather
-      // than direct execution still works, since we're explicitly invoking
-      // the bash interpreter on the file rather than relying on the file's
-      // own execute bit — this fallback is intentional, not a bug
-    }
-    try {
-      execSync(`bash "${shPath}"`, { stdio: 'inherit' });
-    } catch (e) {
-      console.error('Install failed with code:', e.status);
-      process.exit(e.status || 1);
-    }
+  } finally {
+    clearTimeout(timer);
+    if (created) fs.rmSync(partial, { force: true });
   }
 }
 
-main().catch((e) => {
-  console.error('');
-  console.error('  Bootstrap error:', e.message);
-  process.exit(1);
-});
+async function main(args = process.argv.slice(2)) {
+  if (
+    args.length !== 2 ||
+    args[0] !== '--revision' ||
+    !/^[a-f0-9]{40}$/.test(args[1])
+  )
+    throw new Error(
+      'Usage: node bootstrap.js --revision <40-character commit SHA>',
+    );
+  const platform = detectPlatform();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-download-'));
+  try {
+    for (const file of filesFor(platform)) {
+      const local = file.replace(`platforms/${platform}/`, '');
+      const destination = path.join(root, local);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      await download(
+        `https://raw.githubusercontent.com/yv3000/bunpm/${args[1]}/bunpm/${file}`,
+        destination,
+      );
+    }
+    const windows = platform === 'windows';
+    const script = path.join(
+      root,
+      'scripts',
+      windows ? 'install.ps1' : 'install.sh',
+    );
+    const result = cp.spawnSync(
+      windows ? 'powershell.exe' : 'bash',
+      windows
+        ? ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script]
+        : [script],
+      { stdio: 'inherit', shell: false },
+    );
+    if (result.error) throw result.error;
+    if (result.status !== 0)
+      throw new Error(`Installer failed (${result.status ?? result.signal})`);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+module.exports = { detectPlatform, filesFor, validateUrl, download, main };
+if (require.main === module)
+  main().catch((error) => {
+    console.error(`Bootstrap error: ${error.message}`);
+    process.exitCode = 1;
+  });
