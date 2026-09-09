@@ -1,0 +1,12 @@
+* text=auto
+*.js text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+bunpm/platforms/*/bin/npm text eol=lf
+bunpm/platforms/*/bin/npx text eol=lf
+bunpm/platforms/*/bin/yarn text eol=lf
+bunpm/platforms/*/bin/pnpm text eol=lf

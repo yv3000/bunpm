@@ -7,80 +7,80 @@
 // NPM TABLE — unchanged from v1.2.2, preserved exactly
 // ─────────────────────────────────────────────────────────────────────────
 const NPM_TO_BUN = {
-  'install':     { cmd: 'add',      argsPassthrough: true  },
-  'i':           { cmd: 'add',      argsPassthrough: true  },
-  'add':         { cmd: 'add',      argsPassthrough: true  },
-  'ci':          { cmd: 'install',  args: ['--frozen-lockfile'], argsPassthrough: false },
-  'uninstall':   { cmd: 'remove',   argsPassthrough: true  },
-  'remove':      { cmd: 'remove',   argsPassthrough: true  },
-  'rm':          { cmd: 'remove',   argsPassthrough: true  },
-  'r':           { cmd: 'remove',   argsPassthrough: true  },
-  'un':          { cmd: 'remove',   argsPassthrough: true  },
-  'unlink':      { cmd: 'remove',   argsPassthrough: true  },
-  'run':         { cmd: 'run',      argsPassthrough: true  },
-  'run-script':  { cmd: 'run',      argsPassthrough: true  },
-  'start':       { cmd: 'run',      args: ['start']        },
-  'test':        { cmd: 'test',     argsPassthrough: true  },
-  't':           { cmd: 'test',     argsPassthrough: true  },
-  'stop':        { cmd: 'run',      args: ['stop']         },
-  'restart':     { cmd: 'run',      args: ['restart']      },
-  'exec':        { cmd: 'x',        argsPassthrough: true  },
-  'init':        { cmd: 'init',     argsPassthrough: true  },
-  'create':      { cmd: 'create',   argsPassthrough: true  },
-  'update':      { cmd: 'update',   argsPassthrough: true  },
-  'upgrade':     { cmd: 'update',   argsPassthrough: true  },
-  'up':          { cmd: 'update',   argsPassthrough: true  },
-  'list':        { cmd: 'pm',       args: ['ls']           },
-  'ls':          { cmd: 'pm',       args: ['ls']           },
-  'outdated':    { cmd: 'outdated', argsPassthrough: true  },
-  '--version':   { cmd: '--version', argsPassthrough: false },
-  '-v':          { cmd: '--version', argsPassthrough: false },
-  'version':     { cmd: '--version', argsPassthrough: false },
-  'cache':       { cmd: 'pm',       args: ['cache']        },
-  'dedupe':      { cmd: 'install',  args: ['--no-save']    },
-  'prune':       { cmd: 'install',  args: []               },
-  'link':        { cmd: 'link',     argsPassthrough: true  },
-  'rebuild':     { cmd: 'rebuild',  argsPassthrough: true  },
-  'rb':          { cmd: 'rebuild',  argsPassthrough: true  },
-  'publish':     { fallbackTo: 'npm' },
-  'login':       { fallbackTo: 'npm' },
-  'logout':      { fallbackTo: 'npm' },
-  'whoami':      { fallbackTo: 'npm' },
-  'adduser':     { fallbackTo: 'npm' },
-  'audit':       { fallbackTo: 'npm' },
-  'fund':        { fallbackTo: 'npm' },
-  'pack':        { fallbackTo: 'npm' },
-  'deprecate':   { fallbackTo: 'npm' },
-  'dist-tag':    { fallbackTo: 'npm' },
-  'access':      { fallbackTo: 'npm' },
-  'team':        { fallbackTo: 'npm' },
-  'profile':     { fallbackTo: 'npm' },
-  'org':         { fallbackTo: 'npm' },
-  'token':       { fallbackTo: 'npm' },
-  'hook':        { fallbackTo: 'npm' },
+  install: { cmd: 'add', argsPassthrough: true },
+  i: { cmd: 'add', argsPassthrough: true },
+  add: { cmd: 'add', argsPassthrough: true },
+  ci: { cmd: 'install', args: ['--frozen-lockfile'], argsPassthrough: false },
+  uninstall: { cmd: 'remove', argsPassthrough: true },
+  remove: { cmd: 'remove', argsPassthrough: true },
+  rm: { cmd: 'remove', argsPassthrough: true },
+  r: { cmd: 'remove', argsPassthrough: true },
+  un: { cmd: 'remove', argsPassthrough: true },
+  unlink: { cmd: 'remove', argsPassthrough: true },
+  run: { cmd: 'run', argsPassthrough: true },
+  'run-script': { cmd: 'run', argsPassthrough: true },
+  start: { cmd: 'run', args: ['start'] },
+  test: { cmd: 'test', argsPassthrough: true },
+  t: { cmd: 'test', argsPassthrough: true },
+  stop: { cmd: 'run', args: ['stop'] },
+  restart: { cmd: 'run', args: ['restart'] },
+  exec: { cmd: 'x', argsPassthrough: true },
+  init: { cmd: 'init', argsPassthrough: true },
+  create: { cmd: 'create', argsPassthrough: true },
+  update: { cmd: 'update', argsPassthrough: true },
+  upgrade: { cmd: 'update', argsPassthrough: true },
+  up: { cmd: 'update', argsPassthrough: true },
+  list: { cmd: 'pm', args: ['ls'] },
+  ls: { cmd: 'pm', args: ['ls'] },
+  outdated: { cmd: 'outdated', argsPassthrough: true },
+  '--version': { cmd: '--version', argsPassthrough: false },
+  '-v': { cmd: '--version', argsPassthrough: false },
+  version: { cmd: '--version', argsPassthrough: false },
+  cache: { cmd: 'pm', args: ['cache'] },
+  dedupe: { cmd: 'install', args: ['--no-save'] },
+  prune: { cmd: 'install', args: [] },
+  link: { cmd: 'link', argsPassthrough: true },
+  rebuild: { cmd: 'rebuild', argsPassthrough: true },
+  rb: { cmd: 'rebuild', argsPassthrough: true },
+  publish: { fallbackTo: 'npm' },
+  login: { fallbackTo: 'npm' },
+  logout: { fallbackTo: 'npm' },
+  whoami: { fallbackTo: 'npm' },
+  adduser: { fallbackTo: 'npm' },
+  audit: { fallbackTo: 'npm' },
+  fund: { fallbackTo: 'npm' },
+  pack: { fallbackTo: 'npm' },
+  deprecate: { fallbackTo: 'npm' },
+  'dist-tag': { fallbackTo: 'npm' },
+  access: { fallbackTo: 'npm' },
+  team: { fallbackTo: 'npm' },
+  profile: { fallbackTo: 'npm' },
+  org: { fallbackTo: 'npm' },
+  token: { fallbackTo: 'npm' },
+  hook: { fallbackTo: 'npm' },
 };
 
 const NPM_FLAG_MAP = {
-  '--save-dev':          '-d',
-  '-D':                  '-d',
-  '--save-exact':        '-E',
-  '-E':                  '-E',
-  '--global':            '-g',
-  '-g':                  '-g',
-  '--save':              '',
-  '-S':                  '',
-  '--no-save':           '--no-save',
-  '--legacy-peer-deps':  '',
-  '--force':             '--force',
-  '-f':                  '--force',
-  '--frozen-lockfile':   '--frozen-lockfile',
-  '--production':        '--production',
-  '--prefer-offline':    '--prefer-offline',
-  '--registry':          '--registry',
-  '--verbose':           '--verbose',
-  '--silent':            '--silent',
-  '--quiet':             '--silent',
-  '-q':                  '--silent',
+  '--save-dev': '-d',
+  '-D': '-d',
+  '--save-exact': '-E',
+  '-E': '-E',
+  '--global': '-g',
+  '-g': '-g',
+  '--save': '',
+  '-S': '',
+  '--no-save': '--no-save',
+  '--legacy-peer-deps': '',
+  '--force': '--force',
+  '-f': '--force',
+  '--frozen-lockfile': '--frozen-lockfile',
+  '--production': '--production',
+  '--prefer-offline': '--prefer-offline',
+  '--registry': '--registry',
+  '--verbose': '--verbose',
+  '--silent': '--silent',
+  '--quiet': '--silent',
+  '-q': '--silent',
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -96,51 +96,56 @@ const YARN_TO_BUN = {
   // mapYarnCommand() below, not in this table, because it needs the
   // "no package args present" check just like npm install does.
 
-  'add':         { cmd: 'add',      argsPassthrough: true  },   // yarn add express -> bun add express
-  'remove':      { cmd: 'remove',   argsPassthrough: true  },   // yarn remove express -> bun remove express
-  'install':     { cmd: 'install',  argsPassthrough: true  },   // yarn install -> bun install (explicit form)
-  'run':         { cmd: 'run',      argsPassthrough: true  },   // yarn run dev -> bun run dev
-  'global':      { cmd: 'add',      args: ['-g'], argsPassthrough: true, sliceFirstArg: true }, // yarn global add X -> bun add -g X (sliceFirstArg drops the literal word "add" that follows "global")
-  'upgrade':     { cmd: 'update',   argsPassthrough: true  },   // yarn upgrade -> bun update
-  'up':          { cmd: 'update',   argsPassthrough: true  },   // yarn up (Berry alias) -> bun update
-  'why':         { cmd: 'pm',       args: ['why'], argsPassthrough: true }, // yarn why express -> bun pm why express
-  'list':        { cmd: 'pm',       args: ['ls']           },
-  'outdated':    { cmd: 'outdated', argsPassthrough: true  },
-  'init':        { cmd: 'init',     argsPassthrough: true  },
-  'create':      { cmd: 'create',   argsPassthrough: true  },   // yarn create vite -> bun create vite
-  'dlx':         { useBunx: true, sliceFirstArg: true },          // yarn dlx create-vite -> bunx create-vite (special dispatch handled in wrapper, sliceFirstArg drops literal "dlx")
-  'exec':        { useBunx: true, sliceFirstArg: true },          // yarn exec X -> bunx X (Berry's exec, same pattern as dlx)
-  'link':        { cmd: 'link',     argsPassthrough: true  },
-  'unlink':      { cmd: 'unlink',   argsPassthrough: true  },
-  'version':     { cmd: '--version', argsPassthrough: false },
-  '--version':   { cmd: '--version', argsPassthrough: false },
-  '-v':          { cmd: '--version', argsPassthrough: false },
-  'cache':       { cmd: 'pm',       args: ['cache']        },
-  'audit':       { fallbackTo: 'yarn' },
-  'login':       { fallbackTo: 'yarn' },
-  'logout':      { fallbackTo: 'yarn' },
-  'publish':     { fallbackTo: 'yarn' },
-  'pack':        { fallbackTo: 'yarn' },
-  'config':      { fallbackTo: 'yarn' },         // yarn config get/set has no clean bun equivalent
-  'workspaces':  { fallbackTo: 'yarn' },         // Berry-specific workspace tooling, too version-specific to safely proxy
-  'workspace':   { fallbackTo: 'yarn' },
-  'set':         { fallbackTo: 'yarn' },         // Berry's `yarn set version` etc — version-management commands stay native
-  'plugin':      { fallbackTo: 'yarn' },         // Berry plugin system has no bun equivalent at all
-  'constraints': { fallbackTo: 'yarn' },         // Berry-only feature, no equivalent
+  add: { cmd: 'add', argsPassthrough: true }, // yarn add express -> bun add express
+  remove: { cmd: 'remove', argsPassthrough: true }, // yarn remove express -> bun remove express
+  install: { cmd: 'install', argsPassthrough: true }, // yarn install -> bun install (explicit form)
+  run: { cmd: 'run', argsPassthrough: true }, // yarn run dev -> bun run dev
+  global: {
+    cmd: 'add',
+    args: ['-g'],
+    argsPassthrough: true,
+    sliceFirstArg: true,
+  }, // yarn global add X -> bun add -g X (sliceFirstArg drops the literal word "add" that follows "global")
+  upgrade: { cmd: 'update', argsPassthrough: true }, // yarn upgrade -> bun update
+  up: { cmd: 'update', argsPassthrough: true }, // yarn up (Berry alias) -> bun update
+  why: { cmd: 'pm', args: ['why'], argsPassthrough: true }, // yarn why express -> bun pm why express
+  list: { cmd: 'pm', args: ['ls'] },
+  outdated: { cmd: 'outdated', argsPassthrough: true },
+  init: { cmd: 'init', argsPassthrough: true },
+  create: { cmd: 'create', argsPassthrough: true }, // yarn create vite -> bun create vite
+  dlx: { useBunx: true, sliceFirstArg: true }, // yarn dlx create-vite -> bunx create-vite (special dispatch handled in wrapper, sliceFirstArg drops literal "dlx")
+  exec: { useBunx: true, sliceFirstArg: true }, // yarn exec X -> bunx X (Berry's exec, same pattern as dlx)
+  link: { cmd: 'link', argsPassthrough: true },
+  unlink: { cmd: 'unlink', argsPassthrough: true },
+  version: { cmd: '--version', argsPassthrough: false },
+  '--version': { cmd: '--version', argsPassthrough: false },
+  '-v': { cmd: '--version', argsPassthrough: false },
+  cache: { cmd: 'pm', args: ['cache'] },
+  audit: { fallbackTo: 'yarn' },
+  login: { fallbackTo: 'yarn' },
+  logout: { fallbackTo: 'yarn' },
+  publish: { fallbackTo: 'yarn' },
+  pack: { fallbackTo: 'yarn' },
+  config: { fallbackTo: 'yarn' }, // yarn config get/set has no clean bun equivalent
+  workspaces: { fallbackTo: 'yarn' }, // Berry-specific workspace tooling, too version-specific to safely proxy
+  workspace: { fallbackTo: 'yarn' },
+  set: { fallbackTo: 'yarn' }, // Berry's `yarn set version` etc — version-management commands stay native
+  plugin: { fallbackTo: 'yarn' }, // Berry plugin system has no bun equivalent at all
+  constraints: { fallbackTo: 'yarn' }, // Berry-only feature, no equivalent
 };
 
 const YARN_FLAG_MAP = {
-  '--dev':               '-d',
-  '-D':                  '-d',
-  '--exact':             '-E',
-  '-E':                  '-E',
-  '--ignore-engines':    '',          // bun does not enforce engines field the same way, drop
-  '--frozen-lockfile':   '--frozen-lockfile',
-  '--prefer-offline':    '--prefer-offline',
-  '--silent':            '--silent',
-  '--verbose':           '--verbose',
-  '-W':                  '',          // yarn's "skip workspace root check" flag, no bun equivalent needed since bun doesn't enforce this the same way
-  '--ignore-scripts':    '--ignore-scripts',
+  '--dev': '-d',
+  '-D': '-d',
+  '--exact': '-E',
+  '-E': '-E',
+  '--ignore-engines': '', // bun does not enforce engines field the same way, drop
+  '--frozen-lockfile': '--frozen-lockfile',
+  '--prefer-offline': '--prefer-offline',
+  '--silent': '--silent',
+  '--verbose': '--verbose',
+  '-W': '', // yarn's "skip workspace root check" flag, no bun equivalent needed since bun doesn't enforce this the same way
+  '--ignore-scripts': '--ignore-scripts',
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -152,60 +157,60 @@ const YARN_FLAG_MAP = {
 // of this table need to be aware of, documented in the README.
 // ─────────────────────────────────────────────────────────────────────────
 const PNPM_TO_BUN = {
-  'add':         { cmd: 'add',      argsPassthrough: true  },
-  'install':     { cmd: 'install',  argsPassthrough: true  },
-  'i':           { cmd: 'install',  argsPassthrough: true  },
-  'remove':      { cmd: 'remove',   argsPassthrough: true  },
-  'rm':          { cmd: 'remove',   argsPassthrough: true  },
-  'uninstall':   { cmd: 'remove',   argsPassthrough: true  },
-  'un':          { cmd: 'remove',   argsPassthrough: true  },
-  'run':         { cmd: 'run',      argsPassthrough: true  },
-  'start':       { cmd: 'run',      args: ['start']        },
-  'test':        { cmd: 'test',     argsPassthrough: true  },
-  't':           { cmd: 'test',     argsPassthrough: true  },
-  'update':      { cmd: 'update',   argsPassthrough: true  },
-  'up':          { cmd: 'update',   argsPassthrough: true  },
-  'upgrade':     { cmd: 'update',   argsPassthrough: true  },
-  'list':        { cmd: 'pm',       args: ['ls']           },
-  'ls':          { cmd: 'pm',       args: ['ls']           },
-  'outdated':    { cmd: 'outdated', argsPassthrough: true  },
-  'why':         { cmd: 'pm',       args: ['why'], argsPassthrough: true },
-  'init':        { cmd: 'init',     argsPassthrough: true  },
-  'create':      { cmd: 'create',   argsPassthrough: true  },
-  'dlx':         { useBunx: true, sliceFirstArg: true },     // pnpm dlx create-vite -> bunx create-vite
-  'exec':        { cmd: 'run',      argsPassthrough: true  }, // pnpm exec X -> closest is bun run X for scripts; for arbitrary binaries this is imperfect, documented limitation
-  'link':        { cmd: 'link',     argsPassthrough: true  },
-  'unlink':      { cmd: 'unlink',   argsPassthrough: true  },
-  '--version':   { cmd: '--version', argsPassthrough: false },
-  '-v':          { cmd: '--version', argsPassthrough: false },
-  'version':     { cmd: '--version', argsPassthrough: false },
-  'store':       { fallbackTo: 'pnpm' },         // pnpm's content-addressable store management, no bun equivalent
-  'audit':       { fallbackTo: 'pnpm' },
-  'login':       { fallbackTo: 'pnpm' },
-  'logout':      { fallbackTo: 'pnpm' },
-  'publish':     { fallbackTo: 'pnpm' },
-  'pack':        { fallbackTo: 'pnpm' },
-  'config':      { fallbackTo: 'pnpm' },
-  'patch':       { fallbackTo: 'pnpm' },         // pnpm's patch-package-like feature, no bun equivalent
+  add: { cmd: 'add', argsPassthrough: true },
+  install: { cmd: 'install', argsPassthrough: true },
+  i: { cmd: 'install', argsPassthrough: true },
+  remove: { cmd: 'remove', argsPassthrough: true },
+  rm: { cmd: 'remove', argsPassthrough: true },
+  uninstall: { cmd: 'remove', argsPassthrough: true },
+  un: { cmd: 'remove', argsPassthrough: true },
+  run: { cmd: 'run', argsPassthrough: true },
+  start: { cmd: 'run', args: ['start'] },
+  test: { cmd: 'test', argsPassthrough: true },
+  t: { cmd: 'test', argsPassthrough: true },
+  update: { cmd: 'update', argsPassthrough: true },
+  up: { cmd: 'update', argsPassthrough: true },
+  upgrade: { cmd: 'update', argsPassthrough: true },
+  list: { cmd: 'pm', args: ['ls'] },
+  ls: { cmd: 'pm', args: ['ls'] },
+  outdated: { cmd: 'outdated', argsPassthrough: true },
+  why: { cmd: 'pm', args: ['why'], argsPassthrough: true },
+  init: { cmd: 'init', argsPassthrough: true },
+  create: { cmd: 'create', argsPassthrough: true },
+  dlx: { useBunx: true, sliceFirstArg: true }, // pnpm dlx create-vite -> bunx create-vite
+  exec: { cmd: 'run', argsPassthrough: true }, // pnpm exec X -> closest is bun run X for scripts; for arbitrary binaries this is imperfect, documented limitation
+  link: { cmd: 'link', argsPassthrough: true },
+  unlink: { cmd: 'unlink', argsPassthrough: true },
+  '--version': { cmd: '--version', argsPassthrough: false },
+  '-v': { cmd: '--version', argsPassthrough: false },
+  version: { cmd: '--version', argsPassthrough: false },
+  store: { fallbackTo: 'pnpm' }, // pnpm's content-addressable store management, no bun equivalent
+  audit: { fallbackTo: 'pnpm' },
+  login: { fallbackTo: 'pnpm' },
+  logout: { fallbackTo: 'pnpm' },
+  publish: { fallbackTo: 'pnpm' },
+  pack: { fallbackTo: 'pnpm' },
+  config: { fallbackTo: 'pnpm' },
+  patch: { fallbackTo: 'pnpm' }, // pnpm's patch-package-like feature, no bun equivalent
   'patch-commit': { fallbackTo: 'pnpm' },
-  'rebuild':     { cmd: 'rebuild',  argsPassthrough: true  },
-  'rb':          { cmd: 'rebuild',  argsPassthrough: true  },
-  'deploy':      { fallbackTo: 'pnpm' },         // pnpm workspace deploy feature, version-specific, stays native
-  'recursive':   { fallbackTo: 'pnpm' },         // pnpm -r / pnpm recursive, workspace-wide ops, too complex to safely proxy
+  rebuild: { cmd: 'rebuild', argsPassthrough: true },
+  rb: { cmd: 'rebuild', argsPassthrough: true },
+  deploy: { fallbackTo: 'pnpm' }, // pnpm workspace deploy feature, version-specific, stays native
+  recursive: { fallbackTo: 'pnpm' }, // pnpm -r / pnpm recursive, workspace-wide ops, too complex to safely proxy
 };
 
 const PNPM_FLAG_MAP = {
-  '--save-dev':          '-d',
-  '-D':                  '-d',
-  '--save-exact':        '-E',
-  '-E':                  '-E',
-  '--global':            '-g',
-  '-g':                  '-g',
-  '--frozen-lockfile':   '--frozen-lockfile',
-  '--prefer-offline':    '--prefer-offline',
-  '--silent':            '--silent',
-  '--reporter':          '',          // pnpm-specific output formatting flag, no bun equivalent, drop
-  '--filter':             '',          // pnpm workspace filter syntax differs from bun's --filter syntax enough that blind passthrough would be wrong; dropped here means workspace-filtered commands fall through to fallbackTo:'pnpm' at the subcommand level instead (handled by checking for this flag's presence, see mapPnpmCommand below)
+  '--save-dev': '-d',
+  '-D': '-d',
+  '--save-exact': '-E',
+  '-E': '-E',
+  '--global': '-g',
+  '-g': '-g',
+  '--frozen-lockfile': '--frozen-lockfile',
+  '--prefer-offline': '--prefer-offline',
+  '--silent': '--silent',
+  '--reporter': '', // pnpm-specific output formatting flag, no bun equivalent, drop
+  '--filter': '', // pnpm workspace filter syntax differs from bun's --filter syntax enough that blind passthrough would be wrong; dropped here means workspace-filtered commands fall through to fallbackTo:'pnpm' at the subcommand level instead (handled by checking for this flag's presence, see mapPnpmCommand below)
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -224,18 +229,20 @@ const PNPM_FLAG_MAP = {
  * @returns {string[]}
  */
 function translateFlags(args, flagMap) {
-  return args.map(arg => {
-    if (arg.startsWith('-')) {
-      const eqIndex = arg.indexOf('=');
-      const flag = eqIndex !== -1 ? arg.substring(0, eqIndex) : arg;
-      const value = eqIndex !== -1 ? arg.substring(eqIndex + 1) : null;
-      const translated = flagMap[flag];
-      if (translated === undefined) return arg;
-      if (translated === '') return null;
-      return value !== null ? `${translated}=${value}` : translated;
-    }
-    return arg;
-  }).filter(Boolean);
+  return args
+    .map((arg) => {
+      if (arg.startsWith('-')) {
+        const eqIndex = arg.indexOf('=');
+        const flag = eqIndex !== -1 ? arg.substring(0, eqIndex) : arg;
+        const value = eqIndex !== -1 ? arg.substring(eqIndex + 1) : null;
+        const translated = flagMap[flag];
+        if (translated === undefined) return arg;
+        if (translated === '') return null;
+        return value !== null ? `${translated}=${value}` : translated;
+      }
+      return arg;
+    })
+    .filter(Boolean);
 }
 
 /**
@@ -247,7 +254,7 @@ function translateFlags(args, flagMap) {
  * @returns {boolean}
  */
 function hasNonFlagArgs(args) {
-  return args.some(a => !a.startsWith('-'));
+  return args.some((a) => !a.startsWith('-'));
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -274,13 +281,21 @@ function mapNpmCommand(args) {
   }
 
   // Special case: npm install / npm i with no package args = install all deps
-  if ((subcommand === 'install' || subcommand === 'i') && !hasNonFlagArgs(restArgs)) {
-    return { useBunx: false, bunArgs: ['install', ...translateFlags(restArgs, NPM_FLAG_MAP)], fallbackTo: null };
+  if (
+    (subcommand === 'install' || subcommand === 'i') &&
+    !hasNonFlagArgs(restArgs)
+  ) {
+    return {
+      useBunx: false,
+      bunArgs: ['install', ...translateFlags(restArgs, NPM_FLAG_MAP)],
+      fallbackTo: null,
+    };
   }
 
   let bunArgs = [mapping.cmd];
   if (mapping.args) bunArgs = bunArgs.concat(mapping.args);
-  if (mapping.argsPassthrough) bunArgs = bunArgs.concat(translateFlags(restArgs, NPM_FLAG_MAP));
+  if (mapping.argsPassthrough)
+    bunArgs = bunArgs.concat(translateFlags(restArgs, NPM_FLAG_MAP));
 
   return { useBunx: false, bunArgs, fallbackTo: null };
 }
@@ -307,10 +322,17 @@ function mapYarnCommand(args) {
   // Example: `yarn express` is equivalent to `yarn add express` in real yarn.
   // We detect this by checking: is args[0] NOT a known subcommand AND NOT
   // a flag? If so, treat the entire args array as implicit "add" args.
-  const isKnownSubcommand = Object.prototype.hasOwnProperty.call(YARN_TO_BUN, subcommand);
+  const isKnownSubcommand = Object.prototype.hasOwnProperty.call(
+    YARN_TO_BUN,
+    subcommand,
+  );
   const looksLikeFlag = subcommand.startsWith('-');
   if (!isKnownSubcommand && !looksLikeFlag) {
-    return { useBunx: false, bunArgs: ['add', ...translateFlags(args, YARN_FLAG_MAP)], fallbackTo: null };
+    return {
+      useBunx: false,
+      bunArgs: ['add', ...translateFlags(args, YARN_FLAG_MAP)],
+      fallbackTo: null,
+    };
   }
 
   const mapping = YARN_TO_BUN[subcommand];
@@ -330,7 +352,11 @@ function mapYarnCommand(args) {
 
   // yarn install with no package args = install everything
   if (subcommand === 'install' && !hasNonFlagArgs(restArgs)) {
-    return { useBunx: false, bunArgs: ['install', ...translateFlags(restArgs, YARN_FLAG_MAP)], fallbackTo: null };
+    return {
+      useBunx: false,
+      bunArgs: ['install', ...translateFlags(restArgs, YARN_FLAG_MAP)],
+      fallbackTo: null,
+    };
   }
 
   // yarn global add <pkg> needs the literal word "add" sliced out of
@@ -338,13 +364,18 @@ function mapYarnCommand(args) {
   // sets cmd:'add' args:['-g'] — we don't want to pass "add" through
   // again as if it were a package name.
   let effectiveRestArgs = restArgs;
-  if (mapping.sliceFirstArg && restArgs[0] && restArgs[0].toLowerCase() === 'add') {
+  if (
+    mapping.sliceFirstArg &&
+    restArgs[0] &&
+    restArgs[0].toLowerCase() === 'add'
+  ) {
     effectiveRestArgs = restArgs.slice(1);
   }
 
   let bunArgs = [mapping.cmd];
   if (mapping.args) bunArgs = bunArgs.concat(mapping.args);
-  if (mapping.argsPassthrough) bunArgs = bunArgs.concat(translateFlags(effectiveRestArgs, YARN_FLAG_MAP));
+  if (mapping.argsPassthrough)
+    bunArgs = bunArgs.concat(translateFlags(effectiveRestArgs, YARN_FLAG_MAP));
 
   return { useBunx: false, bunArgs, fallbackTo: null };
 }
@@ -372,8 +403,8 @@ function mapPnpmCommand(args) {
   // anywhere in the args causes an immediate fallback to real pnpm rather
   // than attempting a translation that might silently target the wrong
   // set of workspace packages.
-  const hasWorkspaceFlag = args.some(a =>
-    a === '-r' || a === '--recursive' || a.startsWith('--filter')
+  const hasWorkspaceFlag = args.some(
+    (a) => a === '-r' || a === '--recursive' || a.startsWith('--filter'),
   );
   if (hasWorkspaceFlag) {
     return { fallbackTo: 'pnpm', fallbackArgs: args };
@@ -390,13 +421,21 @@ function mapPnpmCommand(args) {
     return { useBunx: true, bunArgs: restArgs, fallbackTo: null };
   }
 
-  if ((subcommand === 'install' || subcommand === 'i') && !hasNonFlagArgs(restArgs)) {
-    return { useBunx: false, bunArgs: ['install', ...translateFlags(restArgs, PNPM_FLAG_MAP)], fallbackTo: null };
+  if (
+    (subcommand === 'install' || subcommand === 'i') &&
+    !hasNonFlagArgs(restArgs)
+  ) {
+    return {
+      useBunx: false,
+      bunArgs: ['install', ...translateFlags(restArgs, PNPM_FLAG_MAP)],
+      fallbackTo: null,
+    };
   }
 
   let bunArgs = [mapping.cmd];
   if (mapping.args) bunArgs = bunArgs.concat(mapping.args);
-  if (mapping.argsPassthrough) bunArgs = bunArgs.concat(translateFlags(restArgs, PNPM_FLAG_MAP));
+  if (mapping.argsPassthrough)
+    bunArgs = bunArgs.concat(translateFlags(restArgs, PNPM_FLAG_MAP));
 
   return { useBunx: false, bunArgs, fallbackTo: null };
 }
@@ -427,7 +466,9 @@ function mapCommand(invokedAs, args) {
   if (invokedAs === 'pnpm') {
     return mapPnpmCommand(args);
   }
-  throw new Error(`mapCommand() called with unknown invokedAs value: "${invokedAs}". Expected one of: npm, npx, yarn, pnpm.`);
+  throw new Error(
+    `mapCommand() called with unknown invokedAs value: "${invokedAs}". Expected one of: npm, npx, yarn, pnpm.`,
+  );
 }
 
 module.exports = {

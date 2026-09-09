@@ -34,7 +34,10 @@ function buildLocateCommand(binaryName) {
 function locateBinary(binaryName, fallbackPaths) {
   try {
     const cmd = buildLocateCommand(binaryName);
-    const result = execSync(cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = execSync(cmd, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
     const firstLine = result.trim().split('\n')[0].trim();
     if (firstLine) return firstLine;
   } catch {
@@ -61,16 +64,17 @@ function locateBinary(binaryName, fallbackPaths) {
 function getBunPath() {
   const platform = detectPlatform();
   const home = getHomeDir();
-  const fallbackPaths = platform === 'windows'
-    ? [
-        path.join(home, '.bun', 'bin', 'bun.exe'),
-        path.join(home, '.bun', 'bin', 'bun'),
-      ]
-    : [
-        path.join(home, '.bun', 'bin', 'bun'),
-        '/usr/local/bin/bun',
-        '/opt/homebrew/bin/bun',
-      ];
+  const fallbackPaths =
+    platform === 'windows'
+      ? [
+          path.join(home, '.bun', 'bin', 'bun.exe'),
+          path.join(home, '.bun', 'bin', 'bun'),
+        ]
+      : [
+          path.join(home, '.bun', 'bin', 'bun'),
+          '/usr/local/bin/bun',
+          '/opt/homebrew/bin/bun',
+        ];
   return locateBinary('bun', fallbackPaths);
 }
 
@@ -106,7 +110,10 @@ function getBunVersion() {
     const bunPath = getBunPath();
     if (!bunPath) return null;
     const quoted = bunPath.includes(' ') ? `"${bunPath}"` : bunPath;
-    return execSync(`${quoted} --version`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return execSync(`${quoted} --version`, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
   } catch {
     return null;
   }
@@ -123,9 +130,13 @@ function getBunVersion() {
  */
 function getYarnPath() {
   const platform = detectPlatform();
-  const fallbackPaths = platform === 'windows'
-    ? ['C:\\Program Files\\nodejs\\yarn.cmd', 'C:\\Program Files (x86)\\nodejs\\yarn.cmd']
-    : ['/usr/local/bin/yarn', '/opt/homebrew/bin/yarn', '/usr/bin/yarn'];
+  const fallbackPaths =
+    platform === 'windows'
+      ? [
+          'C:\\Program Files\\nodejs\\yarn.cmd',
+          'C:\\Program Files (x86)\\nodejs\\yarn.cmd',
+        ]
+      : ['/usr/local/bin/yarn', '/opt/homebrew/bin/yarn', '/usr/bin/yarn'];
   return locateBinary('yarn', fallbackPaths);
 }
 
@@ -137,9 +148,14 @@ function getYarnPath() {
  */
 function getPnpmPath() {
   const platform = detectPlatform();
-  const fallbackPaths = platform === 'windows'
-    ? [path.join(getHomeDir(), 'AppData', 'Local', 'pnpm', 'pnpm.exe')]
-    : ['/usr/local/bin/pnpm', '/opt/homebrew/bin/pnpm', path.join(getHomeDir(), '.local', 'share', 'pnpm', 'pnpm')];
+  const fallbackPaths =
+    platform === 'windows'
+      ? [path.join(getHomeDir(), 'AppData', 'Local', 'pnpm', 'pnpm.exe')]
+      : [
+          '/usr/local/bin/pnpm',
+          '/opt/homebrew/bin/pnpm',
+          path.join(getHomeDir(), '.local', 'share', 'pnpm', 'pnpm'),
+        ];
   return locateBinary('pnpm', fallbackPaths);
 }
 

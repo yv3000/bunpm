@@ -1,0 +1,25 @@
+{
+  "name": "bunpm",
+  "version": "2.0.4",
+  "private": true,
+  "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
+  "type": "commonjs",
+  "license": "MIT",
+  "repository": "https://github.com/yv3000/bunpm.git",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "packageManager": "bun@1.3.14",
+  "scripts": {
+    "test": "bun test",
+    "test:repeat": "bun test --randomize --seed 20260909 --rerun-each 3",
+    "lint": "eslint . --max-warnings 0",
+    "format:check": "prettier --check .",
+    "syntax:check": "node scripts/syntax.js",
+    "audit": "bun audit"
+  },
+  "devDependencies": {
+    "eslint": "10.10.0",
+    "prettier": "3.9.6"
+  }
+}
