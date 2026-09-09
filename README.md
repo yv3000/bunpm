@@ -6,7 +6,7 @@ built-ins only, and zero runtime dependencies. No build step or service.
 
 ## Requirements
 
-- Node.js 16+ for runtime; Node.js 22.13+ and Bun 1.3.14 for development.
+- Node.js 16.9+ for runtime; Node.js 22.13+ and Bun 1.3.14 for development.
 - Bun installed separately for translated commands.
 - The original package manager installed for fallback commands.
 - Windows PowerShell/CMD, or Bash on macOS/Linux. The CI matrix executes native
