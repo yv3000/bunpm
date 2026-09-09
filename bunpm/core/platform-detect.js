@@ -12,8 +12,7 @@ const path = require('path');
  *
  * @returns {'windows'|'macos'|'linux'}
  */
-function detectPlatform() {
-  const platform = process.platform;
+function detectPlatform(platform = process.platform) {
   if (platform === 'win32') return 'windows';
   if (platform === 'darwin') return 'macos';
   if (platform === 'linux') return 'linux';
@@ -45,7 +44,7 @@ function getHomeDir() {
  * following Unix convention for user-level tool installs (similar to
  * how ~/.nvm, ~/.cargo, ~/.bun all live directly under $HOME).
  *
- * @returns {string} absolute path, e.g. "C:\Users\yash\.bunpm" or "/home/yash/.bunpm"
+ * @returns {string} absolute path to the per-user installation
  */
 function getInstallRoot() {
   return path.join(getHomeDir(), '.bunpm');
@@ -56,7 +55,7 @@ function getInstallRoot() {
  * scripts/executables live. This is the directory that gets prepended
  * to PATH.
  *
- * @returns {string} absolute path, e.g. "C:\Users\yash\.bunpm\bin"
+ * @returns {string} absolute path to the launcher directory
  */
 function getBinDir() {
   return path.join(getInstallRoot(), 'bin');
@@ -67,7 +66,7 @@ function getBinDir() {
  * OS-agnostic JS files (detector.js, mapper.js, formatter.js, wrapper.js)
  * live after install.
  *
- * @returns {string} absolute path, e.g. "/home/yash/.bunpm/core"
+ * @returns {string} absolute path to the shared code directory
  */
 function getCoreDir() {
   return path.join(getInstallRoot(), 'core');

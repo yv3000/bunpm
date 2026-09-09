@@ -44,11 +44,8 @@ function formatAsNpm(line, context) {
   if (installMatch)
     return `added ${installMatch[1]} packages in ${installMatch[2]}`;
 
-  if (/^\s+0 packages? installed/.test(line))
-    return 'up to date, audited 0 packages in 0s';
+  if (/^\s+0 packages? installed/.test(line)) return 'up to date';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
-  if (context.subcommand === '--version' || context.subcommand === 'version')
-    return '10.8.2';
   if (/^error:/.test(line)) return line.replace(/^error:/, 'npm error');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;
 
@@ -91,8 +88,6 @@ function formatAsYarn(line, context) {
   if (/^\s+0 packages? installed/.test(line))
     return 'success Already up-to-date.';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
-  if (context.subcommand === '--version' || context.subcommand === 'version')
-    return '1.22.22';
   if (/^error:/.test(line)) return line.replace(/^error:/, 'error');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;
 
@@ -127,8 +122,6 @@ function formatAsPnpm(line, context) {
   }
   if (/^\s+0 packages? installed/.test(line)) return 'Already up to date';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
-  if (context.subcommand === '--version' || context.subcommand === 'version')
-    return '9.12.0';
   if (/^error:/.test(line)) return line.replace(/^error:/, 'ERR_PNPM');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;
 
