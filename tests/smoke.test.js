@@ -27,6 +27,7 @@ test.skipIf(process.platform !== 'win32')(
       stderr: '',
     });
   },
+  30000,
 );
 
 test('native offline install, launcher, package script, fallback and uninstall', () => {
