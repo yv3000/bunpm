@@ -19,9 +19,9 @@ function detectPlatform() {
   if (platform === 'linux') return 'linux';
   throw new Error(
     `bunpm does not support this platform (${platform}). ` +
-    `Supported platforms: Windows, macOS, Linux. ` +
-    `If you believe this platform should be supported, please open an issue at ` +
-    `https://github.com/yv3000/bunpm/issues`
+      `Supported platforms: Windows, macOS, Linux. ` +
+      `If you believe this platform should be supported, please open an issue at ` +
+      `https://github.com/yv3000/bunpm/issues`,
   );
 }
 
@@ -122,7 +122,9 @@ function getShellProfileCandidates(platform) {
       path.join(home, '.profile'),
     ];
   }
-  throw new Error(`getShellProfileCandidates() called with non-Unix platform: ${platform}`);
+  throw new Error(
+    `getShellProfileCandidates() called with non-Unix platform: ${platform}`,
+  );
 }
 
 module.exports = {

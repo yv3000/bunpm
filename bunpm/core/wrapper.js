@@ -20,7 +20,13 @@ const { detectPlatform } = require('./platform-detect');
 // watch mode, prompts inside scripts) — buffering their output would make
 // them appear hung. npm start/stop/restart already map to bun `run`, and
 // `test` is included both as its own bun subcommand and via run scripts.
-const PASSTHROUGH_SUBCOMMANDS = new Set(['run', 'test', 'start', 'stop', 'restart']);
+const PASSTHROUGH_SUBCOMMANDS = new Set([
+  'run',
+  'test',
+  'start',
+  'stop',
+  'restart',
+]);
 
 function main() {
   try {
@@ -36,23 +42,35 @@ function main() {
       const fallbackBinaryName = mapped.fallbackTo || invokedAs;
       const originalBinary = findOriginal(fallbackBinaryName, platform);
       if (originalBinary) {
-        const result = spawnSync(originalBinary, mapped.fallbackArgs || userArgs, {
-          stdio: 'inherit',
-          shell: false,
-          env: process.env,
-          cwd: process.cwd(),
-        });
+        const result = spawnSync(
+          originalBinary,
+          mapped.fallbackArgs || userArgs,
+          {
+            stdio: 'inherit',
+            shell: false,
+            env: process.env,
+            cwd: process.cwd(),
+          },
+        );
         process.exit(result.status || 0);
       } else {
         // No bun AND no original binary found either — this is the one
         // genuinely unrecoverable case. Print a clear, specific error
         // rather than a generic crash.
         if (!bunPath) {
-          console.error(`${invokedAs} error: Bun is required but was not found, and the original ${fallbackBinaryName} binary could not be located either.`);
-          console.error(`${invokedAs} error: Please install Bun from https://bun.sh, or reinstall ${fallbackBinaryName}.`);
+          console.error(
+            `${invokedAs} error: Bun is required but was not found, and the original ${fallbackBinaryName} binary could not be located either.`,
+          );
+          console.error(
+            `${invokedAs} error: Please install Bun from https://bun.sh, or reinstall ${fallbackBinaryName}.`,
+          );
         } else {
-          console.error(`${invokedAs} error: This command ("${(mapped.fallbackArgs || userArgs).join(' ')}") is not supported by Bun, and the original ${fallbackBinaryName} binary could not be located on this system.`);
-          console.error(`${invokedAs} error: Please install ${fallbackBinaryName} normally to use this specific command.`);
+          console.error(
+            `${invokedAs} error: This command ("${(mapped.fallbackArgs || userArgs).join(' ')}") is not supported by Bun, and the original ${fallbackBinaryName} binary could not be located on this system.`,
+          );
+          console.error(
+            `${invokedAs} error: Please install ${fallbackBinaryName} normally to use this specific command.`,
+          );
         }
         process.exit(1);
       }
@@ -60,7 +78,11 @@ function main() {
     }
 
     // ── Special case: --version → print fake version matching the invoking tool ──
-    if (userArgs[0] === '--version' || userArgs[0] === '-v' || userArgs[0] === 'version') {
+    if (
+      userArgs[0] === '--version' ||
+      userArgs[0] === '-v' ||
+      userArgs[0] === 'version'
+    ) {
       const fakeVersions = { npm: '10.8.2', yarn: '1.22.22', pnpm: '9.12.0' };
       console.log(fakeVersions[invokedAs] || '1.0.0');
       process.exit(0);
@@ -88,10 +110,21 @@ function main() {
     const context = { subcommand, invokedAs };
 
     const bunVersion = detector.getBunVersion() || '1.0.0';
-    const platformTag = platform === 'windows' ? 'win32 x64' : (platform === 'macos' ? 'darwin x64' : 'linux x64');
+    const platformTag =
+      platform === 'windows'
+        ? 'win32 x64'
+        : platform === 'macos'
+          ? 'darwin x64'
+          : 'linux x64';
     const bunEnv = {
       ...process.env,
-      npm_config_user_agent: 'bun/' + bunVersion + ' npm/0.0.0 node/' + process.version + ' ' + platformTag,
+      npm_config_user_agent:
+        'bun/' +
+        bunVersion +
+        ' npm/0.0.0 node/' +
+        process.version +
+        ' ' +
+        platformTag,
       npm_execpath: detector.getBunPath() || process.env.npm_execpath,
     };
 
@@ -138,16 +171,16 @@ function main() {
     if (result.stdout) {
       const formatted = result.stdout
         .split('\n')
-        .map(line => formatLine(line, context))
-        .filter(line => line !== null)
+        .map((line) => formatLine(line, context))
+        .filter((line) => line !== null)
         .join('\n');
       if (formatted.trim()) process.stdout.write(formatted + '\n');
     }
     if (result.stderr) {
       const formatted = result.stderr
         .split('\n')
-        .map(line => formatLine(line, context))
-        .filter(line => line !== null)
+        .map((line) => formatLine(line, context))
+        .filter((line) => line !== null)
         .join('\n');
       if (formatted.trim()) process.stderr.write(formatted + '\n');
     }
@@ -156,7 +189,9 @@ function main() {
     if (result.status !== 0 && result.error) {
       const originalBinary = findOriginal(invokedAs, platform);
       if (originalBinary) {
-        console.error(`${invokedAs} warn: Bun encountered an error, falling back to original ${invokedAs}...`);
+        console.error(
+          `${invokedAs} warn: Bun encountered an error, falling back to original ${invokedAs}...`,
+        );
         const fallbackResult = spawnSync(originalBinary, userArgs, {
           stdio: 'inherit',
           shell: false,
@@ -215,19 +250,21 @@ function findOriginal(binaryName, platform) {
     if (!dir) continue;
     if (dir.includes('.bunpm')) continue;
 
-    const candidates = platform === 'windows'
-      ? [
-          path.join(dir, `${binaryName}.cmd`),
-          path.join(dir, `${binaryName}.exe`),
-          path.join(dir, binaryName),
-        ]
-      : [
-          path.join(dir, binaryName),
-        ];
+    const candidates =
+      platform === 'windows'
+        ? [
+            path.join(dir, `${binaryName}.cmd`),
+            path.join(dir, `${binaryName}.exe`),
+            path.join(dir, binaryName),
+          ]
+        : [path.join(dir, binaryName)];
 
     for (const candidate of candidates) {
       try {
-        fs.accessSync(candidate, platform === 'windows' ? undefined : fs.constants.X_OK);
+        fs.accessSync(
+          candidate,
+          platform === 'windows' ? undefined : fs.constants.X_OK,
+        );
         return candidate;
       } catch {
         // not found at this candidate, continue

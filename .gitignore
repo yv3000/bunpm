@@ -1,6 +1,5 @@
 # Dependencies — never commit these
 node_modules/
-package-lock.json
 
 # Windows
 Thumbs.db
@@ -16,3 +15,8 @@ npm-debug.log*
 # Temp
 *.tmp
 *.temp
+
+# Local credentials and generated reports
+.env
+.env.*
+coverage/

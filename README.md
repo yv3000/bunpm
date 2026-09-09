@@ -57,6 +57,7 @@ curl -fsSL https://raw.githubusercontent.com/yv3000/bunpm/main/bunpm/bootstrap.j
 One command. No config. No flags to remember.
 
 The installer will:
+
 1. Auto-install Bun if not already present
 2. Verify Node.js is available
 3. Copy wrapper files into `~/.bunpm/` (or `%USERPROFILE%\.bunpm\` on Windows)
@@ -68,11 +69,13 @@ The installer will:
 ## Uninstall
 
 ### Windows
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
 ```
 
 ### macOS / Linux
+
 ```bash
 bash "$HOME/.bunpm/scripts/uninstall.sh"
 ```
@@ -118,62 +121,62 @@ Same commands. Same output style. Just faster — every time, regardless of whic
 
 ### npm → Bun
 
-| npm command | Bun equivalent | Notes |
-|---|---|---|
-| `npm install` | `bun install` | Install all deps from package.json |
-| `npm install <pkg>` | `bun add <pkg>` | Add a specific package |
-| `npm i -D <pkg>` | `bun add -d <pkg>` | Add as dev dependency |
-| `npm i -g <pkg>` | `bun add -g <pkg>` | Global install |
-| `npm uninstall <pkg>` | `bun remove <pkg>` | Remove a package |
-| `npm run <script>` | `bun run <script>` | Run package.json scripts |
-| `npm start` | `bun run start` | Start script shorthand |
-| `npm test` | `bun test` | Run tests |
-| `npm update` | `bun update` | Update dependencies |
-| `npm ci` | `bun install --frozen-lockfile` | Clean/reproducible install |
-| `npm init` | `bun init` | Initialize new project |
-| `npm create <X>` | `bun create <X>` | Create from template |
-| `npm exec <X>` | `bun x <X>` | Execute package binary |
-| `npm link` | `bun link` | Link local package |
-| `npm rebuild` | `bun rebuild` | Rebuild native modules |
-| `npm list` | `bun pm ls` | List installed packages |
-| `npx <X>` | `bunx <X>` | Execute package directly — interactive prompts supported |
+| npm command           | Bun equivalent                  | Notes                                                    |
+| --------------------- | ------------------------------- | -------------------------------------------------------- |
+| `npm install`         | `bun install`                   | Install all deps from package.json                       |
+| `npm install <pkg>`   | `bun add <pkg>`                 | Add a specific package                                   |
+| `npm i -D <pkg>`      | `bun add -d <pkg>`              | Add as dev dependency                                    |
+| `npm i -g <pkg>`      | `bun add -g <pkg>`              | Global install                                           |
+| `npm uninstall <pkg>` | `bun remove <pkg>`              | Remove a package                                         |
+| `npm run <script>`    | `bun run <script>`              | Run package.json scripts                                 |
+| `npm start`           | `bun run start`                 | Start script shorthand                                   |
+| `npm test`            | `bun test`                      | Run tests                                                |
+| `npm update`          | `bun update`                    | Update dependencies                                      |
+| `npm ci`              | `bun install --frozen-lockfile` | Clean/reproducible install                               |
+| `npm init`            | `bun init`                      | Initialize new project                                   |
+| `npm create <X>`      | `bun create <X>`                | Create from template                                     |
+| `npm exec <X>`        | `bun x <X>`                     | Execute package binary                                   |
+| `npm link`            | `bun link`                      | Link local package                                       |
+| `npm rebuild`         | `bun rebuild`                   | Rebuild native modules                                   |
+| `npm list`            | `bun pm ls`                     | List installed packages                                  |
+| `npx <X>`             | `bunx <X>`                      | Execute package directly — interactive prompts supported |
 
 Falls back to real npm for: `publish` · `login` · `logout` · `whoami` · `audit` · `pack` · `fund` · `deprecate` · `dist-tag` · `access` · `team` · `profile` · `org` · `token` · `hook` · `adduser`
 
 ### yarn → Bun (NEW in v2)
 
-| yarn command | Bun equivalent | Notes |
-|---|---|---|
-| `yarn` / `yarn install` | `bun install` | Install all deps |
-| `yarn add <pkg>` | `bun add <pkg>` | Add a package |
-| `yarn <pkg>` | `bun add <pkg>` | yarn's shorthand for add, also works |
-| `yarn add -D <pkg>` | `bun add -d <pkg>` | Dev dependency |
-| `yarn global add <pkg>` | `bun add -g <pkg>` | Global install |
-| `yarn remove <pkg>` | `bun remove <pkg>` | Remove a package |
-| `yarn run <script>` | `bun run <script>` | Run a script |
-| `yarn upgrade` / `yarn up` | `bun update` | Update dependencies |
-| `yarn why <pkg>` | `bun pm why <pkg>` | Explain why a package is installed |
-| `yarn dlx <pkg>` | `bunx <pkg>` | Run a package once, interactive prompts work |
-| `yarn exec <pkg>` | `bunx <pkg>` | Berry's exec, same as dlx |
-| `yarn link` / `unlink` | `bun link` / `bun unlink` | Local package linking |
-| `yarn list` | `bun pm ls` | List installed packages |
+| yarn command               | Bun equivalent            | Notes                                        |
+| -------------------------- | ------------------------- | -------------------------------------------- |
+| `yarn` / `yarn install`    | `bun install`             | Install all deps                             |
+| `yarn add <pkg>`           | `bun add <pkg>`           | Add a package                                |
+| `yarn <pkg>`               | `bun add <pkg>`           | yarn's shorthand for add, also works         |
+| `yarn add -D <pkg>`        | `bun add -d <pkg>`        | Dev dependency                               |
+| `yarn global add <pkg>`    | `bun add -g <pkg>`        | Global install                               |
+| `yarn remove <pkg>`        | `bun remove <pkg>`        | Remove a package                             |
+| `yarn run <script>`        | `bun run <script>`        | Run a script                                 |
+| `yarn upgrade` / `yarn up` | `bun update`              | Update dependencies                          |
+| `yarn why <pkg>`           | `bun pm why <pkg>`        | Explain why a package is installed           |
+| `yarn dlx <pkg>`           | `bunx <pkg>`              | Run a package once, interactive prompts work |
+| `yarn exec <pkg>`          | `bunx <pkg>`              | Berry's exec, same as dlx                    |
+| `yarn link` / `unlink`     | `bun link` / `bun unlink` | Local package linking                        |
+| `yarn list`                | `bun pm ls`               | List installed packages                      |
 
 Falls back to real yarn for: `audit` · `login` · `logout` · `publish` · `pack` · `config` · `workspaces` · `workspace` · `set` · `plugin` · `constraints` (Berry-specific tooling with no Bun equivalent)
 
 ### pnpm → Bun (NEW in v2)
 
-| pnpm command | Bun equivalent | Notes |
-|---|---|---|
-| `pnpm install` / `pnpm i` | `bun install` | Install all deps |
-| `pnpm add <pkg>` | `bun add <pkg>` | Add a package |
-| `pnpm remove <pkg>` | `bun remove <pkg>` | Remove a package |
-| `pnpm run <script>` | `bun run <script>` | Run a script |
-| `pnpm update` / `pnpm up` | `bun update` | Update dependencies |
-| `pnpm why <pkg>` | `bun pm why <pkg>` | Explain why a package is installed |
-| `pnpm dlx <pkg>` | `bunx <pkg>` | Run a package once, interactive prompts work |
-| `pnpm link` / `unlink` | `bun link` / `bun unlink` | Local package linking |
-| `pnpm list` | `bun pm ls` | List installed packages |
-| `pnpm rebuild` | `bun rebuild` | Rebuild native modules |
+| pnpm command              | Bun equivalent            | Notes                                        |
+| ------------------------- | ------------------------- | -------------------------------------------- |
+| `pnpm install` / `pnpm i` | `bun install`             | Install all deps                             |
+| `pnpm add <pkg>`          | `bun add <pkg>`           | Add a package                                |
+| `pnpm remove <pkg>`       | `bun remove <pkg>`        | Remove a package                             |
+| `pnpm run <script>`       | `bun run <script>`        | Run a script                                 |
+| `pnpm update` / `pnpm up` | `bun update`              | Update dependencies                          |
+| `pnpm why <pkg>`          | `bun pm why <pkg>`        | Explain why a package is installed           |
+| `pnpm dlx <pkg>`          | `bunx <pkg>`              | Run a package once, interactive prompts work |
+| `pnpm link` / `unlink`    | `bun link` / `bun unlink` | Local package linking                        |
+| `pnpm list`               | `bun pm ls`               | List installed packages                      |
+| `pnpm rebuild`            | `bun rebuild`             | Rebuild native modules                       |
 
 Falls back to real pnpm for: `store` · `audit` · `login` · `logout` · `publish` · `pack` · `config` · `patch` · `patch-commit` · `deploy` · and **any command using `-r`, `--recursive`, or `--filter`** (workspace-scoped operations always use real pnpm for safety, since Bun's workspace filtering isn't guaranteed identical)
 
@@ -234,31 +237,31 @@ Uninstalling removes only the PATH entry — your original tools are back instan
 
 ## Fallback Behavior
 
-| Scenario | What happens |
-|---|---|
-| Bun not found at runtime | Falls back to the real npm/yarn/pnpm silently |
-| Command not supported by Bun (e.g. `npm publish`, `yarn login`) | Falls back to the real tool |
-| pnpm workspace command (`-r`, `--filter`) | Falls back to real pnpm automatically, every time |
-| Bun crashes mid-command | Falls back to the real tool + prints a warning |
+| Scenario                                                             | What happens                                                                                                         |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Bun not found at runtime                                             | Falls back to the real npm/yarn/pnpm silently                                                                        |
+| Command not supported by Bun (e.g. `npm publish`, `yarn login`)      | Falls back to the real tool                                                                                          |
+| pnpm workspace command (`-r`, `--filter`)                            | Falls back to real pnpm automatically, every time                                                                    |
+| Bun crashes mid-command                                              | Falls back to the real tool + prints a warning                                                                       |
 | Tool you're calling (yarn/pnpm) isn't even installed on your machine | Still works — bunpm doesn't require yarn/pnpm to be pre-installed, it intercepts the command and runs Bun regardless |
 
 ---
 
 ## Platform Support
 
-| Platform | Status |
-|---|---|
-| Windows 10/11 | ✅ Fully supported |
-| macOS (Intel & Apple Silicon) | ✅ Fully supported |
+| Platform                        | Status             |
+| ------------------------------- | ------------------ |
+| Windows 10/11                   | ✅ Fully supported |
+| macOS (Intel & Apple Silicon)   | ✅ Fully supported |
 | Linux (any distro with Node.js) | ✅ Fully supported |
 
 ## Package Manager Support
 
-| Tool | Status |
-|---|---|
-| npm / npx | ✅ Fully routed through Bun |
-| yarn (Classic & Berry common subset) | ✅ Fully routed through Bun |
-| pnpm | ✅ Fully routed through Bun, except workspace-filtered commands which fall back to real pnpm |
+| Tool                                 | Status                                                                                       |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| npm / npx                            | ✅ Fully routed through Bun                                                                  |
+| yarn (Classic & Berry common subset) | ✅ Fully routed through Bun                                                                  |
+| pnpm                                 | ✅ Fully routed through Bun, except workspace-filtered commands which fall back to real pnpm |
 
 ---
 
@@ -272,24 +275,24 @@ Uninstalling removes only the PATH entry — your original tools are back instan
 
 ## Shell Compatibility
 
-| Shell | Status |
-|---|---|
-| Windows CMD | ✅ Fully supported |
-| Windows PowerShell | ✅ Fully supported |
-| Windows Terminal | ✅ Fully supported |
-| Git Bash (Windows) | ✅ Supported |
-| zsh (macOS default) | ✅ Fully supported |
+| Shell                | Status             |
+| -------------------- | ------------------ |
+| Windows CMD          | ✅ Fully supported |
+| Windows PowerShell   | ✅ Fully supported |
+| Windows Terminal     | ✅ Fully supported |
+| Git Bash (Windows)   | ✅ Supported       |
+| zsh (macOS default)  | ✅ Fully supported |
 | bash (macOS / Linux) | ✅ Fully supported |
 
 ---
 
 ## Requirements
 
-| Requirement | Details |
-|---|---|
-| **OS** | Windows 10/11, macOS, or Linux |
-| **Node.js** | v16+ |
-| **Bun** | Auto-installed if missing |
+| Requirement    | Details                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| **OS**         | Windows 10/11, macOS, or Linux                                                                                |
+| **Node.js**    | v16+                                                                                                          |
+| **Bun**        | Auto-installed if missing                                                                                     |
 | **Admin/sudo** | Not required for standard install (Windows System PATH step is optional and self-elevates only if you choose) |
 
 ---

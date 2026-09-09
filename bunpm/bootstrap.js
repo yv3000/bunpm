@@ -39,7 +39,7 @@ function detectPlatform() {
   if (platform === 'linux') return 'linux';
   throw new Error(
     `bunpm does not support this platform (${platform}). ` +
-    `Supported platforms: Windows, macOS, Linux.`
+      `Supported platforms: Windows, macOS, Linux.`,
   );
 }
 
@@ -112,16 +112,21 @@ function download(url, destPath) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
     function get(u) {
-      https.get(u, res => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          return get(res.headers.location);
-        }
-        if (res.statusCode !== 200) {
-          return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
-        }
-        res.pipe(file);
-        file.on('finish', () => { file.close(); resolve(); });
-      }).on('error', reject);
+      https
+        .get(u, (res) => {
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            return get(res.headers.location);
+          }
+          if (res.statusCode !== 200) {
+            return reject(new Error('HTTP ' + res.statusCode + ' for ' + u));
+          }
+          res.pipe(file);
+          file.on('finish', () => {
+            file.close();
+            resolve();
+          });
+        })
+        .on('error', reject);
     }
     get(url);
   });
@@ -171,7 +176,9 @@ async function main() {
   }
 
   console.log('');
-  console.log(`  Downloading ${filesToDownload.length} files for ${platform}...`);
+  console.log(
+    `  Downloading ${filesToDownload.length} files for ${platform}...`,
+  );
   for (const f of filesToDownload) {
     const url = `${REPO_BASE}/${f}`;
     const localPath = toLocalStagingPath(f);
@@ -187,7 +194,9 @@ async function main() {
   if (platform === 'windows') {
     const ps1Path = path.join(stagingRoot, 'scripts', 'install.ps1');
     try {
-      execSync(`powershell -ExecutionPolicy Bypass -File "${ps1Path}"`, { stdio: 'inherit' });
+      execSync(`powershell -ExecutionPolicy Bypass -File "${ps1Path}"`, {
+        stdio: 'inherit',
+      });
     } catch (e) {
       console.error('Install failed with code:', e.status);
       process.exit(e.status || 1);
@@ -212,7 +221,7 @@ async function main() {
   }
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error('');
   console.error('  Bootstrap error:', e.message);
   process.exit(1);
