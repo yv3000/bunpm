@@ -12,11 +12,14 @@
   "packageManager": "bun@1.3.14",
   "scripts": {
     "test": "bun test",
-    "test:repeat": "bun test --randomize --seed 20260909 --rerun-each 3",
+    "test:repeat": "node scripts/repeat.js",
+    "test:coverage": "node scripts/coverage.js",
+    "smoke": "bun test tests/smoke.test.js",
     "lint": "eslint . --max-warnings 0",
     "format:check": "prettier --check .",
     "syntax:check": "node scripts/syntax.js",
-    "audit": "bun audit"
+    "audit": "bun audit",
+    "shell:check": "shellcheck bunpm/platforms/linux/scripts/*.sh bunpm/platforms/macos/scripts/*.sh bunpm/platforms/linux/bin/* bunpm/platforms/macos/bin/*"
   },
   "devDependencies": {
     "eslint": "10.10.0",
