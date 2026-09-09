@@ -15,6 +15,7 @@ module.exports = [
           '__filename',
           'console',
           'Buffer',
+          'AbortController',
           'URL',
           'setTimeout',
           'clearTimeout',

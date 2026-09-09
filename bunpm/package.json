@@ -1,7 +1,7 @@
 {
   "name": "bunpm",
   "version": "2.0.4",
-  "description": "Transparent npm wrapper that uses Bun under the hood for 10x faster installs",
+  "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "main": "core/wrapper.js",
   "keywords": [
     "npm",
@@ -19,6 +19,6 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/yv3000/bunpm.git"
   }
 }
