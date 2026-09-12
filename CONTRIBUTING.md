@@ -38,6 +38,18 @@ does not prove execution on that OS. Keep behavior fixes and regression tests in
 the same commit. Do not change global PATH, package-manager installs, or real shell
 profiles in a test. Formatting-only work belongs in a separate commit.
 
+## Diagnostics
+
+bunpm's own failures go to stderr as `bunpm: <component>: <actionable message>`,
+where the component is the failing part (`wrapper`, `exec`, `detector`,
+`bootstrap`, `install`, `uninstall`). `core/wrapper.js` has a local `diagnose`
+helper; `bootstrap.js` repeats the prefix inline because it must not import files
+it has not downloaded yet, and the shell/PowerShell installers spell it out in
+their own messages. Child process output is never rewritten into this form, exit
+codes and cause text are preserved, and there are no timestamps, log files or
+telemetry. Changing a diagnostic requires updating its assertion in
+`tests/wrapper.test.js`, `tests/bootstrap.test.js`, or `tests/smoke.test.js`.
+
 ## Verification Boundaries
 
 `test:coverage` reads real Bun LCOV output and requires at least 90% lines and
