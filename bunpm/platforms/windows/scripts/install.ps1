@@ -2,10 +2,16 @@ param([switch]$NoPath)
 $ErrorActionPreference = 'Stop'
 $installDir = Join-Path $env:USERPROFILE '.bunpm'
 $binDir = Join-Path $installDir 'bin'
-if (Test-Path -LiteralPath $installDir) { throw 'bunpm already exists; uninstall it before reinstalling.' }
+if (Test-Path -LiteralPath $installDir) { throw 'bunpm: install: existing .bunpm found; run uninstall.ps1 before reinstalling.' }
 foreach ($tool in @('node', 'bun')) {
+    # With $ErrorActionPreference = 'Stop', invoking a missing command raises
+    # CommandNotFoundException and PowerShell prints its own unprefixed error
+    # before any throw below can run. Probe for it first.
+    if (-not (Get-Command $tool -CommandType Application -ErrorAction SilentlyContinue)) {
+        throw "bunpm: install: $tool not found; install it separately before running bunpm setup."
+    }
     & $tool --version
-    if ($LASTEXITCODE -ne 0) { throw "$tool is required. Install it separately before running bunpm setup." }
+    if ($LASTEXITCODE -ne 0) { throw "bunpm: install: $tool --version failed with exit $LASTEXITCODE; repair your $tool installation." }
 }
 $sourceRoot = Split-Path -Parent $PSScriptRoot
 $coreRoot = $sourceRoot
@@ -13,7 +19,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $coreRoot 'core'))) {
     $coreRoot = Split-Path -Parent (Split-Path -Parent $sourceRoot)
 }
 foreach ($required in @((Join-Path $coreRoot 'core'), (Join-Path $sourceRoot 'bin'), (Join-Path $PSScriptRoot 'uninstall.ps1'))) {
-    if (-not (Test-Path -LiteralPath $required)) { throw "Missing installation source: $required" }
+    if (-not (Test-Path -LiteralPath $required)) { throw "bunpm: install: missing installation source: $required" }
 }
 try {
     New-Item -ItemType Directory -Path $installDir | Out-Null

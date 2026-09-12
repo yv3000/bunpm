@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != '--no-path' ]; }; then
-  echo 'Usage: install.sh [--no-path]' >&2; exit 1
+  echo 'bunpm: install: usage: install.sh [--no-path]' >&2; exit 1
 fi
 INSTALL_DIR="$HOME/.bunpm"
 if [ -e "$INSTALL_DIR" ] || [ -L "$INSTALL_DIR" ]; then
-  echo 'bunpm already exists; uninstall before reinstalling.' >&2; exit 1
+  echo 'bunpm: install: existing ~/.bunpm found; run uninstall.sh before reinstalling.' >&2; exit 1
 fi
-node --version
-bun --version || { echo 'Install Bun separately from https://bun.sh first.' >&2; exit 1; }
+# Suppress the shell's own "command not found" so a missing prerequisite is
+# reported once, by us. Without the redirection and the || branch, set -e also
+# aborted on a missing node before any bunpm diagnostic was printed.
+node --version 2>/dev/null || { echo 'bunpm: install: node not found; install Node.js before running bunpm setup.' >&2; exit 1; }
+bun --version 2>/dev/null || { echo 'bunpm: install: bun not found; install it from https://bun.sh first.' >&2; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="$(dirname "$SCRIPT_DIR")"
 CORE_ROOT="$SOURCE_ROOT"

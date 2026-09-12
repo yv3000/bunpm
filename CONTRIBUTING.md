@@ -31,12 +31,27 @@ git diff --check
 Use `bun`, not the intercepted `npm` command, for repository development.
 ESLint and Prettier are pinned development-only dependencies. Commit `bun.lock`
 when intentionally updating tooling; never install tools during tests.
+[`.github/dependabot.yml`](.github/dependabot.yml) proposes those tooling and
+GitHub Actions updates weekly. Its pull requests are ordinary pull requests: they
+must pass the same required checks and are never merged automatically.
 
 Tests must exercise observable behavior, run offline, and clean their own fixtures.
 Use the native platform for process and installer tests; a simulated platform name
 does not prove execution on that OS. Keep behavior fixes and regression tests in
 the same commit. Do not change global PATH, package-manager installs, or real shell
 profiles in a test. Formatting-only work belongs in a separate commit.
+
+## Diagnostics
+
+bunpm's own failures go to stderr as `bunpm: <component>: <actionable message>`,
+where the component is the failing part (`wrapper`, `exec`, `detector`,
+`bootstrap`, `install`, `uninstall`). `core/wrapper.js` has a local `diagnose`
+helper; `bootstrap.js` repeats the prefix inline because it must not import files
+it has not downloaded yet, and the shell/PowerShell installers spell it out in
+their own messages. Child process output is never rewritten into this form, exit
+codes and cause text are preserved, and there are no timestamps, log files or
+telemetry. Changing a diagnostic requires updating its assertion in
+`tests/wrapper.test.js`, `tests/bootstrap.test.js`, or `tests/smoke.test.js`.
 
 ## Verification Boundaries
 

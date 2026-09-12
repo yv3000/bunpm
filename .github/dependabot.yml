@@ -1,0 +1,34 @@
+# Weekly version updates. Dependabot opens ordinary pull requests that must pass
+# the same required checks as any other change; nothing is merged automatically.
+version: 2
+updates:
+  # Every dependency in package.json is a development dependency: bunpm ships
+  # zero runtime dependencies. That invariant is enforced by review, not here,
+  # because Dependabot's `allow: dependency-type: development` filter is not
+  # supported for the bun ecosystem (only bundler, composer, mix, maven, npm,
+  # pip and uv). A production dependency ever appearing in a Dependabot pull
+  # request is therefore a signal to question the dependency, not the config.
+  #
+  # The `bun` ecosystem, not `npm`, is what keeps package.json and the committed
+  # text bun.lock in step. CI installs with `bun install --frozen-lockfile`, so a
+  # manifest bump without a matching lockfile update would fail every job.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Etc/UTC
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # Actions are pinned to major tags in .github/workflows/ci.yml.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Etc/UTC
+    commit-message:
+      prefix: ci
+      include: scope

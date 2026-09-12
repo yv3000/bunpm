@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != '--no-path' ]; }; then
-  echo 'Usage: uninstall.sh [--no-path]' >&2; exit 1
+  echo 'bunpm: uninstall: usage: uninstall.sh [--no-path]' >&2; exit 1
 fi
 INSTALL_DIR="$HOME/.bunpm"
 if [ "${1:-}" != '--no-path' ]; then

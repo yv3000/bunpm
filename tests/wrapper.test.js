@@ -15,7 +15,11 @@ const {
 } = require('../bunpm/core/mapper');
 const mocks = [];
 const dirs = [];
-const savedEnv = { ...process.env };
+// Read PATH through process.env, which is case-insensitive on Windows. A
+// { ...process.env } snapshot keeps Windows' literal `Path` key, so `.PATH`
+// would be undefined and restoring it would set PATH to the string "undefined"
+// for every later test in this process.
+const savedPath = process.env.PATH;
 function mock(object, key, implementation) {
   const spy = spyOn(object, key).mockImplementation(implementation);
   mocks.push(spy);
@@ -28,7 +32,7 @@ function fixture() {
 }
 afterEach(() => {
   for (const spy of mocks.splice(0)) spy.mockRestore();
-  process.env.PATH = savedEnv.PATH;
+  process.env.PATH = savedPath;
   for (const dir of dirs.splice(0))
     fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -215,6 +219,25 @@ test('missing Bun falls back and pre-execution permission failure retries exactl
   }));
   expect(main('npm', ['install'])).toBe(31);
   expect(spawn).toHaveBeenCalledTimes(3);
+});
+
+test('diagnostics use one bunpm: <component>: <message> stderr convention', () => {
+  const lines = [];
+  mock(console, 'error', (line) => lines.push(line));
+  mock(detector, 'getBunPath', () => null);
+  mock(detector, 'locateBinary', () => null);
+  // A missing original manager must name the component and stay nonzero.
+  expect(main('npm', ['install'])).toBe(1);
+  // Unsupported invocations surface through the top-level wrapper handler.
+  expect(main('bad', [])).toBe(1);
+  // Pre-execution spawn failures keep the underlying cause text verbatim.
+  expect(exitCode({ error: new Error('spawn EPERM') })).toBe(1);
+  expect(lines).toEqual([
+    'bunpm: detector: original npm not found; install npm for this command, or install Bun for supported commands.',
+    'bunpm: wrapper: Expected one of: npm, npx, yarn, pnpm',
+    'bunpm: exec: spawn EPERM',
+  ]);
+  for (const line of lines) expect(line).toMatch(/^bunpm: [a-z]+: \S/);
 });
 
 test('native child argv preserves metacharacters and exact nonzero exit', () => {
