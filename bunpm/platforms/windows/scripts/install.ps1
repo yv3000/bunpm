@@ -4,8 +4,14 @@ $installDir = Join-Path $env:USERPROFILE '.bunpm'
 $binDir = Join-Path $installDir 'bin'
 if (Test-Path -LiteralPath $installDir) { throw 'bunpm: install: existing .bunpm found; run uninstall.ps1 before reinstalling.' }
 foreach ($tool in @('node', 'bun')) {
+    # With $ErrorActionPreference = 'Stop', invoking a missing command raises
+    # CommandNotFoundException and PowerShell prints its own unprefixed error
+    # before any throw below can run. Probe for it first.
+    if (-not (Get-Command $tool -CommandType Application -ErrorAction SilentlyContinue)) {
+        throw "bunpm: install: $tool not found; install it separately before running bunpm setup."
+    }
     & $tool --version
-    if ($LASTEXITCODE -ne 0) { throw "bunpm: install: $tool not found; install it separately before running bunpm setup." }
+    if ($LASTEXITCODE -ne 0) { throw "bunpm: install: $tool --version failed with exit $LASTEXITCODE; repair your $tool installation." }
 }
 $sourceRoot = Split-Path -Parent $PSScriptRoot
 $coreRoot = $sourceRoot

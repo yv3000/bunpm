@@ -30,6 +30,59 @@ test.skipIf(process.platform !== 'win32')(
   30000,
 );
 
+test('installer prerequisite failures name bunpm and install nothing', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-prereq-'));
+  const windows = process.platform === 'win32';
+  const platform = windows
+    ? 'windows'
+    : process.platform === 'darwin'
+      ? 'macos'
+      : 'linux';
+  const shell = locateBinary(windows ? 'powershell' : 'bash');
+  expect(shell).not.toBeNull();
+  try {
+    const home = path.join(root, 'home');
+    fs.mkdirSync(home);
+    // An empty PATH resolves neither node nor bun. The installers must report
+    // that themselves instead of letting the shell print its own diagnostic.
+    const env = { ...process.env, HOME: home, USERPROFILE: home, PATH: '' };
+    for (const key of Object.keys(env)) {
+      if (
+        ['PATH', 'HOME', 'USERPROFILE'].includes(key.toUpperCase()) &&
+        key !== key.toUpperCase()
+      )
+        delete env[key];
+    }
+    const install = path.resolve(
+      `bunpm/platforms/${platform}/scripts/install.${windows ? 'ps1' : 'sh'}`,
+    );
+    const result = cp.spawnSync(
+      shell,
+      windows
+        ? [
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-File',
+            install,
+            '-NoPath',
+          ]
+        : [install, '--no-path'],
+      { cwd: root, env, encoding: 'utf8', timeout: 15000 },
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      windows
+        ? 'bunpm: install: node not found; install it separately before running bunpm setup.'
+        : 'bunpm: install: node not found; install Node.js before running bunpm setup.',
+    );
+    // Nothing may be created before the prerequisites are satisfied.
+    expect(fs.existsSync(path.join(home, '.bunpm'))).toBe(false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}, 30000);
+
 test('native offline install, launcher, package script, fallback and uninstall', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-smoke-'));
   const windows = process.platform === 'win32';
