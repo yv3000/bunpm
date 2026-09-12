@@ -127,10 +127,11 @@ then install again. No background updater runs.
 
 ## Architecture And Boundaries
 
-One short-lived process per invocation: no daemon, no shared state, no build
-step. A launcher in `bunpm/platforms/<os>/bin/` runs `core/wrapper.js` with the
-invoked manager name and the untouched argument list. Everything below is a
-plain CommonJS function call in that one process.
+One short-lived wrapper process per invocation: no daemon, no shared state, no
+build step. A launcher in `bunpm/platforms/<os>/bin/` runs `core/wrapper.js` with
+the invoked manager name and the untouched argument list. Everything below is a
+plain CommonJS function call in that wrapper process, which then spawns at most
+one child process: Bun, or the original manager.
 
 ```mermaid
 flowchart LR
@@ -179,12 +180,15 @@ signals become `128 + signo`.
 
 Trust boundaries: bunpm executes whatever Bun and the original managers your
 absolute PATH entries resolve to, and never validates their contents. It adds
-no registry, network access, or credentials of its own at run time; only
-`bootstrap.js` performs network I/O, restricted to this repository at one
-immutable commit SHA (see [Remote Bootstrap](#remote-bootstrap)). Installers
-write only under `~/.bunpm`, one shell profile, or Windows User PATH. bunpm's
-own failures are always `bunpm: <component>: <message>` on stderr; anything else
-on stderr came from the child.
+no registry, network access, or credentials of its own at run time.
+`bootstrap.js` is the only bunpm component that performs network I/O, restricted
+to this repository at one immutable commit SHA (see
+[Remote Bootstrap](#remote-bootstrap)); the Bun and original-manager child
+processes reach whatever registries the invoked command needs, under their own
+configuration. Installers write only under `~/.bunpm`, one shell profile, or
+Windows User PATH. bunpm's own failures are always
+`bunpm: <component>: <message>` on stderr; anything else on stderr came from the
+child.
 
 ## Development
 
