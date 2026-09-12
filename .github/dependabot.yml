@@ -2,9 +2,12 @@
 # the same required checks as any other change; nothing is merged automatically.
 version: 2
 updates:
-  # Development tooling only. bunpm ships zero runtime dependencies, so a
-  # production dependency appearing here should be reviewed by a human, not
-  # quietly kept up to date.
+  # Every dependency in package.json is a development dependency: bunpm ships
+  # zero runtime dependencies. That invariant is enforced by review, not here,
+  # because Dependabot's `allow: dependency-type: development` filter is not
+  # supported for the bun ecosystem (only bundler, composer, mix, maven, npm,
+  # pip and uv). A production dependency ever appearing in a Dependabot pull
+  # request is therefore a signal to question the dependency, not the config.
   #
   # The `bun` ecosystem, not `npm`, is what keeps package.json and the committed
   # text bun.lock in step. CI installs with `bun install --frozen-lockfile`, so a
@@ -15,8 +18,6 @@ updates:
       interval: weekly
       day: monday
       timezone: Etc/UTC
-    allow:
-      - dependency-type: development
     commit-message:
       prefix: chore
       include: scope
