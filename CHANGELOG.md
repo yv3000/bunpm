@@ -4,8 +4,10 @@
 
 - Report every bunpm failure on stderr as `bunpm: <component>: <message>`,
   replacing the previous mix of `bunpm error:`, `Bootstrap error:` and unprefixed
-  installer messages. Exit codes and underlying cause text are unchanged. Scripts
-  matching the old prefixes need updating.
+  installer messages. Missing installer prerequisites are now reported by bunpm
+  instead of by the shell, and the missing-manager and prerequisite texts were
+  reworded to name the tool to install. Exit codes, signal handling and child
+  output are unchanged. Scripts matching the old prefixes or texts need updating.
 - Avoid missing-profile diagnostics on fresh Unix installs while retaining PATH
   idempotence. Preserve raw Windows User PATH references and registry value type.
 - Permit quoted batch executable paths containing parentheses and literal wildcard
