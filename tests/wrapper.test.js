@@ -15,7 +15,11 @@ const {
 } = require('../bunpm/core/mapper');
 const mocks = [];
 const dirs = [];
-const savedEnv = { ...process.env };
+// Read PATH through process.env, which is case-insensitive on Windows. A
+// { ...process.env } snapshot keeps Windows' literal `Path` key, so `.PATH`
+// would be undefined and restoring it would set PATH to the string "undefined"
+// for every later test in this process.
+const savedPath = process.env.PATH;
 function mock(object, key, implementation) {
   const spy = spyOn(object, key).mockImplementation(implementation);
   mocks.push(spy);
@@ -28,7 +32,7 @@ function fixture() {
 }
 afterEach(() => {
   for (const spy of mocks.splice(0)) spy.mockRestore();
-  process.env.PATH = savedEnv.PATH;
+  process.env.PATH = savedPath;
   for (const dir of dirs.splice(0))
     fs.rmSync(dir, { recursive: true, force: true });
 });
