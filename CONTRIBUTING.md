@@ -31,6 +31,9 @@ git diff --check
 Use `bun`, not the intercepted `npm` command, for repository development.
 ESLint and Prettier are pinned development-only dependencies. Commit `bun.lock`
 when intentionally updating tooling; never install tools during tests.
+[`.github/dependabot.yml`](.github/dependabot.yml) proposes those tooling and
+GitHub Actions updates weekly. Its pull requests are ordinary pull requests: they
+must pass the same required checks and are never merged automatically.
 
 Tests must exercise observable behavior, run offline, and clean their own fixtures.
 Use the native platform for process and installer tests; a simulated platform name

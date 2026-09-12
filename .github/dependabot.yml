@@ -1,0 +1,33 @@
+# Weekly version updates. Dependabot opens ordinary pull requests that must pass
+# the same required checks as any other change; nothing is merged automatically.
+version: 2
+updates:
+  # Development tooling only. bunpm ships zero runtime dependencies, so a
+  # production dependency appearing here should be reviewed by a human, not
+  # quietly kept up to date.
+  #
+  # The `bun` ecosystem, not `npm`, is what keeps package.json and the committed
+  # text bun.lock in step. CI installs with `bun install --frozen-lockfile`, so a
+  # manifest bump without a matching lockfile update would fail every job.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Etc/UTC
+    allow:
+      - dependency-type: development
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # Actions are pinned to major tags in .github/workflows/ci.yml.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Etc/UTC
+    commit-message:
+      prefix: ci
+      include: scope
