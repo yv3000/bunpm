@@ -125,6 +125,67 @@ lines. It leaves Bun and original package managers installed. Restart the termin
 to discard its old environment. To update, uninstall, review the new checkout,
 then install again. No background updater runs.
 
+## Architecture And Boundaries
+
+One short-lived process per invocation: no daemon, no shared state, no build
+step. A launcher in `bunpm/platforms/<os>/bin/` runs `core/wrapper.js` with the
+invoked manager name and the untouched argument list. Everything below is a
+plain CommonJS function call in that one process.
+
+```mermaid
+flowchart LR
+  L["launcher<br/>platforms/&lt;os&gt;/bin"] --> W["wrapper.js<br/>main()"]
+  W --> M["mapper.js<br/>mapCommand()"]
+  M -->|translated| B["detector.js<br/>getBunPath()"]
+  M -->|fallback| O["detector.js<br/>locateBinary()"]
+  B --> X["wrapper.js<br/>spawnCommand() / spawnSync"]
+  O --> X
+  X -->|buffered| F["formatter.js<br/>formatOutput()"]
+  X -->|interactive stdio| E["child exit code<br/>or signal"]
+  F --> E
+```
+
+- [`bunpm/core/wrapper.js`](bunpm/core/wrapper.js) — entry point: decides,
+  spawns without a shell, prints, and returns the child's exit status. Also
+  holds the `diagnose` stderr helper.
+- [`bunpm/core/mapper.js`](bunpm/core/mapper.js) — pure command/flag tables.
+  Returns either Bun arguments or a fallback instruction. No I/O.
+- [`bunpm/core/detector.js`](bunpm/core/detector.js) — resolves Bun and the
+  original managers from absolute PATH entries, skipping bunpm's own copies.
+- [`bunpm/core/formatter.js`](bunpm/core/formatter.js) — line-by-line cosmetic
+  rewrite of buffered Bun output only.
+- [`bunpm/core/platform-detect.js`](bunpm/core/platform-detect.js) — the only
+  place that maps `process.platform` to paths under `~/.bunpm`.
+
+Two components sit outside that per-command path and are used once, by hand:
+[`bunpm/bootstrap.js`](bunpm/bootstrap.js) downloads runtime files at a pinned
+revision and then hands off to an installer, and the platform installers in
+[`bunpm/platforms`](bunpm/platforms) copy files and edit PATH. Neither is
+imported by the wrapper; bootstrap deliberately imports nothing from `core/`
+because those files do not exist yet when it starts.
+
+`mapCommand` decides between two outcomes. **Translated** commands have a
+documented Bun equivalent and run through Bun, so Bun owns their lockfile and
+dependency semantics. **Fallback** commands — unknown commands or options, and
+anything whose semantics cannot be reproduced safely — run the original manager
+with the original arguments. Ambiguity always resolves to fallback rather than a
+guess, which is why the mapper is a table and not a heuristic.
+
+Fallback happens only _before_ a child mutates anything: a missing or
+non-executable binary (`ENOENT`/`EACCES`) is retried once with the original
+manager. Once Bun has started, no failure is retried, because a second manager
+could repeat a partially applied install. Exit codes pass through unchanged and
+signals become `128 + signo`.
+
+Trust boundaries: bunpm executes whatever Bun and the original managers your
+absolute PATH entries resolve to, and never validates their contents. It adds
+no registry, network access, or credentials of its own at run time; only
+`bootstrap.js` performs network I/O, restricted to this repository at one
+immutable commit SHA (see [Remote Bootstrap](#remote-bootstrap)). Installers
+write only under `~/.bunpm`, one shell profile, or Windows User PATH. bunpm's
+own failures are always `bunpm: <component>: <message>` on stderr; anything else
+on stderr came from the child.
+
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for frozen installs, offline tests,
