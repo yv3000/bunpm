@@ -181,6 +181,8 @@ async function main(args = process.argv.slice(2)) {
 module.exports = { detectPlatform, filesFor, validateUrl, download, main };
 if (require.main === module)
   main().catch((error) => {
-    console.error(`Bootstrap error: ${error.message}`);
+    // Same `bunpm: <component>: <message>` convention as core/wrapper.js, spelled
+    // out here because bootstrap must not import files it has not downloaded yet.
+    console.error(`bunpm: bootstrap: ${error.message}`);
     process.exitCode = 1;
   });

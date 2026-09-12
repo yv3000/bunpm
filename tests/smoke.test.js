@@ -188,7 +188,11 @@ test('native offline install, launcher, package script, fallback and uninstall',
       expect(
         profileContent.match(/export PATH="\$HOME\/\.bunpm\/bin:\$PATH"/g),
       ).toHaveLength(1);
-      expect(script(install, false).status).not.toBe(0);
+      const blocked = script(install, false);
+      expect(blocked.status).not.toBe(0);
+      expect(blocked.stderr.trim()).toBe(
+        'bunpm: install: existing ~/.bunpm found; run uninstall.sh before reinstalling.',
+      );
       fs.appendFileSync(
         profile,
         '# keep .bunpm/bin reference\nexport UNRELATED=ok\n',
@@ -200,7 +204,14 @@ test('native offline install, launcher, package script, fallback and uninstall',
       expect(fs.readFileSync(profile, 'utf8')).not.toContain(
         '# Added by bunpm',
       );
-    } else expect(script(uninstall).status).toBe(0);
+    } else {
+      const blocked = script(install);
+      expect(blocked.status).not.toBe(0);
+      expect(blocked.stderr).toContain(
+        'bunpm: install: existing .bunpm found; run uninstall.ps1 before reinstalling.',
+      );
+      expect(script(uninstall).status).toBe(0);
+    }
     expect(fs.existsSync(installed)).toBe(false);
     expect(script(uninstall, windows).status).toBe(0);
   } finally {

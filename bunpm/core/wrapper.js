@@ -52,9 +52,17 @@ function spawnCommand(binary, args, options = {}) {
   return cp.spawnSync(binary, args, { ...options, shell: false });
 }
 
+// Every bunpm component reports failures on stderr as
+// `bunpm: <component>: <actionable message>` so users can tell bunpm's own
+// diagnostics apart from the child manager's output. Child exit codes and the
+// underlying cause text are preserved unchanged.
+function diagnose(component, message) {
+  console.error(`bunpm: ${component}: ${message}`);
+}
+
 function exitCode(result) {
   if (result.error) {
-    console.error(`bunpm error: ${result.error.message}`);
+    diagnose('exec', result.error.message);
     return 1;
   }
   if (result.signal) return 128 + (os.constants.signals[result.signal] || 1);
@@ -68,8 +76,9 @@ function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     const original = () => {
       const binary = detector.locateBinary(invokedAs);
       if (!binary) {
-        console.error(
-          `bunpm error: Original ${invokedAs} not found; install it for this command or install Bun for supported commands.`,
+        diagnose(
+          'detector',
+          `original ${invokedAs} not found; install ${invokedAs} for this command, or install Bun for supported commands.`,
         );
         return 1;
       }
@@ -97,10 +106,10 @@ function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     }
     return exitCode(result);
   } catch (error) {
-    console.error(`bunpm error: ${error.message}`);
+    diagnose('wrapper', error.message);
     return 1;
   }
 }
 
-module.exports = { main, spawnCommand, exitCode };
+module.exports = { main, spawnCommand, exitCode, diagnose };
 if (require.main === module) process.exitCode = main();

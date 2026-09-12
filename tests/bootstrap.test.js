@@ -12,6 +12,7 @@ const {
   detectPlatform,
   main,
 } = require('../bunpm/bootstrap');
+const { locateBinary } = require('../bunpm/core/detector');
 const sha = 'a'.repeat(40);
 const base = `https://raw.githubusercontent.com/yv3000/bunpm/${sha}/bunpm/`;
 let server, root, get, handler;
@@ -221,4 +222,21 @@ test('bootstrap never executes incomplete files and cleans each private download
   spawn.mockImplementation(() => ({ error: new Error('spawn failed') }));
   await expect(main(['--revision', sha])).rejects.toThrow('spawn failed');
   expect(fs.readdirSync(root)).toEqual([]);
+});
+
+test('bootstrap CLI reports usage with the shared diagnostic prefix', () => {
+  // Run the documented `node bootstrap.js` entrypoint: the bun test runner
+  // colorizes console.error, which is not the production invocation.
+  const node = locateBinary('node');
+  expect(node).not.toBeNull();
+  // Argument validation fails before any request, so this stays offline.
+  const result = cp.spawnSync(node, [path.resolve('bunpm/bootstrap.js')], {
+    encoding: 'utf8',
+    timeout: 15000,
+  });
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr.trim()).toBe(
+    'bunpm: bootstrap: Usage: node bootstrap.js --revision <40-character commit SHA>',
+  );
 });
