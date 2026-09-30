@@ -1,4 +1,13 @@
 // Only translate the common subset; unknown commands/options stay native.
+
+/**
+ * @typedef {'npm'|'npx'|'yarn'|'pnpm'} Manager
+ * @typedef {{ fallbackTo: Manager, fallbackArgs: string[] }} Fallback
+ * @typedef {{ useBunx: boolean, bunArgs: string[], fallbackTo: null }} Translated
+ * @typedef {Fallback | Translated} Mapping
+ */
+
+/** @type {Record<string, string>} */
 const NPM_FLAG_MAP = {
   '--save-dev': '-d',
   '-D': '-d',
@@ -20,6 +29,7 @@ const NPM_FLAG_MAP = {
   '--ignore-scripts': '--ignore-scripts',
   '--frozen-lockfile': '--frozen-lockfile',
 };
+/** @type {Record<string, string>} */
 const YARN_FLAG_MAP = {
   '--dev': '-d',
   '-D': '-d',
@@ -30,7 +40,9 @@ const YARN_FLAG_MAP = {
   '--verbose': '--verbose',
   '--ignore-scripts': '--ignore-scripts',
 };
+/** @type {Record<string, string>} */
 const PNPM_FLAG_MAP = { ...NPM_FLAG_MAP };
+/** @type {Record<string, string>} */
 const NPM_TO_BUN = {
   install: 'add',
   i: 'add',
@@ -56,6 +68,7 @@ const NPM_TO_BUN = {
   link: 'link',
   create: 'create',
 };
+/** @type {Record<string, string>} */
 const YARN_TO_BUN = {
   add: 'add',
   remove: 'remove',
@@ -73,6 +86,7 @@ const YARN_TO_BUN = {
   unlink: 'unlink',
   dlx: 'x',
 };
+/** @type {Record<string, string>} */
 const PNPM_TO_BUN = {
   ...NPM_TO_BUN,
   install: 'install',
@@ -81,6 +95,7 @@ const PNPM_TO_BUN = {
   dlx: 'x',
 };
 
+/** @param {unknown} args */
 function validateArgs(args) {
   if (
     !Array.isArray(args) ||
@@ -92,7 +107,13 @@ function validateArgs(args) {
   }
 }
 
+/**
+ * @param {string[]} args
+ * @param {Record<string, string>} flagMap
+ * @returns {string[]}
+ */
 function translateFlags(args, flagMap) {
+  /** @type {string[]} */
   const translated = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -108,6 +129,7 @@ function translateFlags(args, flagMap) {
   return translated;
 }
 
+/** @param {string[]} args */
 function hasNonFlagArgs(args) {
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--') return i + 1 < args.length;
@@ -120,12 +142,21 @@ function hasNonFlagArgs(args) {
   return false;
 }
 
+/**
+ * @param {string} invokedAs
+ * @param {string[]} args
+ * @returns {Mapping}
+ */
 function mapCommand(invokedAs, args) {
   if (!['npm', 'npx', 'yarn', 'pnpm'].includes(invokedAs)) {
     throw new TypeError('Expected one of: npm, npx, yarn, pnpm');
   }
   validateArgs(args);
-  const fallback = { fallbackTo: invokedAs, fallbackArgs: args };
+  /** @type {Fallback} */
+  const fallback = {
+    fallbackTo: /** @type {Manager} */ (invokedAs),
+    fallbackArgs: args,
+  };
   if (invokedAs === 'npx') {
     // npx options differ from bun x options; only the package-first form is safe.
     return args.length && !args[0].startsWith('-')
@@ -136,10 +167,15 @@ function mapCommand(invokedAs, args) {
     return invokedAs === 'npm'
       ? fallback
       : { useBunx: false, bunArgs: ['install'], fallbackTo: null };
+  /** @type {Record<string, Record<string, string>>} */
   const tables = { npm: NPM_TO_BUN, yarn: YARN_TO_BUN, pnpm: PNPM_TO_BUN };
-  const flags = { npm: NPM_FLAG_MAP, yarn: YARN_FLAG_MAP, pnpm: PNPM_FLAG_MAP }[
-    invokedAs
-  ];
+  /** @type {Record<string, Record<string, string>>} */
+  const flagTables = {
+    npm: NPM_FLAG_MAP,
+    yarn: YARN_FLAG_MAP,
+    pnpm: PNPM_FLAG_MAP,
+  };
+  const flags = flagTables[invokedAs];
   const command = args[0];
   let rest = args.slice(1);
   let mapped = Object.hasOwn(tables[invokedAs], command)
@@ -197,9 +233,9 @@ module.exports = {
   validateArgs,
   translateFlags,
   hasNonFlagArgs,
-  mapNpmCommand: (args) => mapCommand('npm', args),
-  mapYarnCommand: (args) => mapCommand('yarn', args),
-  mapPnpmCommand: (args) => mapCommand('pnpm', args),
+  mapNpmCommand: (/** @type {string[]} */ args) => mapCommand('npm', args),
+  mapYarnCommand: (/** @type {string[]} */ args) => mapCommand('yarn', args),
+  mapPnpmCommand: (/** @type {string[]} */ args) => mapCommand('pnpm', args),
   NPM_TO_BUN,
   YARN_TO_BUN,
   PNPM_TO_BUN,

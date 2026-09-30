@@ -41,7 +41,14 @@ try {
     const totals = Object.fromEntries(
       metrics.map(([, , label]) => [label, { covered: 0, total: 0 }]),
     );
+    /** @type {string[]} */
     const failures = [];
+    /**
+     * @param {string} name
+     * @param {string} label
+     * @param {number} covered
+     * @param {number} total
+     */
     const check = (name, label, covered, total) => {
       const ratio = covered / total;
       console.log(

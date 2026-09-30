@@ -18,11 +18,14 @@
     "lint": "eslint . --max-warnings 0",
     "format:check": "prettier --check .",
     "syntax:check": "node scripts/syntax.js",
+    "typecheck": "tsc -p jsconfig.json",
     "audit": "bun audit",
     "shell:check": "shellcheck bunpm/platforms/linux/scripts/*.sh bunpm/platforms/macos/scripts/*.sh bunpm/platforms/linux/bin/* bunpm/platforms/macos/bin/*"
   },
   "devDependencies": {
+    "@types/node": "16.18.126",
     "eslint": "10.10.0",
-    "prettier": "3.9.6"
+    "prettier": "3.9.6",
+    "typescript": "7.0.2"
   }
 }

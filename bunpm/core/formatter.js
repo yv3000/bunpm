@@ -4,6 +4,10 @@
 // Only uses Node.js built-ins — no external dependencies.
 
 /**
+ * @typedef {{ invokedAs: string, subcommand: string }} FormatContext
+ */
+
+/**
  * Parse a bun "installed X@Y" or "N packages installed [Ts]" line into
  * structured data, returning null if the line doesn't match either shape.
  * This is the shared parsing step all three formatters build on.
@@ -32,7 +36,7 @@ function parseBunInstallLine(line) {
  * This is the v1.2.2 logic, preserved exactly, used when context.invokedAs === 'npm'.
  *
  * @param {string} line
- * @param {object} context
+ * @param {FormatContext} context
  * @returns {string|null}
  */
 function formatAsNpm(line, context) {
@@ -65,7 +69,7 @@ function formatAsNpm(line, context) {
  * (bun did the work, just faster, without yarn's phase breakdown).
  *
  * @param {string} line
- * @param {object} context
+ * @param {FormatContext} context
  * @returns {string|null}
  */
 function formatAsYarn(line, context) {
@@ -100,7 +104,7 @@ function formatAsYarn(line, context) {
  * line and the "dependencies:" section with "+" prefixed package lines.
  *
  * @param {string} line
- * @param {object} context
+ * @param {FormatContext} context
  * @returns {string|null}
  */
 function formatAsPnpm(line, context) {
@@ -133,7 +137,7 @@ function formatAsPnpm(line, context) {
  * This is what core/wrapper.js actually calls.
  *
  * @param {string} line
- * @param {object} context - { subcommand: string, invokedAs: 'npm'|'yarn'|'pnpm' }
+ * @param {FormatContext} context - invokedAs is 'npm', 'yarn' or 'pnpm'
  * @returns {string|null}
  */
 function formatLine(line, context) {
@@ -142,6 +146,14 @@ function formatLine(line, context) {
   return formatAsNpm(line, context); // default / npm
 }
 
+/**
+ * Format every line of buffered Bun output, dropping lines that have no
+ * counterpart in the invoked manager's output.
+ *
+ * @param {string} rawOutput
+ * @param {FormatContext} context
+ * @returns {string}
+ */
 function formatOutput(rawOutput, context) {
   return rawOutput
     .split('\n')

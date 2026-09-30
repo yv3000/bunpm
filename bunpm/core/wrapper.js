@@ -6,6 +6,20 @@ const detector = require('./detector');
 const { mapCommand, validateArgs } = require('./mapper');
 const { formatOutput } = require('./formatter');
 
+/**
+ * @typedef {import('node:child_process').SpawnSyncReturns<string | Buffer>} SpawnResult
+ */
+
+/**
+ * Spawn an absolute executable with an argument array (`shell: false`). A
+ * generic Windows `.cmd`/`.bat` shim instead runs through an explicit cmd.exe
+ * invocation and rejects shell-sensitive arguments.
+ *
+ * @param {string} binary
+ * @param {string[]} args
+ * @param {import('node:child_process').SpawnSyncOptions} [options]
+ * @returns {SpawnResult}
+ */
 function spawnCommand(binary, args, options = {}) {
   validateArgs(args);
   if (
@@ -17,12 +31,12 @@ function spawnCommand(binary, args, options = {}) {
   if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(binary)) {
     const dir = path.dirname(binary);
     const name = path.basename(binary, path.extname(binary)).toLowerCase();
-    const cli = {
+    const cli = /** @type {Record<string, string>} */ ({
       npm: 'npm/bin/npm-cli.js',
       npx: 'npm/bin/npx-cli.js',
       yarn: 'yarn/bin/yarn.js',
       pnpm: 'pnpm/bin/pnpm.cjs',
-    }[name];
+    })[name];
     const entry = cli && path.join(dir, 'node_modules', cli);
     if (entry && fs.existsSync(entry)) {
       args = [entry, ...args];
@@ -55,10 +69,18 @@ function spawnCommand(binary, args, options = {}) {
 // `bunpm: <component>: <actionable message>` so users can tell bunpm's own
 // diagnostics apart from the child manager's output. Child exit codes and the
 // underlying cause text are preserved unchanged.
+/**
+ * @param {string} component
+ * @param {string} message
+ */
 function diagnose(component, message) {
   console.error(`bunpm: ${component}: ${message}`);
 }
 
+/**
+ * @param {Pick<SpawnResult, 'error' | 'signal' | 'status'>} result
+ * @returns {number}
+ */
 function exitCode(result) {
   if (result.error) {
     diagnose('exec', result.error.message);
@@ -96,16 +118,21 @@ function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
       env: { ...process.env, npm_execpath: bun },
     });
     // These failures happen before execution; retrying cannot duplicate effects.
-    if (result.error && ['ENOENT', 'EACCES'].includes(result.error.code))
+    if (
+      result.error &&
+      ['ENOENT', 'EACCES'].includes(
+        /** @type {NodeJS.ErrnoException} */ (result.error).code ?? '',
+      )
+    )
       return original();
     const context = { invokedAs, subcommand: execArgs[0] };
-    for (const stream of ['stdout', 'stderr']) {
-      if (result[stream])
-        process[stream].write(formatOutput(result[stream], context));
+    for (const stream of /** @type {const} */ (['stdout', 'stderr'])) {
+      const output = result[stream];
+      if (output) process[stream].write(formatOutput(String(output), context));
     }
     return exitCode(result);
   } catch (error) {
-    diagnose('wrapper', error.message);
+    diagnose('wrapper', /** @type {Error} */ (error).message);
     return 1;
   }
 }

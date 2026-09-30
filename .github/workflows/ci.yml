@@ -49,6 +49,7 @@ jobs:
       - run: bun run test:coverage
       - run: bun run test:repeat
       - run: bun run syntax:check
+      - run: bun run typecheck
       - run: bun run lint
       - run: bun run format:check
       - run: bun run audit

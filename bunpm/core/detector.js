@@ -3,11 +3,17 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { getHomeDir } = require('./platform-detect');
 
+/**
+ * @param {string} binaryName
+ * @param {string[]} [fallbackPaths]
+ * @returns {string|null}
+ */
 function locateBinary(binaryName, fallbackPaths = []) {
   if (!/^[a-z][a-z0-9-]*$/i.test(binaryName))
     throw new TypeError('Invalid binary name');
   const windows = process.platform === 'win32';
   const ownBin = fs.realpathSync(path.join(__dirname, '..'));
+  /** @type {string[]} */
   const candidates = [];
   for (let dir of (process.env.PATH || '').split(path.delimiter)) {
     dir = dir.replace(/^"(.*)"$/, '$1');

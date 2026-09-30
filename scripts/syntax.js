@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
+/** @param {string} dir */
 function check(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === '.git' || entry.name === 'node_modules') continue;
