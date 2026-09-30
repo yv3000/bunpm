@@ -55,14 +55,15 @@ telemetry. Changing a diagnostic requires updating its assertion in
 
 ## Verification Boundaries
 
-`test:coverage` reads real Bun LCOV output and requires at least 90% lines and
-functions in **each** runtime JavaScript file, including bootstrap. Missing files
-fail the gate. Only tests and development scripts are excluded. Bun coverage does
-not provide a branch threshold here; native subprocess execution is covered by
-assertions, not counted as parent-process line coverage.
-The CI coverage gate runs on Windows, where the additional batch-spawn branches
-can execute. Unix jobs still execute their native tests and installer smoke;
-their local coverage can be lower because Windows code cannot run natively there.
+`test:coverage` reads real Bun LCOV output. On every OS it requires at least 90%
+lines and functions across all runtime JavaScript files combined. On Windows it
+additionally requires 90% in **each** runtime file, including bootstrap, because
+only Windows can execute `wrapper.js`'s batch-shim branch; on Unix that branch is
+unreachable, so a per-file gate there would measure the platform, not the tests.
+Missing files fail the gate. Only tests and development scripts are excluded. Bun
+coverage does not provide a branch threshold here; native subprocess execution is
+covered by assertions, not counted as parent-process line coverage. CI runs the
+gate on Ubuntu, macOS and Windows.
 
 `test:repeat` launches three independent randomized runs with fixed printed seeds.
 `smoke` installs checked-out source into a disposable home, runs installed launchers
