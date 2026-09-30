@@ -293,6 +293,19 @@ test.skipIf(process.platform !== 'win32')(
       '(x)',
     ])
       expect(() => spawnCommand(shim, [arg])).toThrow('Unsafe batch');
+    // Without SystemRoot/WINDIR there is no trustworthy cmd.exe to run.
+    const savedRoots = {
+      SystemRoot: process.env.SystemRoot,
+      WINDIR: process.env.WINDIR,
+    };
+    delete process.env.SystemRoot;
+    delete process.env.WINDIR;
+    try {
+      expect(() => spawnCommand(shim, ['x'])).toThrow('SystemRoot is not set');
+    } finally {
+      for (const [key, value] of Object.entries(savedRoots))
+        if (value !== undefined) process.env[key] = value;
+    }
     const cli = path.join(root, 'node_modules', 'npm', 'bin');
     fs.mkdirSync(cli, { recursive: true });
     fs.writeFileSync(

@@ -8,6 +8,8 @@
   instead of by the shell, and the missing-manager and prerequisite texts were
   reworded to name the tool to install. Exit codes, signal handling and child
   output are unchanged. Scripts matching the old prefixes or texts need updating.
+- Report a missing `SystemRoot`/`WINDIR` as such when a generic Windows batch
+  fallback needs `cmd.exe`, instead of an internal `path.join` type error.
 - Avoid missing-profile diagnostics on fresh Unix installs while retaining PATH
   idempotence. Preserve raw Windows User PATH references and registry value type.
 - Permit quoted batch executable paths containing parentheses and literal wildcard

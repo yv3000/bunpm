@@ -37,13 +37,12 @@ function spawnCommand(binary, args, options = {}) {
         throw new Error(
           'Unsafe batch argument; use the original Node CLI entrypoint instead',
         );
+      const systemRoot = process.env.SystemRoot || process.env.WINDIR;
+      if (!systemRoot)
+        throw new Error('Cannot locate cmd.exe: SystemRoot is not set');
       const command = `"${[binary, ...args].map((value) => `"${value}"`).join(' ')}"`;
       return cp.spawnSync(
-        path.join(
-          process.env.SystemRoot || process.env.WINDIR,
-          'System32',
-          'cmd.exe',
-        ),
+        path.join(systemRoot, 'System32', 'cmd.exe'),
         ['/d', '/v:off', '/s', '/c', command],
         { ...options, shell: false, windowsVerbatimArguments: true },
       );
