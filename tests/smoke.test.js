@@ -78,6 +78,38 @@ test('installer prerequisite failures name bunpm and install nothing', () => {
     );
     // Nothing may be created before the prerequisites are satisfied.
     expect(fs.existsSync(path.join(home, '.bunpm'))).toBe(false);
+    // A node that exists but fails is a different problem from a missing one.
+    const broken = path.join(root, 'broken-bin');
+    fs.mkdirSync(broken);
+    fs.writeFileSync(
+      path.join(broken, windows ? 'node.cmd' : 'node'),
+      windows ? '@exit /b 3\r\n' : '#!/bin/sh\nexit 3\n',
+      { mode: 0o755 },
+    );
+    const failed = cp.spawnSync(
+      shell,
+      windows
+        ? [
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-File',
+            install,
+            '-NoPath',
+          ]
+        : [install, '--no-path'],
+      {
+        cwd: root,
+        env: { ...env, PATH: broken },
+        encoding: 'utf8',
+        timeout: 15000,
+      },
+    );
+    expect(failed.status).not.toBe(0);
+    expect(failed.stderr).toContain(
+      'bunpm: install: node --version failed with exit 3; repair your node installation.',
+    );
+    expect(fs.existsSync(path.join(home, '.bunpm'))).toBe(false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
