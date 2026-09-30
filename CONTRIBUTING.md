@@ -19,6 +19,7 @@ bun test
 bun run test:coverage
 bun run test:repeat
 bun run syntax:check
+bun run typecheck
 bun run lint
 bun run format:check
 bun run audit
@@ -29,7 +30,12 @@ git diff --check
 ```
 
 Use `bun`, not the intercepted `npm` command, for repository development.
-ESLint and Prettier are pinned development-only dependencies. Commit `bun.lock`
+ESLint, Prettier and TypeScript are pinned development-only dependencies.
+`typecheck` runs TypeScript in strict `checkJs` mode over runtime code and
+development scripts (see [`jsconfig.json`](jsconfig.json)); JSDoc annotations are
+the type source and nothing is emitted. It uses `@types/node` 16 on purpose, so
+runtime code calling a Node.js API added after the 16.x line fails the check.
+Tests are not type-checked. Commit `bun.lock`
 when intentionally updating tooling; never install tools during tests.
 [`.github/dependabot.yml`](.github/dependabot.yml) proposes those tooling and
 GitHub Actions updates weekly. Its pull requests are ordinary pull requests: they

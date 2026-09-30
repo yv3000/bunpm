@@ -6,13 +6,19 @@ const https = require('node:https');
 const { pipeline } = require('node:stream/promises');
 const cp = require('node:child_process');
 
+/** @param {string} [platform] */
 function detectPlatform(platform = process.platform) {
+  /** @type {Record<string, 'windows' | 'macos' | 'linux'>} */
   const supported = { win32: 'windows', darwin: 'macos', linux: 'linux' };
   if (!Object.hasOwn(supported, platform))
     throw new Error(`Unsupported platform: ${platform}`);
   return supported[platform];
 }
 
+/**
+ * @param {string} platform
+ * @returns {string[]}
+ */
 function filesFor(platform) {
   if (!['windows', 'macos', 'linux'].includes(platform))
     throw new Error('Unsupported platform');
@@ -36,6 +42,10 @@ function filesFor(platform) {
   return [...files, 'package.json'];
 }
 
+/**
+ * @param {string | URL} value
+ * @returns {URL}
+ */
 function validateUrl(value) {
   const url = new URL(value);
   if (
@@ -55,6 +65,14 @@ function validateUrl(value) {
   return url;
 }
 
+/**
+ * Download one file to `destination`, publishing it only once complete.
+ *
+ * @param {string} value
+ * @param {string} destination
+ * @param {{ timeoutMs?: number, maxBytes?: number }} [limits]
+ * @returns {Promise<void>}
+ */
 async function download(
   value,
   destination,
@@ -69,8 +87,13 @@ async function download(
     throw new TypeError('Invalid download limits');
   let url = validateUrl(value);
   const initial = url;
-  let activeRequest, activeResponse;
+  /** @type {import('node:http').ClientRequest | undefined} */
+  let activeRequest;
+  /** @type {import('node:http').IncomingMessage | undefined} */
+  let activeResponse;
+  /** @type {(error: Error) => void} */
   let rejectTimeout;
+  /** @type {Promise<never>} */
   const deadline = new Promise((_resolve, reject) => {
     rejectTimeout = reject;
   });
@@ -86,13 +109,15 @@ async function download(
     for (let redirects = 0; redirects <= 5; redirects++) {
       const response = await Promise.race([
         deadline,
-        new Promise((resolve, reject) => {
-          activeRequest = https.get(url, {}, resolve);
-          activeRequest.on('error', reject);
-        }),
+        /** @type {Promise<import('node:http').IncomingMessage>} */ (
+          new Promise((resolve, reject) => {
+            activeRequest = https.get(url, {}, resolve);
+            activeRequest.on('error', reject);
+          })
+        ),
       ]);
       activeResponse = response;
-      if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
+      if ([301, 302, 303, 307, 308].includes(response.statusCode ?? 0)) {
         response.destroy();
         if (!response.headers.location || redirects === 5)
           throw new Error('Invalid or excessive redirect');
