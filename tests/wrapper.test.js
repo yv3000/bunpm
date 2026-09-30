@@ -32,7 +32,10 @@ function fixture() {
 }
 afterEach(() => {
   for (const spy of mocks.splice(0)) spy.mockRestore();
-  process.env.PATH = savedPath;
+  // Assigning undefined would store the string "undefined"; an absent PATH
+  // must stay absent.
+  if (savedPath === undefined) delete process.env.PATH;
+  else process.env.PATH = savedPath;
   for (const dir of dirs.splice(0))
     fs.rmSync(dir, { recursive: true, force: true });
 });
