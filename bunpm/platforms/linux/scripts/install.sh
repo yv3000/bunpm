@@ -7,11 +7,21 @@ INSTALL_DIR="$HOME/.bunpm"
 if [ -e "$INSTALL_DIR" ] || [ -L "$INSTALL_DIR" ]; then
   echo 'bunpm: install: existing ~/.bunpm found; run uninstall.sh before reinstalling.' >&2; exit 1
 fi
-# Suppress the shell's own "command not found" so a missing prerequisite is
-# reported once, by us. Without the redirection and the || branch, set -e also
-# aborted on a missing node before any bunpm diagnostic was printed.
-node --version 2>/dev/null || { echo 'bunpm: install: node not found; install Node.js before running bunpm setup.' >&2; exit 1; }
-bun --version 2>/dev/null || { echo 'bunpm: install: bun not found; install it from https://bun.sh first.' >&2; exit 1; }
+# Probe first so a missing prerequisite is reported once, by us, instead of by
+# the shell (set -e would otherwise abort before any bunpm diagnostic). A tool
+# that exists but fails keeps its own stderr and gets a separate message.
+require_tool() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "bunpm: install: $1 not found; $2" >&2; exit 1
+  fi
+  local status=0
+  "$1" --version || status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "bunpm: install: $1 --version failed with exit $status; repair your $1 installation." >&2; exit 1
+  fi
+}
+require_tool node 'install Node.js before running bunpm setup.'
+require_tool bun 'install it from https://bun.sh first.'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="$(dirname "$SCRIPT_DIR")"
 CORE_ROOT="$SOURCE_ROOT"

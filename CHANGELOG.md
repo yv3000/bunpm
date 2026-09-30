@@ -10,6 +10,9 @@
   output are unchanged. Scripts matching the old prefixes or texts need updating.
 - Report a missing `SystemRoot`/`WINDIR` as such when a generic Windows batch
   fallback needs `cmd.exe`, instead of an internal `path.join` type error.
+- Unix installers distinguish a missing `node`/`bun` from one whose `--version`
+  fails, as the Windows installer already did, and no longer hide that tool's
+  own error output.
 - Avoid missing-profile diagnostics on fresh Unix installs while retaining PATH
   idempotence. Preserve raw Windows User PATH references and registry value type.
 - Permit quoted batch executable paths containing parentheses and literal wildcard
