@@ -65,6 +65,11 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile("$PWD/bunpm/platforms/windows/scripts/$file", [ref]$tokens, [ref]$errors) > $null
             if ($errors.Count) { throw ($errors | Out-String) }
           }
+      - name: Run the suite in the isolated container
+        if: runner.os == 'Linux'
+        run: |
+          docker build -t bunpm-test .
+          docker run --rm bunpm-test
       - name: Validate shell and workflow sources
         if: runner.os == 'Linux'
         shell: bash
