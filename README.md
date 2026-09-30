@@ -205,7 +205,13 @@ bun test
 
 `bun test` runs the whole offline suite in `tests/` (unit, bootstrap transport,
 and native installer smoke tests). CI runs the same command on every push and
-pull request on Ubuntu, macOS and Windows.
+pull request on Ubuntu, macOS and Windows. To run the Linux suite in isolation,
+without Node.js or Bun on the host:
+
+```sh
+docker build -t bunpm-test .
+docker run --rm bunpm-test
+```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full validation sequence:
 production coverage gates, lint, format, audit, syntax and smoke commands.
