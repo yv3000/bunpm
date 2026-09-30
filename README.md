@@ -147,8 +147,10 @@ flowchart LR
 ```
 
 - [`bunpm/core/wrapper.js`](bunpm/core/wrapper.js) — entry point: decides,
-  spawns without a shell, prints, and returns the child's exit status. Also
-  holds the `diagnose` stderr helper.
+  spawns with argument arrays (`shell: false`), prints, and returns the child's
+  exit status. The one exception is a generic Windows `.cmd`/`.bat` shim, which
+  only `cmd.exe` can run: it is invoked explicitly and rejects shell-sensitive
+  arguments. Also holds the `diagnose` stderr helper.
 - [`bunpm/core/mapper.js`](bunpm/core/mapper.js) — pure command/flag tables.
   Returns either Bun arguments or a fallback instruction. No I/O.
 - [`bunpm/core/detector.js`](bunpm/core/detector.js) — resolves Bun and the
@@ -192,7 +194,20 @@ child.
 
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for frozen installs, offline tests,
+Requires Node.js 22.13+ and Bun 1.3.14. The committed text lockfile `bun.lock`
+pins the two development tools (ESLint, Prettier); the runtime has none. From a
+fresh clone:
+
+```sh
+bun install --frozen-lockfile --ignore-scripts
+bun test
+```
+
+`bun test` runs the whole offline suite in `tests/` (unit, bootstrap transport,
+and native installer smoke tests). CI runs the same command on every push and
+pull request on Ubuntu, macOS and Windows.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full validation sequence:
 production coverage gates, lint, format, audit, syntax and smoke commands.
 See [CHANGELOG.md](CHANGELOG.md) for compatibility and security changes.
 
