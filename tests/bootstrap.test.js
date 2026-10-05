@@ -1,4 +1,5 @@
-const { test, expect, beforeEach, afterEach, spyOn } = require('bun:test');
+const { test, mock, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
 const http = require('node:http');
 const https = require('node:https');
 const fs = require('node:fs');
@@ -21,7 +22,6 @@ const savedTemp = {
   TMP: process.env.TMP,
   TMPDIR: process.env.TMPDIR,
 };
-const mocks = [];
 beforeEach(async () => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-http-'));
   handler = (_request, response) => response.end('complete');
@@ -29,7 +29,7 @@ beforeEach(async () => {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   // Only the transport is redirected. Production URL validation still runs on
   // every hop; no live network and no insecure production test switch.
-  get = spyOn(https, 'get').mockImplementation((url, options, callback) =>
+  get = mock.method(https, 'get', (url, options, callback) =>
     http.get(
       `http://127.0.0.1:${server.address().port}${url.pathname}`,
       options,
@@ -38,8 +38,7 @@ beforeEach(async () => {
   );
 });
 afterEach(async () => {
-  get.mockRestore();
-  for (const mock of mocks.splice(0)) mock.mockRestore();
+  mock.restoreAll();
   for (const [key, value] of Object.entries(savedTemp)) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;
@@ -55,17 +54,18 @@ test('bootstrap validates platform, manifest and URL trust boundary', () => {
     ['darwin', 'macos'],
     ['linux', 'linux'],
   ]) {
-    expect(detectPlatform(native)).toBe(platform);
-    expect(filesFor(platform)).toContain('core/wrapper.js');
-    expect(
+    assert.equal(detectPlatform(native), platform);
+    assert.ok(filesFor(platform).includes('core/wrapper.js'));
+    assert.equal(
       filesFor(platform)
         .filter((file) => file.startsWith('platforms/'))
         .every((file) => file.startsWith(`platforms/${platform}/`)),
-    ).toBe(true);
+      true,
+    );
   }
-  expect(() => detectPlatform('aix')).toThrow();
-  expect(() => filesFor('other')).toThrow();
-  expect(validateUrl(base + 'core/wrapper.js').protocol).toBe('https:');
+  assert.throws(() => detectPlatform('aix'));
+  assert.throws(() => filesFor('other'));
+  assert.equal(validateUrl(base + 'core/wrapper.js').protocol, 'https:');
   for (const url of [
     'file:///tmp/x',
     'http://raw.githubusercontent.com/x',
@@ -76,7 +76,7 @@ test('bootstrap validates platform, manifest and URL trust boundary', () => {
     base.replace('https://', 'https://user:pass@'),
     base.replace('.com/', '.com:444/'),
   ])
-    expect(() => validateUrl(url)).toThrow();
+    assert.throws(() => validateUrl(url));
 });
 
 test('invalid limits and network failures fail before installation', async () => {
@@ -86,15 +86,16 @@ test('invalid limits and network failures fail before installation', async () =>
     { maxBytes: -1 },
     { maxBytes: Infinity },
   ]) {
-    await expect(
+    await assert.rejects(
       download(base + 'x', path.join(root, 'bad'), options),
-    ).rejects.toThrow('limits');
+      /limits/,
+    );
   }
   handler = (request, _response) => request.socket.destroy();
-  await expect(
+  await assert.rejects(
     download(base + 'x', path.join(root, 'bad'), { timeoutMs: 150 }),
-  ).rejects.toThrow();
-  expect(fs.existsSync(path.join(root, 'bad'))).toBe(false);
+  );
+  assert.equal(fs.existsSync(path.join(root, 'bad')), false);
 });
 
 test('downloads publish only complete content and follow safe relative redirects', async () => {
@@ -106,9 +107,9 @@ test('downloads publish only complete content and follow safe relative redirects
   };
   const dest = path.join(root, 'script');
   await download(base + 'redirect', dest);
-  expect(fs.readFileSync(dest, 'utf8')).toBe('complete script');
-  expect(fs.existsSync(dest + '.partial')).toBe(false);
-  expect(get).toHaveBeenCalledTimes(2);
+  assert.equal(fs.readFileSync(dest, 'utf8'), 'complete script');
+  assert.equal(fs.existsSync(dest + '.partial'), false);
+  assert.equal(get.mock.callCount(), 2);
 });
 
 test('rejects redirects across host, revision, protocol and redirect loops', async () => {
@@ -122,17 +123,16 @@ test('rejects redirects across host, revision, protocol and redirect loops', asy
       response.writeHead(302, { location });
       response.end();
     };
-    await expect(
-      download(base + 'x', path.join(root, 'bad')),
-    ).rejects.toThrow();
-    expect(fs.existsSync(path.join(root, 'bad'))).toBe(false);
+    await assert.rejects(download(base + 'x', path.join(root, 'bad')));
+    assert.equal(fs.existsSync(path.join(root, 'bad')), false);
   }
   handler = (_request, response) => {
     response.writeHead(301);
     response.end();
   };
-  await expect(download(base + 'x', path.join(root, 'bad'))).rejects.toThrow(
-    'redirect',
+  await assert.rejects(
+    download(base + 'x', path.join(root, 'bad')),
+    /redirect/,
   );
 });
 
@@ -156,11 +156,11 @@ test('HTTP, empty, size, timeout and truncated stream errors leave no executable
   ];
   for (const behavior of cases) {
     handler = behavior;
-    await expect(
+    await assert.rejects(
       download(base + 'x', dest, { timeoutMs: 150, maxBytes: 20 }),
-    ).rejects.toThrow();
-    expect(fs.existsSync(dest)).toBe(false);
-    expect(fs.existsSync(dest + '.partial')).toBe(false);
+    );
+    assert.equal(fs.existsSync(dest), false);
+    assert.equal(fs.existsSync(dest + '.partial'), false);
   }
 });
 
@@ -168,75 +168,72 @@ test('file open, write and rename failures propagate without replacing existing 
   const dest = path.join(root, 'script');
   fs.writeFileSync(dest, 'existing');
   fs.writeFileSync(dest + '.partial', 'unrelated');
-  await expect(download(base + 'x', dest)).rejects.toThrow();
-  expect(fs.readFileSync(dest, 'utf8')).toBe('existing');
-  expect(fs.readFileSync(dest + '.partial', 'utf8')).toBe('unrelated');
+  await assert.rejects(download(base + 'x', dest));
+  assert.equal(fs.readFileSync(dest, 'utf8'), 'existing');
+  assert.equal(fs.readFileSync(dest + '.partial', 'utf8'), 'unrelated');
   fs.rmSync(dest + '.partial');
-  const write = spyOn(fs, 'createWriteStream').mockImplementation(
-    (_file, { fd }) => {
-      fs.closeSync(fd);
-      throw new Error('write failed');
-    },
-  );
+  const write = mock.method(fs, 'createWriteStream', (_file, { fd }) => {
+    fs.closeSync(fd);
+    throw new Error('write failed');
+  });
   try {
-    await expect(download(base + 'x', dest)).rejects.toThrow('write failed');
+    await assert.rejects(download(base + 'x', dest), /write failed/);
   } finally {
-    write.mockRestore();
+    write.mock.restore();
   }
-  const rename = spyOn(fs, 'renameSync').mockImplementation(() => {
+  const rename = mock.method(fs, 'renameSync', () => {
     throw new Error('rename failed');
   });
   try {
-    await expect(download(base + 'x', dest)).rejects.toThrow('rename failed');
+    await assert.rejects(download(base + 'x', dest), /rename failed/);
   } finally {
-    rename.mockRestore();
+    rename.mock.restore();
   }
-  expect(fs.readFileSync(dest, 'utf8')).toBe('existing');
-  expect(fs.existsSync(dest + '.partial')).toBe(false);
+  assert.equal(fs.readFileSync(dest, 'utf8'), 'existing');
+  assert.equal(fs.existsSync(dest + '.partial'), false);
 });
 
 test('bootstrap never executes incomplete files and cleans each private download directory', async () => {
-  const spawn = spyOn(cp, 'spawnSync').mockImplementation(() => ({
+  const spawn = mock.method(cp, 'spawnSync', () => ({
     status: 0,
   }));
-  mocks.push(spawn);
   process.env.TEMP = root;
   process.env.TMP = root;
   process.env.TMPDIR = root;
-  await expect(main([])).rejects.toThrow('Usage');
-  await expect(main(['--revision', 'main'])).rejects.toThrow('Usage');
+  await assert.rejects(main([]), /Usage/);
+  await assert.rejects(main(['--revision', 'main']), /Usage/);
   handler = (_request, response) => {
     response.writeHead(500);
     response.end();
   };
-  await expect(main(['--revision', sha])).rejects.toThrow('HTTP 500');
-  expect(spawn).not.toHaveBeenCalled();
-  expect(fs.readdirSync(root)).toEqual([]);
+  await assert.rejects(main(['--revision', sha]), /HTTP 500/);
+  assert.equal(spawn.mock.callCount(), 0);
+  assert.deepEqual(fs.readdirSync(root), []);
   handler = (_request, response) => response.end('complete');
   await main(['--revision', sha]);
-  expect(spawn).toHaveBeenCalledTimes(1);
-  expect(spawn.mock.calls[0][2].shell).toBe(false);
-  expect(fs.readdirSync(root)).toEqual([]);
-  spawn.mockImplementation(() => ({ status: 9 }));
-  await expect(main(['--revision', sha])).rejects.toThrow('Installer failed');
-  spawn.mockImplementation(() => ({ error: new Error('spawn failed') }));
-  await expect(main(['--revision', sha])).rejects.toThrow('spawn failed');
-  expect(fs.readdirSync(root)).toEqual([]);
+  assert.equal(spawn.mock.callCount(), 1);
+  assert.equal(spawn.mock.calls[0].arguments[2].shell, false);
+  assert.deepEqual(fs.readdirSync(root), []);
+  spawn.mock.mockImplementation(() => ({ status: 9 }));
+  await assert.rejects(main(['--revision', sha]), /Installer failed/);
+  spawn.mock.mockImplementation(() => ({ error: new Error('spawn failed') }));
+  await assert.rejects(main(['--revision', sha]), /spawn failed/);
+  assert.deepEqual(fs.readdirSync(root), []);
 });
 
 test('bootstrap CLI reports usage with the shared diagnostic prefix', () => {
-  // Run the documented `node bootstrap.js` entrypoint: the bun test runner
-  // colorizes console.error, which is not the production invocation.
+  // Run the documented `node bootstrap.js` entrypoint, the production invocation.
   const node = locateBinary('node');
-  expect(node).not.toBeNull();
+  assert.notEqual(node, null);
   // Argument validation fails before any request, so this stays offline.
   const result = cp.spawnSync(node, [path.resolve('bunpm/bootstrap.js')], {
     encoding: 'utf8',
     timeout: 15000,
   });
-  expect(result.status).toBe(1);
-  expect(result.stdout).toBe('');
-  expect(result.stderr.trim()).toBe(
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.equal(
+    result.stderr.trim(),
     'bunpm: bootstrap: Usage: node bootstrap.js --revision <40-character commit SHA>',
   );
 });
