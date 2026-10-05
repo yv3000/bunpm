@@ -194,6 +194,14 @@ function mapCommand(invokedAs, args) {
       rest.some((arg) => /^(-r|--recursive|--filter)(=|$)/.test(arg))
     )
       return fallback;
+    if (invokedAs === 'npm') {
+      // npm reads options after the script name as its own config and does
+      // not forward them (`npm test --watch`); Bun would pass them on.
+      const scriptArgs = mapped === 'run' ? rest.slice(1) : rest;
+      const end = scriptArgs.indexOf('--');
+      const own = end < 0 ? scriptArgs : scriptArgs.slice(0, end);
+      if (own.some((arg) => arg.startsWith('-'))) return fallback;
+    }
     if (rest[1] === '--' && mapped === 'run')
       rest = [rest[0], ...rest.slice(2)];
     else if (mapped !== 'run' && rest[0] === '--') rest = rest.slice(1);

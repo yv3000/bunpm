@@ -77,7 +77,9 @@ executables remain trust boundaries. Do not run unreviewed remote code.
 - Common remove/update/list/why/link commands are mapped where supported.
 - `npm run build`, `yarn run build`, and `pnpm run build` use `bun run build`.
 - `npm test` and `pnpm test` run the package's test script via `bun run test`,
-  not Bun's built-in test runner. Script arguments are preserved.
+  not Bun's built-in test runner. Script arguments are preserved. npm treats
+  options after the script name (`npm test --watch`) as its own config, so
+  those fall back to npm; pass script options after `--`.
 - Package-first `npx pkg` and `yarn/pnpm dlx pkg` use `bun x pkg`, inheriting
   the terminal for interactive prompts. Package-manager-specific exec options
   fall back instead of being guessed.

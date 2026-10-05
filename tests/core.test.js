@@ -57,6 +57,39 @@ test('package execution passes arguments without translating script flags', () =
   ).toEqual(['--registry=https://example.com', '-d', 'pkg']);
 });
 
+test('npm options after a script name stay with npm, not the script', () => {
+  // npm consumes these as config; Bun would forward them to the script.
+  for (const args of [
+    ['test', '--watch'],
+    ['start', '--port=3000'],
+    ['run', 'build', '--if-present'],
+    ['run', 'build', 'src', '--silent', '--', 'x'],
+  ]) {
+    expect(mapCommand('npm', args)).toEqual({
+      fallbackTo: 'npm',
+      fallbackArgs: args,
+    });
+  }
+  // Positional arguments and anything after `--` are forwarded by npm too.
+  expect(mapCommand('npm', ['run', 'build', 'src']).bunArgs).toEqual([
+    'run',
+    'build',
+    'src',
+  ]);
+  expect(mapCommand('npm', ['test', '--', '--watch']).bunArgs).toEqual([
+    'run',
+    'test',
+    '--watch',
+  ]);
+  // Yarn and pnpm forward options after the script name to the script.
+  for (const tool of ['yarn', 'pnpm'])
+    expect(mapCommand(tool, ['run', 'build', '--prod']).bunArgs).toEqual([
+      'run',
+      'build',
+      '--prod',
+    ]);
+});
+
 test('parses scoped packages and formats known output, preserving unknown lines', () => {
   expect(parseBunInstallLine('  installed @scope/pkg@1.2.3')).toEqual({
     type: 'single',

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `npm run <script> --flag`, `npm test --flag` and similar fall back to npm.
+  npm reads options after the script name as its own config and does not pass
+  them to the script, while Bun forwarded them. Options after `--` and
+  positional script arguments are still translated.
+
 - Report every bunpm failure on stderr as `bunpm: <component>: <message>`,
   replacing the previous mix of `bunpm error:`, `Bootstrap error:` and unprefixed
   installer messages. Missing installer prerequisites are now reported by bunpm
