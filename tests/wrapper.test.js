@@ -1,4 +1,5 @@
-const { test, expect, spyOn, afterEach } = require('bun:test');
+const { test, mock: nodeMock, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
 const cp = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -13,7 +14,6 @@ const {
   translateFlags,
   hasNonFlagArgs,
 } = require('../bunpm/core/mapper');
-const mocks = [];
 const dirs = [];
 // Read PATH through process.env, which is case-insensitive on Windows. A
 // { ...process.env } snapshot keeps Windows' literal `Path` key, so `.PATH`
@@ -21,9 +21,7 @@ const dirs = [];
 // for every later test in this process.
 const savedPath = process.env.PATH;
 function mock(object, key, implementation) {
-  const spy = spyOn(object, key).mockImplementation(implementation);
-  mocks.push(spy);
-  return spy;
+  return nodeMock.method(object, key, implementation);
 }
 function fixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-test-'));
@@ -31,7 +29,7 @@ function fixture() {
   return dir;
 }
 afterEach(() => {
-  for (const spy of mocks.splice(0)) spy.mockRestore();
+  nodeMock.restoreAll();
   // Assigning undefined would store the string "undefined"; an absent PATH
   // must stay absent.
   if (savedPath === undefined) delete process.env.PATH;
@@ -53,59 +51,61 @@ test('routing preserves scripts and falls back instead of guessing semantics', (
       ['__proto__'],
       ['add', 'pkg', '--unknown'],
     ]) {
-      expect(mapCommand(tool, args)).toEqual({
+      assert.deepEqual(mapCommand(tool, args), {
         fallbackTo: tool,
         fallbackArgs: args,
       });
     }
-    expect(
+    assert.deepEqual(
       mapCommand(tool, ['test', '--', '-D', '', '--filter=x']).bunArgs ?? [],
-    ).toEqual(tool === 'pnpm' ? [] : ['run', 'test', '-D', '', '--filter=x']);
-    expect(mapCommand(tool, ['run', 'build', '--', '-D', '']).bunArgs).toEqual([
-      'run',
-      'build',
-      '-D',
-      '',
-    ]);
-    expect(mapCommand(tool, ['run', '--help']).fallbackTo).toBe(tool);
+      tool === 'pnpm' ? [] : ['run', 'test', '-D', '', '--filter=x'],
+    );
+    assert.deepEqual(
+      mapCommand(tool, ['run', 'build', '--', '-D', '']).bunArgs,
+      ['run', 'build', '-D', ''],
+    );
+    assert.equal(mapCommand(tool, ['run', '--help']).fallbackTo, tool);
   }
-  expect(mapCommand('yarn', ['dev']).fallbackTo).toBe('yarn');
-  expect(mapCommand('yarn', ['global', 'remove', 'pkg']).fallbackTo).toBe(
+  assert.equal(mapCommand('yarn', ['dev']).fallbackTo, 'yarn');
+  assert.equal(
+    mapCommand('yarn', ['global', 'remove', 'pkg']).fallbackTo,
     'yarn',
   );
-  expect(mapCommand('yarn', ['global', 'add', 'pkg']).bunArgs).toEqual([
+  assert.deepEqual(mapCommand('yarn', ['global', 'add', 'pkg']).bunArgs, [
     'add',
     '-g',
     'pkg',
   ]);
-  expect(
+  assert.deepEqual(
     mapCommand('npm', ['install', '--registry', 'https://example.test'])
       .bunArgs,
-  ).toEqual(['install', '--registry', 'https://example.test']);
-  expect(mapCommand('npm', ['install', '--registry']).fallbackTo).toBe('npm');
-  expect(mapCommand('npm', []).fallbackTo).toBe('npm');
-  expect(mapCommand('pnpm', []).bunArgs).toEqual(['install']);
-  expect(mapCommand('npx', []).fallbackTo).toBe('npx');
-  expect(mapCommand('npx', ['--version']).fallbackTo).toBe('npx');
-  expect(mapCommand('yarn', ['dlx']).fallbackTo).toBe('yarn');
-  expect(mapCommand('npm', ['add', '--', '-pkg']).bunArgs).toEqual([
+    ['install', '--registry', 'https://example.test'],
+  );
+  assert.equal(mapCommand('npm', ['install', '--registry']).fallbackTo, 'npm');
+  assert.equal(mapCommand('npm', []).fallbackTo, 'npm');
+  assert.deepEqual(mapCommand('pnpm', []).bunArgs, ['install']);
+  assert.equal(mapCommand('npx', []).fallbackTo, 'npx');
+  assert.equal(mapCommand('npx', ['--version']).fallbackTo, 'npx');
+  assert.equal(mapCommand('yarn', ['dlx']).fallbackTo, 'yarn');
+  assert.deepEqual(mapCommand('npm', ['add', '--', '-pkg']).bunArgs, [
     'add',
     '--',
     '-pkg',
   ]);
-  expect(
+  assert.deepEqual(
     translateFlags(['--save', '--registry=x', '--', '-D', ''], {
       '--save': '',
       '--registry': '--registry',
       '-D': '-d',
     }),
-  ).toEqual(['--registry=x', '--', '-D', '']);
-  expect(hasNonFlagArgs(['--registry', 'x', 'pkg'])).toBe(true);
-  expect(mapNpmCommand(['i']).bunArgs).toEqual(['install']);
-  expect(mapYarnCommand([]).bunArgs).toEqual(['install']);
-  expect(mapPnpmCommand([]).bunArgs).toEqual(['install']);
+    ['--registry=x', '--', '-D', ''],
+  );
+  assert.equal(hasNonFlagArgs(['--registry', 'x', 'pkg']), true);
+  assert.deepEqual(mapNpmCommand(['i']).bunArgs, ['install']);
+  assert.deepEqual(mapYarnCommand([]).bunArgs, ['install']);
+  assert.deepEqual(mapPnpmCommand([]).bunArgs, ['install']);
   for (const args of [null, {}, [3], ['a\0b']])
-    expect(() => mapCommand('npm', args)).toThrow('Arguments');
+    assert.throws(() => mapCommand('npm', args), /Arguments/);
 });
 
 test('native binary discovery skips wrapper roots, relative PATH and directories', () => {
@@ -123,15 +123,16 @@ test('native binary discovery skips wrapper roots, relative PATH and directories
     mode: 0o755,
   });
   process.env.PATH = ['', '.', other, `"${bin}"`].join(path.delimiter);
-  expect(detector.getYarnPath()).toBe(fake);
-  expect(detector.getPnpmPath()).toBeNull();
-  expect(detector.locateBinary('yarn')).toBe(fake);
-  expect(() => detector.locateBinary('bun & echo')).toThrow('Invalid binary');
+  assert.equal(detector.getYarnPath(), fake);
+  assert.equal(detector.getPnpmPath(), null);
+  assert.equal(detector.locateBinary('yarn'), fake);
+  assert.throws(() => detector.locateBinary('bun & echo'), /Invalid binary/);
   process.env.PATH = '';
-  expect(detector.locateBinary('yarn', [bin, fake])).toBe(fake);
-  expect(
+  assert.equal(detector.locateBinary('yarn', [bin, fake]), fake);
+  assert.equal(
     detector.locateBinary('yarn', [path.join(root, 'missing')]),
-  ).toBeNull();
+    null,
+  );
 });
 
 test('Bun detection and version failures use direct argument arrays', () => {
@@ -139,23 +140,23 @@ test('Bun detection and version failures use direct argument arrays', () => {
   const bun = path.join(root, process.platform === 'win32' ? 'bun.exe' : 'bun');
   fs.writeFileSync(bun, 'fixture', { mode: 0o755 });
   process.env.PATH = root;
-  expect(detector.isBunAvailable()).toBe(true);
-  expect(detector.getBunPath()).toBe(bun);
-  expect(detector.getBunxPath()).toBe(bun);
+  assert.equal(detector.isBunAvailable(), true);
+  assert.equal(detector.getBunPath(), bun);
+  assert.equal(detector.getBunxPath(), bun);
   const bunx = path.join(
     root,
     process.platform === 'win32' ? 'bunx.exe' : 'bunx',
   );
   fs.writeFileSync(bunx, 'fixture', { mode: 0o755 });
-  expect(detector.getBunxPath()).toBe(bunx);
+  assert.equal(detector.getBunxPath(), bunx);
   const spawn = mock(cp, 'spawnSync', () => ({
     status: 0,
     stdout: '1.3.14\n',
   }));
-  expect(detector.getBunVersion()).toBe('1.3.14');
-  expect(spawn.mock.calls[0][1]).toEqual(['--version']);
-  spawn.mockImplementation(() => ({ status: 1, stdout: '' }));
-  expect(detector.getBunVersion()).toBeNull();
+  assert.equal(detector.getBunVersion(), '1.3.14');
+  assert.deepEqual(spawn.mock.calls[0].arguments[1], ['--version']);
+  spawn.mock.mockImplementation(() => ({ status: 1, stdout: '' }));
+  assert.equal(detector.getBunVersion(), null);
 });
 
 test('wrapper keeps exit codes, interactive stdio and formatted streams', () => {
@@ -167,15 +168,23 @@ test('wrapper keeps exit codes, interactive stdio and formatted streams', () => 
   }));
   const out = mock(process.stdout, 'write', () => true);
   const err = mock(process.stderr, 'write', () => true);
-  expect(main('npm', ['install'])).toBe(7);
-  expect(out).toHaveBeenCalledWith('added 2 packages in 1ms\n');
-  expect(err).toHaveBeenCalledWith('npm error no\n');
-  expect(spawn.mock.calls[0][2].shell).toBe(false);
-  spawn.mockImplementation(() => ({ status: 0 }));
-  expect(main('npm', ['run', 'dev'])).toBe(0);
-  expect(spawn.mock.calls[1][2].stdio).toBe('inherit');
-  expect(main('npx', ['pkg', '--flag'])).toBe(0);
-  expect(spawn.mock.calls[2][1]).toEqual(['x', 'pkg', '--flag']);
+  // Restore the streams at once: node:test reports results over stdout.
+  try {
+    assert.equal(main('npm', ['install']), 7);
+  } finally {
+    out.mock.restore();
+    err.mock.restore();
+  }
+  assert.ok(
+    out.mock.calls.some((c) => c.arguments[0] === 'added 2 packages in 1ms\n'),
+  );
+  assert.ok(err.mock.calls.some((c) => c.arguments[0] === 'npm error no\n'));
+  assert.equal(spawn.mock.calls[0].arguments[2].shell, false);
+  spawn.mock.mockImplementation(() => ({ status: 0 }));
+  assert.equal(main('npm', ['run', 'dev']), 0);
+  assert.equal(spawn.mock.calls[1].arguments[2].stdio, 'inherit');
+  assert.equal(main('npx', ['pkg', '--flag']), 0);
+  assert.deepEqual(spawn.mock.calls[2].arguments[1], ['x', 'pkg', '--flag']);
 });
 
 test('fallback runs only when safe and errors never become success', () => {
@@ -183,26 +192,26 @@ test('fallback runs only when safe and errors never become success', () => {
   mock(detector, 'getBunPath', () => process.execPath);
   const locate = mock(detector, 'locateBinary', () => process.execPath);
   const spawn = mock(cp, 'spawnSync', () => ({ status: 23 }));
-  expect(main('npm', ['--version'])).toBe(23);
-  expect(spawn.mock.calls[0][1]).toEqual(['--version']);
-  spawn.mockImplementationOnce(() => ({
+  assert.equal(main('npm', ['--version']), 23);
+  assert.deepEqual(spawn.mock.calls[0].arguments[1], ['--version']);
+  spawn.mock.mockImplementationOnce(() => ({
     status: null,
     error: Object.assign(new Error('gone'), { code: 'ENOENT' }),
   }));
-  expect(main('npm', ['install'])).toBe(23);
+  assert.equal(main('npm', ['install']), 23);
   const before = spawn.mock.calls.length;
-  spawn.mockImplementation(() => ({
+  spawn.mock.mockImplementation(() => ({
     status: null,
     error: Object.assign(new Error('buffer full'), { code: 'ENOBUFS' }),
   }));
-  expect(main('npm', ['install'])).toBe(1);
-  expect(spawn.mock.calls.length).toBe(before + 1);
-  locate.mockImplementation(() => null);
-  expect(main('npm', ['publish'])).toBe(1);
-  expect(main('bad', [])).toBe(1);
-  expect(exitCode({ status: null, signal: 'SIGTERM' })).toBe(143);
-  expect(exitCode({ status: null, signal: 'unknown' })).toBe(129);
-  expect(exitCode({ status: null })).toBe(1);
+  assert.equal(main('npm', ['install']), 1);
+  assert.equal(spawn.mock.calls.length, before + 1);
+  locate.mock.mockImplementation(() => null);
+  assert.equal(main('npm', ['publish']), 1);
+  assert.equal(main('bad', []), 1);
+  assert.equal(exitCode({ status: null, signal: 'SIGTERM' }), 143);
+  assert.equal(exitCode({ status: null, signal: 'unknown' }), 129);
+  assert.equal(exitCode({ status: null }), 1);
 });
 
 test('missing Bun falls back and pre-execution permission failure retries exactly once', () => {
@@ -210,18 +219,18 @@ test('missing Bun falls back and pre-execution permission failure retries exactl
   const bun = mock(detector, 'getBunPath', () => null);
   const original = mock(detector, 'locateBinary', () => process.execPath);
   const spawn = mock(cp, 'spawnSync', () => ({ status: 31 }));
-  expect(main('npm', ['install'])).toBe(31);
-  expect(spawn.mock.calls[0][1]).toEqual(['install']);
-  original.mockImplementation(() => null);
-  expect(main('npm', ['install'])).toBe(1);
-  bun.mockImplementation(() => process.execPath);
-  original.mockImplementation(() => process.execPath);
-  spawn.mockImplementationOnce(() => ({
+  assert.equal(main('npm', ['install']), 31);
+  assert.deepEqual(spawn.mock.calls[0].arguments[1], ['install']);
+  original.mock.mockImplementation(() => null);
+  assert.equal(main('npm', ['install']), 1);
+  bun.mock.mockImplementation(() => process.execPath);
+  original.mock.mockImplementation(() => process.execPath);
+  spawn.mock.mockImplementationOnce(() => ({
     status: null,
     error: Object.assign(new Error('denied'), { code: 'EACCES' }),
   }));
-  expect(main('npm', ['install'])).toBe(31);
-  expect(spawn).toHaveBeenCalledTimes(3);
+  assert.equal(main('npm', ['install']), 31);
+  assert.equal(spawn.mock.callCount(), 3);
 });
 
 test('diagnostics use one bunpm: <component>: <message> stderr convention', () => {
@@ -230,17 +239,17 @@ test('diagnostics use one bunpm: <component>: <message> stderr convention', () =
   mock(detector, 'getBunPath', () => null);
   mock(detector, 'locateBinary', () => null);
   // A missing original manager must name the component and stay nonzero.
-  expect(main('npm', ['install'])).toBe(1);
+  assert.equal(main('npm', ['install']), 1);
   // Unsupported invocations surface through the top-level wrapper handler.
-  expect(main('bad', [])).toBe(1);
+  assert.equal(main('bad', []), 1);
   // Pre-execution spawn failures keep the underlying cause text verbatim.
-  expect(exitCode({ error: new Error('spawn EPERM') })).toBe(1);
-  expect(lines).toEqual([
+  assert.equal(exitCode({ error: new Error('spawn EPERM') }), 1);
+  assert.deepEqual(lines, [
     'bunpm: detector: original npm not found; install npm for this command, or install Bun for supported commands.',
     'bunpm: wrapper: Expected one of: npm, npx, yarn, pnpm',
     'bunpm: exec: spawn EPERM',
   ]);
-  for (const line of lines) expect(line).toMatch(/^bunpm: [a-z]+: \S/);
+  for (const line of lines) assert.match(line, /^bunpm: [a-z]+: \S/);
 });
 
 test('native child argv preserves metacharacters and exact nonzero exit', () => {
@@ -263,14 +272,15 @@ test('native child argv preserves metacharacters and exact nonzero exit', () => 
     ],
     { encoding: 'utf8' },
   );
-  expect(result.status).toBe(17);
-  expect(JSON.parse(result.stdout)).toEqual(args);
-  expect(() => spawnCommand('relative', [])).toThrow('absolute');
-  expect(() => spawnCommand(process.execPath, ['\0'])).toThrow();
+  assert.equal(result.status, 17);
+  assert.deepEqual(JSON.parse(result.stdout), args);
+  assert.throws(() => spawnCommand('relative', []), /absolute/);
+  assert.throws(() => spawnCommand(process.execPath, ['\0']));
 });
 
-test.skipIf(process.platform !== 'win32')(
+test(
   'Windows batch fallback preserves safe args and rejects shell injection',
+  { skip: process.platform !== 'win32' },
   () => {
     const root = fixture();
     const bin = path.join(root, 'Program Files (x86)');
@@ -278,11 +288,11 @@ test.skipIf(process.platform !== 'win32')(
     const shim = path.join(bin, 'original.cmd');
     fs.writeFileSync(shim, '@echo off\r\necho %~1\r\nexit /b 19\r\n');
     const result = spawnCommand(shim, ['space here'], { encoding: 'utf8' });
-    expect(result.status).toBe(19);
-    expect(result.stdout.trim()).toBe('space here');
+    assert.equal(result.status, 19);
+    assert.equal(result.stdout.trim(), 'space here');
     const wildcard = spawnCommand(shim, ['*'], { encoding: 'utf8' });
-    expect(wildcard.status).toBe(19);
-    expect(wildcard.stdout.trim()).toBe('*');
+    assert.equal(wildcard.status, 19);
+    assert.equal(wildcard.stdout.trim(), '*');
     for (const arg of [
       'x&echo pwn',
       '%PATH%',
@@ -292,7 +302,7 @@ test.skipIf(process.platform !== 'win32')(
       'a^b',
       '(x)',
     ])
-      expect(() => spawnCommand(shim, [arg])).toThrow('Unsafe batch');
+      assert.throws(() => spawnCommand(shim, [arg]), /Unsafe batch/);
     // Without SystemRoot/WINDIR there is no trustworthy cmd.exe to run.
     const savedRoots = {
       SystemRoot: process.env.SystemRoot,
@@ -301,7 +311,7 @@ test.skipIf(process.platform !== 'win32')(
     delete process.env.SystemRoot;
     delete process.env.WINDIR;
     try {
-      expect(() => spawnCommand(shim, ['x'])).toThrow('SystemRoot is not set');
+      assert.throws(() => spawnCommand(shim, ['x']), /SystemRoot is not set/);
     } finally {
       for (const [key, value] of Object.entries(savedRoots))
         if (value !== undefined) process.env[key] = value;
@@ -315,7 +325,7 @@ test.skipIf(process.platform !== 'win32')(
     const direct = spawnCommand(path.join(root, 'npm.cmd'), ['a&b', '%PATH%'], {
       encoding: 'utf8',
     });
-    expect(direct.status).toBe(11);
-    expect(JSON.parse(direct.stdout)).toEqual(['a&b', '%PATH%']);
+    assert.equal(direct.status, 11);
+    assert.deepEqual(JSON.parse(direct.stdout), ['a&b', '%PATH%']);
   },
 );
