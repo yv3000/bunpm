@@ -1,0 +1,9 @@
+# Isolated Linux environment for running tests self-contained without host dependencies:
+#   docker compose run --rm test
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - BUN_RUNTIME_TRANSPILER_CACHE_PATH=0

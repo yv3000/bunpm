@@ -220,6 +220,8 @@ pull request on Ubuntu, macOS and Windows. To run the Linux suite in isolation,
 without Node.js or Bun on the host:
 
 ```sh
+docker compose run --rm test
+# or:
 docker build -t bunpm-test .
 docker run --rm bunpm-test
 ```
