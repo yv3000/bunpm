@@ -12,7 +12,7 @@ updates:
   # The `bun` ecosystem, not `npm`, is what keeps package.json and the committed
   # text bun.lock in step. CI installs with `bun install --frozen-lockfile`, so a
   # manifest bump without a matching lockfile update would fail every job.
-  - package-ecosystem: bun
+  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
