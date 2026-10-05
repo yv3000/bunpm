@@ -23,7 +23,7 @@
     "shell:check": "shellcheck bunpm/platforms/linux/scripts/*.sh bunpm/platforms/macos/scripts/*.sh bunpm/platforms/linux/bin/* bunpm/platforms/macos/bin/*"
   },
   "devDependencies": {
-    "@types/node": "16.18.126",
+    "@types/node": "25.9.9",
     "eslint": "10.11.0",
     "prettier": "3.9.9",
     "typescript": "7.0.2"
