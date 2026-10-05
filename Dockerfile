@@ -13,4 +13,4 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
 # Unprivileged, so executable-permission checks behave as they do for users.
 USER node
-CMD ["bun", "test"]
+CMD ["node", "--test", "tests/*.test.js"]

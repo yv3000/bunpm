@@ -12,12 +12,17 @@ const perFile = process.platform === 'win32';
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-coverage-'));
 try {
   const result = spawnSync(
-    'bun',
+    process.execPath,
     [
-      'test',
-      '--coverage',
-      '--coverage-reporter=lcov',
-      `--coverage-dir=${root}`,
+      '--test',
+      '--experimental-test-coverage',
+      '--test-coverage-exclude=tests/**',
+      '--test-coverage-exclude=scripts/**',
+      '--test-reporter=spec',
+      '--test-reporter-destination=stdout',
+      '--test-reporter=lcov',
+      `--test-reporter-destination=${path.join(root, 'lcov.info')}`,
+      'tests/*.test.js',
     ],
     { stdio: 'inherit' },
   );
