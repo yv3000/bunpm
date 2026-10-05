@@ -4,6 +4,12 @@ A small wrapper that routes a supported subset of `npm`, `npx`, `yarn`, and
 `pnpm` commands through [Bun](https://bun.sh). Plain CommonJS JavaScript, Node
 built-ins only, and zero runtime dependencies. No build step or service.
 
+## Project Type
+
+bunpm is a command-line interface (CLI) wrapper tool and developer utility, not
+infrastructure-as-code (IaC). It provisions no cloud resources and contains no
+Terraform, Kubernetes, Helm, Pulumi, or Ansible configurations.
+
 ## Requirements
 
 - Node.js 16.9+ for runtime; Node.js 22.13+ and Bun 1.3.14 for development.
