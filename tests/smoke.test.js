@@ -7,6 +7,10 @@ const cp = require('node:child_process');
 const { getBunPath, locateBinary } = require('../bunpm/core/detector');
 const { spawnCommand } = require('../bunpm/core/wrapper');
 
+// PowerShell wraps thrown errors at the console width, so compare messages
+// with whitespace runs collapsed.
+const flat = (text) => text.replace(/\s+/g, ' ');
+
 test(
   'Windows PATH edits preserve raw values without touching the registry',
   { skip: process.platform !== 'win32', timeout: 30000 },
@@ -81,7 +85,7 @@ test(
       );
       assert.notEqual(result.status, 0);
       assert.ok(
-        result.stderr.includes(
+        flat(result.stderr).includes(
           windows
             ? 'bunpm: install: node not found; install it separately before running bunpm setup.'
             : 'bunpm: install: node not found; install Node.js before running bunpm setup.',
@@ -118,7 +122,7 @@ test(
       );
       assert.notEqual(failed.status, 0);
       assert.ok(
-        failed.stderr.includes(
+        flat(failed.stderr).includes(
           'bunpm: install: node --version failed with exit 3; repair your node installation.',
         ),
       );
@@ -333,7 +337,7 @@ test(
         const blocked = script(install);
         assert.notEqual(blocked.status, 0);
         assert.ok(
-          blocked.stderr.includes(
+          flat(blocked.stderr).includes(
             'bunpm: install: existing .bunpm found; run uninstall.ps1 before reinstalling.',
           ),
         );
