@@ -15,7 +15,7 @@ From a fresh clone:
 git clone https://github.com/yv3000/bunpm.git
 cd bunpm
 bun install --frozen-lockfile --ignore-scripts
-bun test
+bun run test
 bun run test:coverage
 bun run test:repeat
 bun run syntax:check
@@ -61,17 +61,18 @@ telemetry. Changing a diagnostic requires updating its assertion in
 
 ## Verification Boundaries
 
-`test:coverage` reads real Bun LCOV output. On every OS it requires at least 90%
-lines and functions across all runtime JavaScript files combined. On Windows it
-additionally requires 90% in **each** runtime file, including bootstrap, because
+`test:coverage` reads the LCOV output of Node's built-in test runner. On every OS
+it requires at least 90% lines and functions across all runtime JavaScript files
+combined. On Windows it additionally requires 90% in **each** runtime file, including bootstrap, because
 only Windows can execute `wrapper.js`'s batch-shim branch; on Unix that branch is
 unreachable, so a per-file gate there would measure the platform, not the tests.
-Missing files fail the gate. Only tests and development scripts are excluded. Bun
-coverage does not provide a branch threshold here; native subprocess execution is
+Missing files fail the gate. Only tests and development scripts are excluded. The
+gate does not enforce a branch threshold; native subprocess execution is
 covered by assertions, not counted as parent-process line coverage. CI runs the
 gate on Ubuntu, macOS and Windows.
 
-`test:repeat` launches three independent randomized runs with fixed printed seeds.
+`test:repeat` launches three independent runs, randomized with fixed seeds when
+Node supports `--test-randomize` (26.1+) and in file order otherwise.
 `smoke` installs checked-out source into a disposable home, runs installed launchers
 and package scripts, and uninstalls. Windows smoke uses `-NoPath` and never touches
 the registry. Unix smoke modifies only disposable shell profiles. No test downloads

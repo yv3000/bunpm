@@ -206,28 +206,30 @@ child.
 ## Development
 
 Requires Node.js 22.13+ and Bun 1.3.14. The committed text lockfile `bun.lock`
-pins the two development tools (ESLint, Prettier); the runtime has none. From a
-fresh clone:
+pins the development tools (ESLint, Prettier, TypeScript, `@types/node`); the
+runtime has none. From a fresh clone:
 
 ```sh
 bun install --frozen-lockfile --ignore-scripts
 bun run build
-bun test
+bun run test
 ```
 
 ## Testing
 
-Run the full offline test suite:
+Run the full offline test suite with Node's built-in `node:test` runner:
 
 ```sh
-bun test
+bun run test
 ```
 
-`bun test` executes the unit suite (`tests/core.test.js`), wrapper behavior
+`bun run test` executes the unit suite (`tests/core.test.js`), wrapper behavior
 tests (`tests/wrapper.test.js`), bootstrap transport tests
 (`tests/bootstrap.test.js`), and installer smoke tests (`tests/smoke.test.js`).
 CI runs this suite on Ubuntu, macOS, and Windows on every push.
-without Node.js or Bun on the host:
+
+To run the suite in an isolated Linux container without Node.js or Bun on the
+host:
 
 ```sh
 docker compose run --rm test
