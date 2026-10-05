@@ -1,4 +1,5 @@
-const { test, expect } = require('bun:test');
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
 const path = require('node:path');
 const os = require('node:os');
 const { mapCommand, translateFlags } = require('../bunpm/core/mapper');
@@ -23,22 +24,22 @@ test('maps common dependency operations without mutating input', () => {
     ['pnpm', ['why', 'pkg'], ['pm', 'why', 'pkg']],
   ]) {
     const original = [...args];
-    expect(mapCommand(tool, args).bunArgs).toEqual(expected);
-    expect(args).toEqual(original);
+    assert.deepEqual(mapCommand(tool, args).bunArgs, expected);
+    assert.deepEqual(args, original);
   }
 });
 
 test('unsupported and workspace commands preserve original arguments', () => {
   for (const tool of ['npm', 'yarn', 'pnpm']) {
-    expect(mapCommand(tool, ['publish', '--tag', 'next'])).toEqual({
+    assert.deepEqual(mapCommand(tool, ['publish', '--tag', 'next']), {
       fallbackTo: tool,
       fallbackArgs: ['publish', '--tag', 'next'],
     });
   }
   for (const flag of ['-r', '--recursive', '--filter=app']) {
-    expect(mapCommand('pnpm', ['install', flag]).fallbackTo).toBe('pnpm');
+    assert.equal(mapCommand('pnpm', ['install', flag]).fallbackTo, 'pnpm');
   }
-  expect(() => mapCommand('other', [])).toThrow();
+  assert.throws(() => mapCommand('other', []));
 });
 
 test('package execution passes arguments without translating script flags', () => {
@@ -47,17 +48,18 @@ test('package execution passes arguments without translating script flags', () =
     ['yarn', ['dlx', 'pkg', '--dev']],
     ['pnpm', ['dlx', 'pkg', '--dev']],
   ]) {
-    expect(mapCommand(tool, args)).toEqual({
+    assert.deepEqual(mapCommand(tool, args), {
       useBunx: true,
       bunArgs: ['pkg', '--dev'],
       fallbackTo: null,
     });
   }
-  expect(
+  assert.deepEqual(
     translateFlags(['--registry=https://example.com', '--dev', 'pkg'], {
       '--dev': '-d',
     }),
-  ).toEqual(['--registry=https://example.com', '-d', 'pkg']);
+    ['--registry=https://example.com', '-d', 'pkg'],
+  );
 });
 
 test('npm options after a script name stay with npm, not the script', () => {
@@ -68,25 +70,25 @@ test('npm options after a script name stay with npm, not the script', () => {
     ['run', 'build', '--if-present'],
     ['run', 'build', 'src', '--silent', '--', 'x'],
   ]) {
-    expect(mapCommand('npm', args)).toEqual({
+    assert.deepEqual(mapCommand('npm', args), {
       fallbackTo: 'npm',
       fallbackArgs: args,
     });
   }
   // Positional arguments and anything after `--` are forwarded by npm too.
-  expect(mapCommand('npm', ['run', 'build', 'src']).bunArgs).toEqual([
+  assert.deepEqual(mapCommand('npm', ['run', 'build', 'src']).bunArgs, [
     'run',
     'build',
     'src',
   ]);
-  expect(mapCommand('npm', ['test', '--', '--watch']).bunArgs).toEqual([
+  assert.deepEqual(mapCommand('npm', ['test', '--', '--watch']).bunArgs, [
     'run',
     'test',
     '--watch',
   ]);
   // Yarn and pnpm forward options after the script name to the script.
   for (const tool of ['yarn', 'pnpm'])
-    expect(mapCommand(tool, ['run', 'build', '--prod']).bunArgs).toEqual([
+    assert.deepEqual(mapCommand(tool, ['run', 'build', '--prod']).bunArgs, [
       'run',
       'build',
       '--prod',
@@ -94,62 +96,72 @@ test('npm options after a script name stay with npm, not the script', () => {
 });
 
 test('parses scoped packages and formats known output, preserving unknown lines', () => {
-  expect(parseBunInstallLine('  installed @scope/pkg@1.2.3')).toEqual({
+  assert.deepEqual(parseBunInstallLine('  installed @scope/pkg@1.2.3'), {
     type: 'single',
     name: '@scope/pkg',
     version: '1.2.3',
   });
-  expect(parseBunInstallLine('  2 packages installed [12ms]')).toEqual({
+  assert.deepEqual(parseBunInstallLine('  2 packages installed [12ms]'), {
     type: 'count',
     count: 2,
     time: '12ms',
   });
-  expect(parseBunInstallLine('not install output')).toBeNull();
+  assert.equal(parseBunInstallLine('not install output'), null);
   for (const invokedAs of ['npm', 'yarn', 'pnpm']) {
     const context = { invokedAs, subcommand: 'add' };
-    expect(formatLine('unrecognized diagnostic', context)).toBe(
+    assert.equal(
+      formatLine('unrecognized diagnostic', context),
       'unrecognized diagnostic',
     );
-    expect(
+    assert.equal(
       formatOutput('bun add v1.3.14\nunrecognized diagnostic', context),
-    ).toBe('unrecognized diagnostic');
-    expect(formatLine('error: failed', context)).toContain('failed');
+      'unrecognized diagnostic',
+    );
+    assert.ok(formatLine('error: failed', context).includes('failed'));
   }
-  expect(
+  assert.equal(
     formatLine('  2 packages installed [12ms]', {
       invokedAs: 'npm',
       subcommand: 'add',
     }),
-  ).toBe('added 2 packages in 12ms');
+    'added 2 packages in 12ms',
+  );
 });
 
 test('platform paths use the native home and reject non-Unix profiles', () => {
-  expect(platform.detectPlatform('win32')).toBe('windows');
-  expect(platform.detectPlatform('darwin')).toBe('macos');
-  expect(platform.detectPlatform('linux')).toBe('linux');
-  expect(() => platform.detectPlatform('aix')).toThrow('does not support');
-  expect(platform.detectPlatform()).toBe(
+  assert.equal(platform.detectPlatform('win32'), 'windows');
+  assert.equal(platform.detectPlatform('darwin'), 'macos');
+  assert.equal(platform.detectPlatform('linux'), 'linux');
+  assert.throws(() => platform.detectPlatform('aix'), /does not support/);
+  assert.equal(
+    platform.detectPlatform(),
     { win32: 'windows', darwin: 'macos', linux: 'linux' }[process.platform],
   );
-  expect(platform.getHomeDir()).toBe(os.homedir());
-  expect(platform.getInstallRoot()).toBe(path.join(os.homedir(), '.bunpm'));
-  expect(platform.getBinDir()).toBe(
+  assert.equal(platform.getHomeDir(), os.homedir());
+  assert.equal(platform.getInstallRoot(), path.join(os.homedir(), '.bunpm'));
+  assert.equal(
+    platform.getBinDir(),
     path.join(platform.getInstallRoot(), 'bin'),
   );
-  expect(platform.getCoreDir()).toBe(
+  assert.equal(
+    platform.getCoreDir(),
     path.join(platform.getInstallRoot(), 'core'),
   );
-  expect(platform.getScriptsDir()).toBe(
+  assert.equal(
+    platform.getScriptsDir(),
     path.join(platform.getInstallRoot(), 'scripts'),
   );
-  expect(platform.getShellProfileCandidates('macos')[0]).toBe(
+  assert.equal(
+    platform.getShellProfileCandidates('macos')[0],
     path.join(os.homedir(), '.zprofile'),
   );
-  expect(platform.getShellProfileCandidates('linux')[0]).toBe(
+  assert.equal(
+    platform.getShellProfileCandidates('linux')[0],
     path.join(os.homedir(), '.bashrc'),
   );
-  expect(() => platform.getShellProfileCandidates('windows')).toThrow(
-    'non-Unix',
+  assert.throws(
+    () => platform.getShellProfileCandidates('windows'),
+    /non-Unix/,
   );
 });
 
@@ -167,41 +179,51 @@ test('formatter recognises Bun 1.3 piped output, which is not indented', () => {
   const unchanged =
     'Checked 1 install across 2 packages (no changes) [14.00ms]';
   const npm = { invokedAs: 'npm', subcommand: 'add' };
-  expect(formatOutput(added, npm)).toBe(
+  assert.equal(
+    formatOutput(added, npm),
     'Saved lockfile\n\nadded is-number@7.0.0\n\nadded 1 package in 275.00ms',
   );
-  expect(formatLine(unchanged, npm)).toBe('up to date');
+  assert.equal(formatLine(unchanged, npm), 'up to date');
   const yarn = { invokedAs: 'yarn', subcommand: 'add' };
-  expect(formatLine('installed is-number@7.0.0', yarn)).toContain(
-    '└─ is-number@7.0.0',
+  assert.ok(
+    formatLine('installed is-number@7.0.0', yarn).includes(
+      '└─ is-number@7.0.0',
+    ),
   );
-  expect(formatLine(unchanged, yarn)).toBe('success Already up-to-date.');
+  assert.equal(formatLine(unchanged, yarn), 'success Already up-to-date.');
   const pnpm = { invokedAs: 'pnpm', subcommand: 'add' };
-  expect(formatLine('1 package installed [2ms]', pnpm)).toBe('Packages: +1\n+');
-  expect(formatLine(unchanged, pnpm)).toBe('Already up to date');
+  assert.equal(
+    formatLine('1 package installed [2ms]', pnpm),
+    'Packages: +1\n+',
+  );
+  assert.equal(formatLine(unchanged, pnpm), 'Already up to date');
 });
 
 test('formatter styles actual install counts and leaves versions unmodified', () => {
   for (const invokedAs of ['npm', 'yarn', 'pnpm']) {
     const context = { invokedAs, subcommand: 'add' };
-    expect(formatLine('  installed @scope/pkg@1.0.0', context)).toContain(
-      '@scope/pkg',
+    assert.ok(
+      formatLine('  installed @scope/pkg@1.0.0', context).includes(
+        '@scope/pkg',
+      ),
     );
-    expect(formatLine('  1 package installed [1ms]', context)).toContain('1');
-    expect(formatLine('  2 packages installed [2ms]', context)).toContain('2');
-    expect(formatLine('  0 packages installed', context)).not.toContain(
-      'audit',
+    assert.ok(formatLine('  1 package installed [1ms]', context).includes('1'));
+    assert.ok(
+      formatLine('  2 packages installed [2ms]', context).includes('2'),
     );
-    expect(formatLine('Done in 1s', context)).toBe(
+    assert.ok(!formatLine('  0 packages installed', context).includes('audit'));
+    assert.equal(
+      formatLine('Done in 1s', context),
       invokedAs === 'npm'
         ? null
         : invokedAs === 'yarn'
           ? 'Done in 1s.'
           : 'Done in 1s',
     );
-    expect(formatLine('$ build', { invokedAs, subcommand: 'run' })).toBeNull();
-    expect(formatLine('bun unknown', context)).toBeNull();
-    expect(formatLine('1.3.14', { invokedAs, subcommand: '--version' })).toBe(
+    assert.equal(formatLine('$ build', { invokedAs, subcommand: 'run' }), null);
+    assert.equal(formatLine('bun unknown', context), null);
+    assert.equal(
+      formatLine('1.3.14', { invokedAs, subcommand: '--version' }),
       '1.3.14',
     );
   }
@@ -209,22 +231,24 @@ test('formatter styles actual install counts and leaves versions unmodified', ()
 
 test('dedicated manager formatters transform lines according to their CLI style', () => {
   const context = { invokedAs: 'npm', subcommand: 'add' };
-  expect(formatAsNpm('bun add v1.3.14', context)).toBeNull();
-  expect(formatAsNpm('  installed foo@1.0.0', context)).toBe(
+  assert.equal(formatAsNpm('bun add v1.3.14', context), null);
+  assert.equal(
+    formatAsNpm('  installed foo@1.0.0', context),
     '  added foo@1.0.0',
   );
-  expect(formatAsNpm('Done in 50ms', context)).toBeNull();
-  expect(formatAsNpm('error: missing package', context)).toBe(
+  assert.equal(formatAsNpm('Done in 50ms', context), null);
+  assert.equal(
+    formatAsNpm('error: missing package', context),
     'npm error missing package',
   );
 
   const yarnContext = { invokedAs: 'yarn', subcommand: 'add' };
-  expect(formatAsYarn('bun add v1.3.14', yarnContext)).toBeNull();
-  expect(formatAsYarn('Done in 50ms', yarnContext)).toBe('Done in 50ms.');
-  expect(formatAsYarn('error: failed', yarnContext)).toBe('error failed');
+  assert.equal(formatAsYarn('bun add v1.3.14', yarnContext), null);
+  assert.equal(formatAsYarn('Done in 50ms', yarnContext), 'Done in 50ms.');
+  assert.equal(formatAsYarn('error: failed', yarnContext), 'error failed');
 
   const pnpmContext = { invokedAs: 'pnpm', subcommand: 'add' };
-  expect(formatAsPnpm('bun add v1.3.14', pnpmContext)).toBeNull();
-  expect(formatAsPnpm('Done in 50ms', pnpmContext)).toBe('Done in 50ms');
-  expect(formatAsPnpm('error: failed', pnpmContext)).toBe('ERR_PNPM failed');
+  assert.equal(formatAsPnpm('bun add v1.3.14', pnpmContext), null);
+  assert.equal(formatAsPnpm('Done in 50ms', pnpmContext), 'Done in 50ms');
+  assert.equal(formatAsPnpm('error: failed', pnpmContext), 'ERR_PNPM failed');
 });
