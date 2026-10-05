@@ -5,6 +5,9 @@ const { mapCommand, translateFlags } = require('../bunpm/core/mapper');
 const {
   formatLine,
   formatOutput,
+  formatAsNpm,
+  formatAsYarn,
+  formatAsPnpm,
   parseBunInstallLine,
 } = require('../bunpm/core/formatter');
 const platform = require('../bunpm/core/platform-detect');
@@ -202,4 +205,26 @@ test('formatter styles actual install counts and leaves versions unmodified', ()
       '1.3.14',
     );
   }
+});
+
+test('dedicated manager formatters transform lines according to their CLI style', () => {
+  const context = { invokedAs: 'npm', subcommand: 'add' };
+  expect(formatAsNpm('bun add v1.3.14', context)).toBeNull();
+  expect(formatAsNpm('  installed foo@1.0.0', context)).toBe(
+    '  added foo@1.0.0',
+  );
+  expect(formatAsNpm('Done in 50ms', context)).toBeNull();
+  expect(formatAsNpm('error: missing package', context)).toBe(
+    'npm error missing package',
+  );
+
+  const yarnContext = { invokedAs: 'yarn', subcommand: 'add' };
+  expect(formatAsYarn('bun add v1.3.14', yarnContext)).toBeNull();
+  expect(formatAsYarn('Done in 50ms', yarnContext)).toBe('Done in 50ms.');
+  expect(formatAsYarn('error: failed', yarnContext)).toBe('error failed');
+
+  const pnpmContext = { invokedAs: 'pnpm', subcommand: 'add' };
+  expect(formatAsPnpm('bun add v1.3.14', pnpmContext)).toBeNull();
+  expect(formatAsPnpm('Done in 50ms', pnpmContext)).toBe('Done in 50ms');
+  expect(formatAsPnpm('error: failed', pnpmContext)).toBe('ERR_PNPM failed');
 });
