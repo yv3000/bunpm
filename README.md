@@ -211,12 +211,22 @@ fresh clone:
 
 ```sh
 bun install --frozen-lockfile --ignore-scripts
+bun run build
 bun test
 ```
 
-`bun test` runs the whole offline suite in `tests/` (unit, bootstrap transport,
-and native installer smoke tests). CI runs the same command on every push and
-pull request on Ubuntu, macOS and Windows. To run the Linux suite in isolation,
+## Testing
+
+Run the full offline test suite:
+
+```sh
+bun test
+```
+
+`bun test` executes the unit suite (`tests/core.test.js`), wrapper behavior
+tests (`tests/wrapper.test.js`), bootstrap transport tests
+(`tests/bootstrap.test.js`), and installer smoke tests (`tests/smoke.test.js`).
+CI runs this suite on Ubuntu, macOS, and Windows on every push.
 without Node.js or Bun on the host:
 
 ```sh
