@@ -6,6 +6,9 @@
   npm reads options after the script name as its own config and does not pass
   them to the script, while Bun forwarded them. Options after `--` and
   positional script arguments are still translated.
+- Install output formatting now matches Bun 1.3's piped output, which is not
+  indented, so it applies at all; previously every line passed through
+  unchanged. Bun's "no changes" summary maps to the manager's up-to-date text.
 
 - Report every bunpm failure on stderr as `bunpm: <component>: <message>`,
   replacing the previous mix of `bunpm error:`, `Bootstrap error:` and unprefixed

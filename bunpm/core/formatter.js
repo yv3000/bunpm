@@ -16,11 +16,11 @@
  * @returns {{type: 'single', name: string, version: string}|{type: 'count', count: number, time: string}|null}
  */
 function parseBunInstallLine(line) {
-  const singleMatch = line.match(/^\s+installed (\S+)@(\S+)/);
+  const singleMatch = line.match(/^\s*installed (\S+)@(\S+)/);
   if (singleMatch) {
     return { type: 'single', name: singleMatch[1], version: singleMatch[2] };
   }
-  const countMatch = line.match(/^\s+(\d+) packages? installed \[(.+)\]/);
+  const countMatch = line.match(/^\s*(\d+) packages? installed \[(.+)\]/);
   if (countMatch) {
     return {
       type: 'count',
@@ -30,6 +30,11 @@ function parseBunInstallLine(line) {
   }
   return null;
 }
+
+// Bun's piped summary when nothing changed:
+// `Checked 1 install across 2 packages (no changes) [14.00ms]`.
+const NO_CHANGES =
+  /^\s*Checked \d+ installs? across \d+ packages? \(no changes\)/;
 
 /**
  * Format a single line of bun output to look like npm's output.
@@ -41,14 +46,14 @@ function parseBunInstallLine(line) {
  */
 function formatAsNpm(line, context) {
   if (/^bun (add|install|remove|update) v\d/.test(line)) return null;
-  if (/^\s+installed /.test(line)) return line.replace(/installed /, 'added ');
+  if (/^\s*installed /.test(line)) return line.replace(/installed /, 'added ');
   if (/^Done in \d+/.test(line) && context.subcommand === 'add') return null;
 
-  const installMatch = line.match(/^\s+(\d+) packages? installed \[(.+)\]/);
+  const installMatch = line.match(/^\s*(\d+) packages? installed \[(.+)\]/);
   if (installMatch)
-    return `added ${installMatch[1]} packages in ${installMatch[2]}`;
+    return `added ${installMatch[1]} package${installMatch[1] === '1' ? '' : 's'} in ${installMatch[2]}`;
 
-  if (/^\s+0 packages? installed/.test(line)) return 'up to date';
+  if (NO_CHANGES.test(line)) return 'up to date';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
   if (/^error:/.test(line)) return line.replace(/^error:/, 'npm error');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;
@@ -89,8 +94,7 @@ function formatAsYarn(line, context) {
     const timeMatch = line.match(/Done in (\d+(?:\.\d+)?\w+)/);
     return timeMatch ? `Done in ${timeMatch[1]}.` : line;
   }
-  if (/^\s+0 packages? installed/.test(line))
-    return 'success Already up-to-date.';
+  if (NO_CHANGES.test(line)) return 'success Already up-to-date.';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
   if (/^error:/.test(line)) return line.replace(/^error:/, 'error');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;
@@ -124,7 +128,7 @@ function formatAsPnpm(line, context) {
     const timeMatch = line.match(/Done in (.+)/);
     return timeMatch ? `Done in ${timeMatch[1]}` : line;
   }
-  if (/^\s+0 packages? installed/.test(line)) return 'Already up to date';
+  if (NO_CHANGES.test(line)) return 'Already up to date';
   if (/^\$ /.test(line) && context.subcommand === 'run') return null;
   if (/^error:/.test(line)) return line.replace(/^error:/, 'ERR_PNPM');
   if (/^bun /.test(line) && !/^bun run/.test(line)) return null;

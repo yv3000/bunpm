@@ -150,6 +150,34 @@ test('platform paths use the native home and reject non-Unix profiles', () => {
   );
 });
 
+test('formatter recognises Bun 1.3 piped output, which is not indented', () => {
+  // Captured from `bun add is-number@7.0.0` and a repeated `bun install`
+  // with stdout piped, which is how the wrapper always runs installs.
+  const added = [
+    'bun add v1.3.14 (0d9b296a)',
+    'Saved lockfile',
+    '',
+    'installed is-number@7.0.0',
+    '',
+    '1 package installed [275.00ms]',
+  ].join('\n');
+  const unchanged =
+    'Checked 1 install across 2 packages (no changes) [14.00ms]';
+  const npm = { invokedAs: 'npm', subcommand: 'add' };
+  expect(formatOutput(added, npm)).toBe(
+    'Saved lockfile\n\nadded is-number@7.0.0\n\nadded 1 package in 275.00ms',
+  );
+  expect(formatLine(unchanged, npm)).toBe('up to date');
+  const yarn = { invokedAs: 'yarn', subcommand: 'add' };
+  expect(formatLine('installed is-number@7.0.0', yarn)).toContain(
+    '└─ is-number@7.0.0',
+  );
+  expect(formatLine(unchanged, yarn)).toBe('success Already up-to-date.');
+  const pnpm = { invokedAs: 'pnpm', subcommand: 'add' };
+  expect(formatLine('1 package installed [2ms]', pnpm)).toBe('Packages: +1\n+');
+  expect(formatLine(unchanged, pnpm)).toBe('Already up to date');
+});
+
 test('formatter styles actual install counts and leaves versions unmodified', () => {
   for (const invokedAs of ['npm', 'yarn', 'pnpm']) {
     const context = { invokedAs, subcommand: 'add' };
