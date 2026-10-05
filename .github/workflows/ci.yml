@@ -52,7 +52,8 @@ jobs:
       - run: bun run typecheck
       - run: bun run lint
       - run: bun run format:check
-      - run: bun run audit
+      # Fail the build if any high- or critical-severity advisory is found
+      - run: bun audit --audit-level=high
       - run: bun run smoke
       - run: git diff --check
       - name: Parse PowerShell installers

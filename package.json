@@ -19,7 +19,7 @@
     "format:check": "prettier --check .",
     "syntax:check": "node scripts/syntax.js",
     "typecheck": "tsc -p jsconfig.json",
-    "audit": "bun audit",
+    "audit": "bun audit --audit-level=high",
     "shell:check": "shellcheck bunpm/platforms/linux/scripts/*.sh bunpm/platforms/macos/scripts/*.sh bunpm/platforms/linux/bin/* bunpm/platforms/macos/bin/*"
   },
   "devDependencies": {
