@@ -12,6 +12,9 @@ built-ins only, and zero runtime dependencies. No build step or service.
 - Windows PowerShell/CMD, or Bash on macOS/Linux. The CI matrix executes native
   smoke tests on all three operating systems; a green local Windows run alone
   does not establish macOS/Linux support.
+- No secrets, tokens, or custom environment variables are required. See
+  [`.env.example`](.env.example) for documentation on the two OS-provided
+  read-only environment variables (`PATH`, `WINDIR`) referenced by bunpm.
 
 ## Install From Source
 

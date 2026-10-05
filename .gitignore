@@ -19,4 +19,5 @@ npm-debug.log*
 # Local credentials and generated reports
 .env
 .env.*
+!.env.example
 coverage/
