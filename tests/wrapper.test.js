@@ -8,9 +8,6 @@ const detector = require('../bunpm/core/detector');
 const { main, spawnCommand, exitCode } = require('../bunpm/core/wrapper');
 const {
   mapCommand,
-  mapNpmCommand,
-  mapYarnCommand,
-  mapPnpmCommand,
   translateFlags,
   hasNonFlagArgs,
 } = require('../bunpm/core/mapper');
@@ -101,9 +98,7 @@ test('routing preserves scripts and falls back instead of guessing semantics', (
     ['--registry=x', '--', '-D', ''],
   );
   assert.equal(hasNonFlagArgs(['--registry', 'x', 'pkg']), true);
-  assert.deepEqual(mapNpmCommand(['i']).bunArgs, ['install']);
-  assert.deepEqual(mapYarnCommand([]).bunArgs, ['install']);
-  assert.deepEqual(mapPnpmCommand([]).bunArgs, ['install']);
+  assert.deepEqual(mapCommand('npm', ['i']).bunArgs, ['install']);
   for (const args of [null, {}, [3], ['a\0b']])
     assert.throws(() => mapCommand('npm', args), /Arguments/);
 });
@@ -123,8 +118,7 @@ test('native binary discovery skips wrapper roots, relative PATH and directories
     mode: 0o755,
   });
   process.env.PATH = ['', '.', other, `"${bin}"`].join(path.delimiter);
-  assert.equal(detector.getYarnPath(), fake);
-  assert.equal(detector.getPnpmPath(), null);
+  assert.equal(detector.locateBinary('pnpm'), null);
   assert.equal(detector.locateBinary('yarn'), fake);
   assert.throws(() => detector.locateBinary('bun & echo'), /Invalid binary/);
   process.env.PATH = '';
@@ -135,28 +129,12 @@ test('native binary discovery skips wrapper roots, relative PATH and directories
   );
 });
 
-test('Bun detection and version failures use direct argument arrays', () => {
+test('Bun detection prefers an absolute PATH entry', () => {
   const root = fixture();
   const bun = path.join(root, process.platform === 'win32' ? 'bun.exe' : 'bun');
   fs.writeFileSync(bun, 'fixture', { mode: 0o755 });
   process.env.PATH = root;
-  assert.equal(detector.isBunAvailable(), true);
   assert.equal(detector.getBunPath(), bun);
-  assert.equal(detector.getBunxPath(), bun);
-  const bunx = path.join(
-    root,
-    process.platform === 'win32' ? 'bunx.exe' : 'bunx',
-  );
-  fs.writeFileSync(bunx, 'fixture', { mode: 0o755 });
-  assert.equal(detector.getBunxPath(), bunx);
-  const spawn = mock(cp, 'spawnSync', () => ({
-    status: 0,
-    stdout: '1.3.14\n',
-  }));
-  assert.equal(detector.getBunVersion(), '1.3.14');
-  assert.deepEqual(spawn.mock.calls[0].arguments[1], ['--version']);
-  spawn.mock.mockImplementation(() => ({ status: 1, stdout: '' }));
-  assert.equal(detector.getBunVersion(), null);
 });
 
 test('Bun detection falls back to ~/.bun/bin when PATH has none', () => {

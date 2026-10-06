@@ -1,4 +1,3 @@
-const cp = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -51,36 +50,4 @@ function getBunPath() {
     ),
   ]);
 }
-function getBunxPath() {
-  const bun = getBunPath();
-  if (!bun) return null;
-  const bunx = path.join(
-    path.dirname(bun),
-    process.platform === 'win32' ? 'bunx.exe' : 'bunx',
-  );
-  try {
-    fs.accessSync(bunx, fs.constants.X_OK);
-    return bunx;
-  } catch {
-    return bun;
-  }
-}
-function getBunVersion() {
-  const bun = getBunPath();
-  if (!bun) return null;
-  const result = cp.spawnSync(bun, ['--version'], {
-    encoding: 'utf8',
-    shell: false,
-    timeout: 5000,
-  });
-  return !result.error && result.status === 0 ? result.stdout.trim() : null;
-}
-module.exports = {
-  locateBinary,
-  getBunPath,
-  getBunxPath,
-  getBunVersion,
-  getYarnPath: () => locateBinary('yarn'),
-  getPnpmPath: () => locateBinary('pnpm'),
-  isBunAvailable: () => getBunPath() !== null,
-};
+module.exports = { locateBinary, getBunPath };

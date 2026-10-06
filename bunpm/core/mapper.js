@@ -241,13 +241,4 @@ module.exports = {
   validateArgs,
   translateFlags,
   hasNonFlagArgs,
-  mapNpmCommand: (/** @type {string[]} */ args) => mapCommand('npm', args),
-  mapYarnCommand: (/** @type {string[]} */ args) => mapCommand('yarn', args),
-  mapPnpmCommand: (/** @type {string[]} */ args) => mapCommand('pnpm', args),
-  NPM_TO_BUN,
-  YARN_TO_BUN,
-  PNPM_TO_BUN,
-  NPM_FLAG_MAP,
-  YARN_FLAG_MAP,
-  PNPM_FLAG_MAP,
 };
