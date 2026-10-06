@@ -59,6 +59,9 @@ Check the test count is > 0: `node --test` exits 0 when nothing matches.
 - `@types/node` stays 16.x so `typecheck` catches post-Node-16 APIs in runtime
   code. Don't bump it to 22.
 - No IaC; it's a CLI tool. History score needs other contributors.
+- Ruleset `main-protection` (id 22371642) requires `test-unit`, so a direct
+  push to main needs a temporary admin bypass (`bypass_actors`
+  RepositoryRole 5, always) that is removed again right after the push.
 
 ## Next
 
