@@ -1,0 +1,6 @@
+{
+  "name": "bunpm",
+  "build": { "dockerfile": "../Dockerfile", "context": ".." },
+  "remoteUser": "node",
+  "postCreateCommand": "bun install --frozen-lockfile --ignore-scripts && bun run test"
+}

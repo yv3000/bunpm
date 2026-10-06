@@ -225,6 +225,10 @@ bun install --ignore-scripts
 npm install --package-lock-only --ignore-scripts
 ```
 
+Or open the repository in the [dev container](.devcontainer/devcontainer.json):
+it builds the same image as the Dockerfile and runs the fresh-clone install and
+test commands on creation.
+
 ## Testing
 
 Run the full offline test suite with Node's built-in `node:test` runner:
