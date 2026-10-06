@@ -159,6 +159,29 @@ test('Bun detection and version failures use direct argument arrays', () => {
   assert.equal(detector.getBunVersion(), null);
 });
 
+test('Bun detection falls back to ~/.bun/bin when PATH has none', () => {
+  const root = fixture();
+  const bin = path.join(root, '.bun', 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  const bun = path.join(bin, process.platform === 'win32' ? 'bun.exe' : 'bun');
+  fs.writeFileSync(bun, 'fixture', { mode: 0o755 });
+  // os.homedir() reads HOME on Unix and USERPROFILE on Windows.
+  const saved = {
+    HOME: process.env.HOME,
+    USERPROFILE: process.env.USERPROFILE,
+  };
+  process.env.HOME = root;
+  process.env.USERPROFILE = root;
+  process.env.PATH = '';
+  try {
+    assert.equal(detector.getBunPath(), bun);
+  } finally {
+    for (const [key, value] of Object.entries(saved))
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+  }
+});
+
 test('wrapper keeps exit codes, interactive stdio and formatted streams', () => {
   mock(detector, 'getBunPath', () => process.execPath);
   const spawn = mock(cp, 'spawnSync', () => ({

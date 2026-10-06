@@ -79,6 +79,18 @@ test('bootstrap validates platform, manifest and URL trust boundary', () => {
     assert.throws(() => validateUrl(url));
 });
 
+test('bootstrap manifest lists exactly the runtime files in the checkout', () => {
+  const core = fs
+    .readdirSync('bunpm/core')
+    .filter((file) => file.endsWith('.js'));
+  for (const platform of ['windows', 'macos', 'linux']) {
+    const files = filesFor(platform);
+    for (const file of files)
+      assert.ok(fs.existsSync(path.join('bunpm', file)), file);
+    for (const file of core) assert.ok(files.includes(`core/${file}`), file);
+  }
+});
+
 test('invalid limits and network failures fail before installation', async () => {
   for (const options of [
     { timeoutMs: 0 },

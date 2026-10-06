@@ -22,13 +22,9 @@ function detectPlatform(platform = process.platform) {
 function filesFor(platform) {
   if (!['windows', 'macos', 'linux'].includes(platform))
     throw new Error('Unsupported platform');
-  const files = [
-    'platform-detect.js',
-    'detector.js',
-    'mapper.js',
-    'formatter.js',
-    'wrapper.js',
-  ].map((file) => `core/${file}`);
+  const files = ['detector.js', 'mapper.js', 'formatter.js', 'wrapper.js'].map(
+    (file) => `core/${file}`,
+  );
   for (const name of ['npm', 'npx', 'yarn', 'pnpm']) {
     files.push(`platforms/${platform}/bin/${name}`);
     if (platform === 'windows')

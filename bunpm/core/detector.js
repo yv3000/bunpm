@@ -1,7 +1,7 @@
 const cp = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
-const { getHomeDir } = require('./platform-detect');
+const os = require('node:os');
 
 /**
  * @param {string} binaryName
@@ -44,7 +44,7 @@ function locateBinary(binaryName, fallbackPaths = []) {
 function getBunPath() {
   return locateBinary('bun', [
     path.join(
-      getHomeDir(),
+      os.homedir(),
       '.bun',
       'bin',
       process.platform === 'win32' ? 'bun.exe' : 'bun',

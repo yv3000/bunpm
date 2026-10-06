@@ -165,11 +165,10 @@ flowchart LR
 - [`bunpm/core/mapper.js`](bunpm/core/mapper.js) — pure command/flag tables.
   Returns either Bun arguments or a fallback instruction. No I/O.
 - [`bunpm/core/detector.js`](bunpm/core/detector.js) — resolves Bun and the
-  original managers from absolute PATH entries, skipping bunpm's own copies.
+  original managers from absolute PATH entries (then `~/.bun/bin`), skipping
+  bunpm's own copies.
 - [`bunpm/core/formatter.js`](bunpm/core/formatter.js) — line-by-line cosmetic
   rewrite of buffered Bun output only.
-- [`bunpm/core/platform-detect.js`](bunpm/core/platform-detect.js) — the only
-  place that maps `process.platform` to paths under `~/.bunpm`.
 
 Two components sit outside that per-command path and are used once, by hand:
 [`bunpm/bootstrap.js`](bunpm/bootstrap.js) downloads runtime files at a pinned

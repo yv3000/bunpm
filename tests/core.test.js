@@ -1,7 +1,5 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
-const os = require('node:os');
 const { mapCommand, translateFlags } = require('../bunpm/core/mapper');
 const {
   formatLine,
@@ -11,7 +9,6 @@ const {
   formatAsPnpm,
   parseBunInstallLine,
 } = require('../bunpm/core/formatter');
-const platform = require('../bunpm/core/platform-detect');
 
 test('maps common dependency operations without mutating input', () => {
   for (const [tool, args, expected] of [
@@ -125,43 +122,6 @@ test('parses scoped packages and formats known output, preserving unknown lines'
       subcommand: 'add',
     }),
     'added 2 packages in 12ms',
-  );
-});
-
-test('platform paths use the native home and reject non-Unix profiles', () => {
-  assert.equal(platform.detectPlatform('win32'), 'windows');
-  assert.equal(platform.detectPlatform('darwin'), 'macos');
-  assert.equal(platform.detectPlatform('linux'), 'linux');
-  assert.throws(() => platform.detectPlatform('aix'), /does not support/);
-  assert.equal(
-    platform.detectPlatform(),
-    { win32: 'windows', darwin: 'macos', linux: 'linux' }[process.platform],
-  );
-  assert.equal(platform.getHomeDir(), os.homedir());
-  assert.equal(platform.getInstallRoot(), path.join(os.homedir(), '.bunpm'));
-  assert.equal(
-    platform.getBinDir(),
-    path.join(platform.getInstallRoot(), 'bin'),
-  );
-  assert.equal(
-    platform.getCoreDir(),
-    path.join(platform.getInstallRoot(), 'core'),
-  );
-  assert.equal(
-    platform.getScriptsDir(),
-    path.join(platform.getInstallRoot(), 'scripts'),
-  );
-  assert.equal(
-    platform.getShellProfileCandidates('macos')[0],
-    path.join(os.homedir(), '.zprofile'),
-  );
-  assert.equal(
-    platform.getShellProfileCandidates('linux')[0],
-    path.join(os.homedir(), '.bashrc'),
-  );
-  assert.throws(
-    () => platform.getShellProfileCandidates('windows'),
-    /non-Unix/,
   );
 });
 

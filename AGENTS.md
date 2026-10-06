@@ -12,7 +12,7 @@ Bun 1.3.14.
 ## Layout
 
 - `bunpm/core/` - `wrapper.js` (entry), `mapper.js`, `detector.js`,
-  `formatter.js`, `platform-detect.js`
+  `formatter.js`
 - `bunpm/bootstrap.js` - remote installer (only network I/O)
 - `bunpm/platforms/{windows,linux,macos}/` - launchers and install scripts
 - `tests/*.test.js` - Node built-in `node:test` + `node:assert/strict`
