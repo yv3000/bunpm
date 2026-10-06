@@ -205,14 +205,24 @@ child.
 
 ## Development
 
-Requires Node.js 22.13+ and Bun 1.3.14. The committed text lockfile `bun.lock`
-pins the development tools (ESLint, Prettier, TypeScript, `@types/node`); the
-runtime has none. From a fresh clone:
+Requires Node.js 22.13+ and Bun 1.3.14. The committed lockfiles pin the
+development tools (ESLint, Prettier, TypeScript, `@types/node`); the runtime has
+none. From a fresh clone:
 
 ```sh
 bun install --frozen-lockfile --ignore-scripts
 bun run build
 bun run test
+```
+
+`bun.lock` is authoritative for `bun install` (local development, the CI OS
+matrix and the Docker image), and `package-lock.json` for `npm ci` (the required
+`test-unit` job). CI fails when either is out of step with `package.json`, so
+refresh both in the same commit:
+
+```sh
+bun install --ignore-scripts
+npm install --package-lock-only --ignore-scripts
 ```
 
 ## Testing
