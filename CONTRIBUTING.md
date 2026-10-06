@@ -60,6 +60,28 @@ telemetry. Changing a diagnostic requires updating its assertion in
 `tests/wrapper.test.js`, `tests/bootstrap.test.js`, `tests/uninstall.test.js`,
 or `tests/smoke.test.js`.
 
+## Good first issues
+
+Each is a real, self-contained gap; keep the fix and its test in one commit.
+
+- `npm install -g` with no package installs the current folder globally under
+  npm, but `mapCommand` sends it to `bun install -g` (`bunpm/core/mapper.js`,
+  the `hasNonFlagArgs` branch). Decide on fallback and pin it in
+  `tests/mapper.test.js`.
+- `pnpm install <pkg>` maps to `bun install <pkg>` because `PNPM_TO_BUN` maps
+  `install` to `install` (`bunpm/core/mapper.js`). Check what pnpm does with
+  package names on `install`, then map to `bun add` or fall back.
+- Yarn Berry Plug'n'Play projects (with `.pnp.cjs`) get a `node_modules` folder
+  when `yarn add` runs through Bun. A cwd check in `bunpm/core/wrapper.js` could
+  fall back (the mapper stays I/O-free).
+- Every Unix install/uninstall cycle leaves one blank line in the profile:
+  `install.sh` writes a blank line before the marker and the `uninstall.sh` awk
+  filter keeps it (`bunpm/platforms/{linux,macos}/scripts/`). Extend
+  `tests/uninstall.test.js`.
+- Ctrl+C during a translated command: `bunpm/core/wrapper.js` waits in
+  `spawnSync` without a SIGINT handler, so the wrapper can exit before the child
+  finishes its own cleanup. Reproduce on Unix before changing anything.
+
 ## Verification Boundaries
 
 `test:coverage` reads the LCOV output of Node's built-in test runner. On every OS
