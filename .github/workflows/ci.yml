@@ -26,9 +26,23 @@ jobs:
       - name: Install dependencies from package-lock.json
         id: install
         run: npm ci --ignore-scripts
+      - name: Build (check JavaScript syntax)
+        id: build
+        run: npm run build
       - name: Run unit test suite
         id: test
         run: npm test
+      # Same commands as the lint, typecheck and format:check scripts in
+      # package.json. They do not depend on the OS, so they run once, here.
+      - name: Lint with ESLint
+        id: lint
+        run: npx eslint . --max-warnings 0
+      - name: Typecheck with tsc
+        id: typecheck
+        run: npx tsc -p jsconfig.json
+      - name: Check formatting with Prettier
+        id: format
+        run: npx prettier --check .
 
   quality:
     needs: test-unit
@@ -57,21 +71,19 @@ jobs:
       - name: Run test suite
         run: bun run test
       - name: Enforce test coverage gate
+        id: coverage
         run: bun run test:coverage
       - name: Run repeated test suite
+        id: repeat
         run: bun run test:repeat
-      - name: Check JavaScript syntax
-        run: bun run syntax:check
-      - name: Typecheck runtime code
-        run: bun run typecheck
-      - name: Lint source files
-        run: bun run lint
-      - name: Check code formatting
-        run: bun run format:check
-      # Fail the build if any high- or critical-severity advisory is found
+      # Fail the build if any high- or critical-severity advisory is found;
+      # advisories do not depend on the OS
       - name: Audit dependency security
-        run: bun audit --audit-level=high
+        id: audit
+        if: runner.os == 'Linux'
+        run: npm audit --audit-level=high
       - name: Run cross-platform smoke tests
+        id: smoke
         run: bun run smoke
       - name: Verify working tree clean
         run: git diff --check
