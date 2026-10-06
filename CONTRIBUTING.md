@@ -57,7 +57,8 @@ it has not downloaded yet, and the shell/PowerShell installers spell it out in
 their own messages. Child process output is never rewritten into this form, exit
 codes and cause text are preserved, and there are no timestamps, log files or
 telemetry. Changing a diagnostic requires updating its assertion in
-`tests/wrapper.test.js`, `tests/bootstrap.test.js`, or `tests/smoke.test.js`.
+`tests/wrapper.test.js`, `tests/bootstrap.test.js`, `tests/uninstall.test.js`,
+or `tests/smoke.test.js`.
 
 ## Verification Boundaries
 
