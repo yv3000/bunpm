@@ -231,16 +231,29 @@ test commands on creation.
 
 ## Testing
 
-Run the full offline test suite with Node's built-in `node:test` runner:
+The suite uses Node's built-in `node:test` runner, so there is no test framework
+to install:
 
 ```sh
-bun run test
+npm test          # same as: bun run test
 ```
 
-`bun run test` executes the unit suite (`tests/core.test.js`), wrapper behavior
-tests (`tests/wrapper.test.js`), bootstrap transport tests
-(`tests/bootstrap.test.js`), and installer smoke tests (`tests/smoke.test.js`).
-CI runs this suite on Ubuntu, macOS, and Windows on every push.
+`npm test` runs `node --test "tests/*.test.js"` offline:
+
+- `tests/core.test.js`: mapper and formatter units.
+- `tests/mapper.test.js`: command, alias and flag tables and their fallbacks.
+- `tests/wrapper.test.js`: spawning, fallback, exit codes, diagnostics.
+- `tests/bootstrap.test.js`: transport against a loopback server.
+- `tests/uninstall.test.js`: Unix profile cleanup, skipped on Windows.
+- `tests/toolchain.test.js`: Node/Bun pins agree.
+- `tests/smoke.test.js`: native install, launchers, fallback, uninstall.
+
+A passing run ends with a summary whose `tests` count is above zero and whose
+`fail` count is 0; Node exits 0 when the glob matches nothing.
+
+CI runs `npm test` in the required `test-unit` job on Ubuntu, then the suite
+again on Ubuntu, macOS and Windows, uploading a JUnit report per OS
+(`junit-<os>` artifact).
 
 To run the suite in an isolated Linux container without Node.js or Bun on the
 host:
