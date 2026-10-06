@@ -88,8 +88,8 @@ installed development dependencies outside the checkout. Do not commit local pat
 
 ShellCheck validates both Unix script trees; `bash -n` supplies an additional syntax
 check. Native PowerShell parsing validates `.ps1` syntax. `actionlint` validates the
-workflow; CI installs pinned actionlint 1.7.7 only when unavailable. CI uses versioned
-actions consistent with the repository baseline, read-only permissions, no retained
+workflow; CI installs pinned actionlint 1.7.7 only when unavailable. CI pins every
+action to a full commit SHA, uses read-only permissions, no retained
 checkout credentials, and no remote bootstrap, so installer sources match checkout.
 
 Dependency audit needs registry access; report registry failures as unavailable,

@@ -28,7 +28,8 @@ updates:
       dev-tooling:
         patterns: ['*']
 
-  # Actions are pinned to major tags in .github/workflows/ci.yml.
+  # Actions are pinned to full commit SHAs in .github/workflows/ci.yml, with the
+  # release tag in a trailing comment; Dependabot updates both.
   - package-ecosystem: github-actions
     directory: /
     schedule:
