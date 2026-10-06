@@ -94,8 +94,9 @@ executables remain trust boundaries. Do not run unreviewed remote code.
   fall back instead of being guessed.
 - Version requests use the **original manager**, never a fabricated version.
   `npm version patch` likewise stays native.
-- Unknown commands/options, `npm ci`, `init`, `exec`, publish/auth/audit/config,
-  Yarn shorthand and pnpm workspace filtering fall back to the original manager.
+- Unknown commands/options, options given an explicit `=value` other than
+  `--registry`, `npm ci`, `init`, `exec`, publish/auth/audit/config, Yarn
+  shorthand and pnpm workspace filtering fall back to the original manager.
 - If Bun is missing, supported commands also fall back. A missing original manager
   yields a diagnostic and nonzero exit, not a silent success.
 - Failures after Bun starts are not retried: a second manager could repeat

@@ -219,6 +219,11 @@ function mapCommand(invokedAs, args) {
     const [flag] = rest[i].split('=');
     if (flag === '--') break;
     if (flag.startsWith('-') && !Object.hasOwn(flags, flag)) return fallback;
+    // ponytail: only --registry takes a value; any other `--flag=value`
+    // (`--save=false`, `-D=false`) stays native rather than being dropped
+    // or reinterpreted. Translate specific spellings only if users need it.
+    if (flag.startsWith('-') && flag !== '--registry' && rest[i].includes('='))
+      return fallback;
     if (flag === '--registry' && !rest[i].includes('=')) {
       if (!rest[++i] || rest[i].startsWith('-')) return fallback;
     }

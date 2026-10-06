@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Boolean options given an explicit value (`npm install --save=false pkg`,
+  `-D=false`) now fall back to the original manager. Previously `--save=false`
+  was dropped and Bun saved the dependency.
 - `npm run <script> --flag`, `npm test --flag` and similar fall back to npm.
   npm reads options after the script name as its own config and does not pass
   them to the script, while Bun forwarded them. Options after `--` and
