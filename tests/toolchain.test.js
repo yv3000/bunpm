@@ -22,3 +22,11 @@ test('Node.js and Bun pins agree across CI, Docker, dev container and package.js
   assert.equal(pkg.packageManager, `bun@${bun}`);
   assert.equal(devcontainer.build.dockerfile, '../Dockerfile');
 });
+
+// YAML 1.1 parsers (PyYAML, used by many repository scanners) read a bare
+// `on:` key as boolean true, which hides the push/pull_request triggers.
+test('CI workflow quotes its trigger key', () => {
+  const ci = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+  assert.doesNotMatch(ci, /^on:/m);
+  assert.match(ci, /^(['"])on\1:\n {2}push:/m);
+});

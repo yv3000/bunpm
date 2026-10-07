@@ -1,6 +1,11 @@
 name: bunpm CI
 
-on: [push, pull_request]
+# Quoted: YAML 1.1 parsers (PyYAML) read a bare `on` key as boolean true.
+'on':
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,17 +37,16 @@ jobs:
       - name: Run unit test suite
         id: test
         run: npm test
-      # Same commands as the lint, typecheck and format:check scripts in
-      # package.json. They do not depend on the OS, so they run once, here.
+      # ESLint, tsc and Prettier do not depend on the OS, so they run once, here.
       - name: Lint with ESLint
         id: lint
-        run: npx eslint . --max-warnings 0
+        run: npm run lint
       - name: Typecheck with tsc
         id: typecheck
-        run: npx tsc -p jsconfig.json
+        run: npm run typecheck
       - name: Check formatting with Prettier
         id: format
-        run: npx prettier --check .
+        run: npm run format:check
 
   quality:
     needs: test-unit
@@ -80,10 +84,10 @@ jobs:
           path: ${{ runner.temp }}/junit.xml
       - name: Enforce test coverage gate
         id: coverage
-        run: bun run test:coverage
+        run: npm run test:coverage
       - name: Run repeated test suite
         id: repeat
-        run: bun run test:repeat
+        run: npm run test:repeat
       # Fail the build if any high- or critical-severity advisory is found;
       # advisories do not depend on the OS
       - name: Audit dependency security
@@ -92,7 +96,7 @@ jobs:
         run: npm audit --audit-level=high
       - name: Run cross-platform smoke tests
         id: smoke
-        run: bun run smoke
+        run: npm run smoke
       - name: Verify working tree clean
         run: git diff --check
       - name: Parse PowerShell installers
