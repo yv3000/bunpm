@@ -109,7 +109,8 @@ not preserved. Use the original manager when these distinctions matter.
 
 Install output receives a small manager-style transformation; unknown lines and
 errors remain visible. Interactive script/package execution inherits stdio.
-Buffered non-interactive output is limited to 16 MiB. No performance multiplier,
+Non-interactive output is formatted and streamed line by line with no size
+limit; because it is piped, Bun prints no colors or progress bars. No performance multiplier,
 security audit, or quality score is implied by successful installation.
 
 On Windows, known npm/npx/Yarn/pnpm Node entrypoints are spawned directly with
@@ -151,9 +152,9 @@ flowchart LR
   W --> M["mapper.js<br/>mapCommand()"]
   M -->|translated| B["detector.js<br/>getBunPath()"]
   M -->|fallback| O["detector.js<br/>locateBinary()"]
-  B --> X["wrapper.js<br/>spawnCommand() / spawnSync"]
+  B --> X["wrapper.js<br/>resolveSpawn() / spawn"]
   O --> X
-  X -->|buffered| F["formatter.js<br/>formatOutput()"]
+  X -->|streamed lines| F["formatter.js<br/>formatStream()"]
   X -->|interactive stdio| E["child exit code<br/>or signal"]
   F --> E
 ```
@@ -169,7 +170,7 @@ flowchart LR
   original managers from absolute PATH entries (then `~/.bun/bin`), skipping
   bunpm's own copies.
 - [`bunpm/core/formatter.js`](bunpm/core/formatter.js) — line-by-line cosmetic
-  rewrite of buffered Bun output only.
+  rewrite of streamed non-interactive Bun output only.
 
 Two components sit outside that per-command path and are used once, by hand:
 [`bunpm/bootstrap.js`](bunpm/bootstrap.js) downloads runtime files at a pinned

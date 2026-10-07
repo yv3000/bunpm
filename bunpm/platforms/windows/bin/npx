@@ -2,4 +2,8 @@
 // Unix-style shebang for PowerShell/Git Bash compatibility
 // Passes 'npx' as invokedAs so wrapper.js knows context
 process.argv.splice(2, 0, 'npx');
-process.exitCode = require('../core/wrapper.js').main();
+require('../core/wrapper.js')
+  .main()
+  .then((/** @type {number} */ code) => {
+    process.exitCode = code;
+  });

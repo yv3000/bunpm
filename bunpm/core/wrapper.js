@@ -4,7 +4,7 @@ const path = require('node:path');
 const os = require('node:os');
 const detector = require('./detector');
 const { mapCommand, validateArgs } = require('./mapper');
-const { formatOutput } = require('./formatter');
+const { formatStream } = require('./formatter');
 
 /**
  * @typedef {import('node:child_process').SpawnSyncReturns<string | Buffer>} SpawnResult
@@ -120,7 +120,25 @@ function exitCode(result) {
   return result.status ?? 1;
 }
 
-function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
+/**
+ * ENOENT/EACCES mean the executable never started, so retrying with the
+ * original manager cannot repeat any effect.
+ *
+ * @param {Error | undefined} error
+ */
+const notStarted = (error) =>
+  ['ENOENT', 'EACCES'].includes(
+    /** @type {NodeJS.ErrnoException | undefined} */ (error)?.code ?? '',
+  );
+
+/**
+ * Run one invocation and resolve to its exit code. Never rejects.
+ *
+ * @param {string} [invokedAs]
+ * @param {string[]} [args]
+ * @returns {Promise<number>}
+ */
+async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
   try {
     const mapped = mapCommand(invokedAs, args);
     const bun = mapped.fallbackTo ? null : detector.getBunPath();
@@ -139,27 +157,44 @@ function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     const execArgs = mapped.useBunx ? ['x', ...mapped.bunArgs] : mapped.bunArgs;
     const interactive =
       mapped.useBunx || ['run', 'create'].includes(execArgs[0]);
-    // ponytail: sync formatted output is capped at 16 MiB; stream it if real
-    // install output reaches this ceiling. Never retry a possibly completed run.
-    const result = spawnCommand(bun, execArgs, {
-      stdio: interactive ? 'inherit' : ['inherit', 'pipe', 'pipe'],
-      encoding: 'utf8',
-      maxBuffer: 16 * 1024 * 1024,
-      env: { ...process.env, npm_execpath: bun },
-    });
-    // These failures happen before execution; retrying cannot duplicate effects.
-    if (
-      result.error &&
-      ['ENOENT', 'EACCES'].includes(
-        /** @type {NodeJS.ErrnoException} */ (result.error).code ?? '',
-      )
-    )
-      return original();
-    const context = { invokedAs, subcommand: execArgs[0] };
-    for (const stream of /** @type {const} */ (['stdout', 'stderr'])) {
-      const output = result[stream];
-      if (output) process[stream].write(formatOutput(String(output), context));
+    const env = { ...process.env, npm_execpath: bun };
+    if (interactive) {
+      const result = spawnCommand(bun, execArgs, { stdio: 'inherit', env });
+      return notStarted(result.error) ? original() : exitCode(result);
     }
+    // Stream formatted lines while Bun runs: no output-size ceiling can kill
+    // an install half-way. ponytail: stdout backpressure is not applied; a
+    // stalled terminal buffers in memory instead of pausing Bun.
+    /** @type {import('node:child_process').SpawnOptions} */
+    const piped = { stdio: ['inherit', 'pipe', 'pipe'], env };
+    const [file, argv, options] = resolveSpawn(bun, execArgs, piped);
+    const context = { invokedAs, subcommand: execArgs[0] };
+    /** @type {Pick<SpawnResult, 'error' | 'signal' | 'status'>} */
+    const result = await new Promise((resolve) => {
+      const child =
+        /** @type {import('node:child_process').ChildProcessByStdio<null, import('node:stream').Readable, import('node:stream').Readable>} */ (
+          /** @type {unknown} */ (cp.spawn(file, argv, options))
+        );
+      let started = false;
+      /** @type {Error | undefined} */
+      let failure;
+      child.on('spawn', () => (started = true));
+      // An error after 'spawn' must never trigger a second manager.
+      child.on('error', (error) =>
+        started
+          ? (failure = error)
+          : resolve({ error, status: null, signal: null }),
+      );
+      formatStream(child.stdout, (text) => process.stdout.write(text), context);
+      formatStream(child.stderr, (text) => process.stderr.write(text), context);
+      // 'close' fires after exit and after both pipes ended (and were written).
+      child.on('close', (status, signal) =>
+        resolve({ error: failure, status, signal }),
+      );
+    });
+    // started stays false only when 'error' resolved first.
+    if (notStarted(result.error) && result.status === null && !result.signal)
+      return original();
     return exitCode(result);
   } catch (error) {
     diagnose('wrapper', /** @type {Error} */ (error).message);
@@ -168,4 +203,7 @@ function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
 }
 
 module.exports = { main, spawnCommand, exitCode, diagnose };
-if (require.main === module) process.exitCode = main();
+if (require.main === module)
+  main().then((code) => {
+    process.exitCode = code;
+  });

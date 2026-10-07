@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Non-interactive commands (`install`, `add`, `remove`, `update`, ...) stream
+  formatted output while Bun runs instead of printing it after exit. The 16 MiB
+  capture limit is gone: output beyond it used to kill Bun mid-install
+  (ENOBUFS). Exit codes and the pre-start fallback are unchanged.
+- `BUNPM_DEBUG=1` adds one JSON line per bunpm diagnostic on stderr.
+
 - Boolean options given an explicit value (`npm install --save=false pkg`,
   `-D=false`) now fall back to the original manager. Previously `--save=false`
   was dropped and Bun saved the dependency.
