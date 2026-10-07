@@ -3,7 +3,8 @@ const path = require('node:path');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 
-const THRESHOLD = 0.9;
+// Minimum line and function coverage for bunpm runtime files.
+const MIN_COVERAGE_PERCENT = 90;
 // wrapper.js's batch-shim branch executes only on Windows, so a per-file gate
 // on Unix would measure unreachable code rather than missing tests. The
 // per-file gate therefore runs on Windows; every OS enforces the combined gate.
@@ -18,6 +19,9 @@ try {
       '--experimental-test-coverage',
       '--test-coverage-exclude=tests/**',
       '--test-coverage-exclude=scripts/**',
+      // Node's own gate on the combined total; the per-file gate is below.
+      `--test-coverage-lines=${MIN_COVERAGE_PERCENT}`,
+      `--test-coverage-functions=${MIN_COVERAGE_PERCENT}`,
       '--test-reporter=spec',
       '--test-reporter-destination=stdout',
       '--test-reporter=lcov',
@@ -55,12 +59,14 @@ try {
      * @param {number} total
      */
     const check = (name, label, covered, total) => {
-      const ratio = covered / total;
+      const percent = (covered / total) * 100;
       console.log(
-        `${name}: ${(ratio * 100).toFixed(2)}% ${label} (${covered}/${total})`,
+        `${name}: ${percent.toFixed(2)}% ${label} (${covered}/${total}, minimum ${MIN_COVERAGE_PERCENT}%)`,
       );
-      if (!Number.isFinite(ratio) || ratio < THRESHOLD)
-        failures.push(`${name}: ${label} coverage below 90%`);
+      if (!Number.isFinite(percent) || percent < MIN_COVERAGE_PERCENT)
+        failures.push(
+          `${name}: ${label} coverage below ${MIN_COVERAGE_PERCENT}%`,
+        );
     };
     for (const file of required) {
       const record = records.find((entry) =>
