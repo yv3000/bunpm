@@ -11,16 +11,19 @@ const { formatOutput } = require('./formatter');
  */
 
 /**
- * Spawn an absolute executable with an argument array (`shell: false`). A
- * generic Windows `.cmd`/`.bat` shim instead runs through an explicit cmd.exe
- * invocation and rejects shell-sensitive arguments.
+ * Validate a spawn and resolve what to execute: an absolute executable with an
+ * argument array (`shell: false`). A generic Windows `.cmd`/`.bat` shim
+ * instead runs through an explicit cmd.exe invocation and rejects
+ * shell-sensitive arguments. Shared by the sync and streaming spawns so both
+ * enforce the same checks.
  *
+ * @template {object} T
  * @param {string} binary
  * @param {string[]} args
- * @param {import('node:child_process').SpawnSyncOptions} [options]
- * @returns {SpawnResult}
+ * @param {T} options
+ * @returns {[string, string[], T & { shell: false, windowsVerbatimArguments?: boolean }]}
  */
-function spawnCommand(binary, args, options = {}) {
+function resolveSpawn(binary, args, options) {
   validateArgs(args);
   if (
     typeof binary !== 'string' ||
@@ -55,14 +58,27 @@ function spawnCommand(binary, args, options = {}) {
       if (!systemRoot)
         throw new Error('Cannot locate cmd.exe: SystemRoot is not set');
       const command = `"${[binary, ...args].map((value) => `"${value}"`).join(' ')}"`;
-      return cp.spawnSync(
+      return [
         path.join(systemRoot, 'System32', 'cmd.exe'),
         ['/d', '/v:off', '/s', '/c', command],
         { ...options, shell: false, windowsVerbatimArguments: true },
-      );
+      ];
     }
   }
-  return cp.spawnSync(binary, args, { ...options, shell: false });
+  return [binary, args, { ...options, shell: false }];
+}
+
+/**
+ * Spawn synchronously after the resolveSpawn checks.
+ *
+ * @param {string} binary
+ * @param {string[]} args
+ * @param {import('node:child_process').SpawnSyncOptions} [options]
+ * @returns {SpawnResult}
+ */
+function spawnCommand(binary, args, options = {}) {
+  const [file, argv, resolved] = resolveSpawn(binary, args, options);
+  return cp.spawnSync(file, argv, resolved);
 }
 
 // Every bunpm component reports failures on stderr as
