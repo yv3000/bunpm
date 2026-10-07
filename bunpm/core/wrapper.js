@@ -169,13 +169,13 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     const piped = { stdio: ['inherit', 'pipe', 'pipe'], env };
     const [file, argv, options] = resolveSpawn(bun, execArgs, piped);
     const context = { invokedAs, subcommand: execArgs[0] };
+    let started = false;
     /** @type {Pick<SpawnResult, 'error' | 'signal' | 'status'>} */
     const result = await new Promise((resolve) => {
       const child =
         /** @type {import('node:child_process').ChildProcessByStdio<null, import('node:stream').Readable, import('node:stream').Readable>} */ (
           /** @type {unknown} */ (cp.spawn(file, argv, options))
         );
-      let started = false;
       /** @type {Error | undefined} */
       let failure;
       child.on('spawn', () => (started = true));
@@ -192,9 +192,8 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
         resolve({ error: failure, status, signal }),
       );
     });
-    // started stays false only when 'error' resolved first.
-    if (notStarted(result.error) && result.status === null && !result.signal)
-      return original();
+    // Only a child that never started may be retried with the original manager.
+    if (!started && notStarted(result.error)) return original();
     return exitCode(result);
   } catch (error) {
     diagnose('wrapper', /** @type {Error} */ (error).message);

@@ -314,6 +314,9 @@ test('fallback runs only before Bun starts and errors never become success', asy
   // A failure after Bun started never runs a second manager.
   spawn.mock.mockImplementation(() => fakeChild({ error: gone, status: 0 }));
   assert.equal(await main('npm', ['install']), 1);
+  // Not even when the started child reports no exit status.
+  spawn.mock.mockImplementation(() => fakeChild({ error: gone, status: null }));
+  assert.equal(await main('npm', ['install']), 1);
   assert.equal(sync.mock.callCount(), 2);
   locate.mock.mockImplementation(() => null);
   assert.equal(await main('npm', ['publish']), 1);
