@@ -29,7 +29,8 @@ actionlint
 git diff --check
 ```
 
-Use `bun`, not the intercepted `npm` command, for repository development.
+`npm ci`/`npm test` and their `bun` equivalents work the same, including on a
+machine where bunpm intercepts `npm`.
 ESLint, Prettier and TypeScript are pinned development-only dependencies.
 `typecheck` runs TypeScript in strict `checkJs` mode over runtime code and
 development scripts (see [`jsconfig.json`](jsconfig.json)); JSDoc annotations are
@@ -56,7 +57,8 @@ helper; `bootstrap.js` repeats the prefix inline because it must not import file
 it has not downloaded yet, and the shell/PowerShell installers spell it out in
 their own messages. Child process output is never rewritten into this form, exit
 codes and cause text are preserved, and there are no timestamps, log files or
-telemetry. Changing a diagnostic requires updating its assertion in
+telemetry. `BUNPM_DEBUG=1` adds one JSON line per wrapper diagnostic for tools
+that parse them. Changing a diagnostic requires updating its assertion in
 `tests/wrapper.test.js`, `tests/bootstrap.test.js`, `tests/uninstall.test.js`,
 or `tests/smoke.test.js`.
 
@@ -78,9 +80,9 @@ Each is a real, self-contained gap; keep the fix and its test in one commit.
   `install.sh` writes a blank line before the marker and the `uninstall.sh` awk
   filter keeps it (`bunpm/platforms/{linux,macos}/scripts/`). Extend
   `tests/uninstall.test.js`.
-- Ctrl+C during a translated command: `bunpm/core/wrapper.js` waits in
-  `spawnSync` without a SIGINT handler, so the wrapper can exit before the child
-  finishes its own cleanup. Reproduce on Unix before changing anything.
+- Ctrl+C during a streamed install: `bunpm/core/wrapper.js` has no SIGINT
+  handler, so the wrapper can exit before Bun finishes its own cleanup and its
+  last output lines are lost. Reproduce on Unix before changing anything.
 
 ## Verification Boundaries
 
