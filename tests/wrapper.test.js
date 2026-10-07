@@ -253,6 +253,32 @@ test('diagnostics use one bunpm: <component>: <message> stderr convention', () =
   for (const line of lines) assert.match(line, /^bunpm: [a-z]+: \S/);
 });
 
+test('BUNPM_DEBUG=1 adds one JSON diagnostic line after the human one', () => {
+  const lines = [];
+  mock(console, 'error', (line) => lines.push(line));
+  const error = Object.assign(new Error('spawn bun EACCES'), {
+    code: 'EACCES',
+  });
+  const saved = process.env.BUNPM_DEBUG;
+  try {
+    process.env.BUNPM_DEBUG = '1';
+    assert.equal(exitCode({ error }), 1);
+    assert.equal(lines[0], 'bunpm: exec: spawn bun EACCES');
+    assert.deepEqual(JSON.parse(lines[1]), {
+      level: 'error',
+      component: 'exec',
+      message: 'spawn bun EACCES',
+      code: 'EACCES',
+    });
+    delete process.env.BUNPM_DEBUG;
+    assert.equal(exitCode({ error: new Error('boom') }), 1);
+    assert.equal(lines.length, 3);
+  } finally {
+    if (saved === undefined) delete process.env.BUNPM_DEBUG;
+    else process.env.BUNPM_DEBUG = saved;
+  }
+});
+
 test('native child argv preserves metacharacters and exact nonzero exit', () => {
   const args = [
     'space here',
