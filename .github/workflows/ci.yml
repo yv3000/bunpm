@@ -88,12 +88,13 @@ jobs:
       - name: Run repeated test suite
         id: repeat
         run: npm run test:repeat
-      # Fail the build if any high- or critical-severity advisory is found;
-      # advisories do not depend on the OS
+      # Fails on any high- or critical-severity advisory in either lockfile:
+      # package-lock.json via npm, bun.lock via Bun. Advisories do not depend
+      # on the OS.
       - name: Audit dependency security
         id: audit
         if: runner.os == 'Linux'
-        run: npm audit --audit-level=high
+        run: npm run audit
       - name: Run cross-platform smoke tests
         id: smoke
         run: npm run smoke
