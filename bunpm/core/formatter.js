@@ -2,6 +2,7 @@
 // Transforms bun's raw output to look like npm/yarn/pnpm output depending
 // on which binary the user invoked. Intercepts stdout/stderr line by line.
 // Only uses Node.js built-ins — no external dependencies.
+const { StringDecoder } = require('node:string_decoder');
 
 /**
  * @typedef {{ invokedAs: string, subcommand: string }} FormatContext
@@ -166,9 +167,40 @@ function formatOutput(rawOutput, context) {
     .join('\n');
 }
 
+/**
+ * Streaming counterpart of formatOutput: formats each complete line as it
+ * arrives and the final fragment when the source ends. Chunks may split lines
+ * and multi-byte characters anywhere. Each kept line is written with its
+ * newline at once, so a dropped final fragment leaves one trailing newline
+ * that formatOutput would not print.
+ *
+ * @param {NodeJS.EventEmitter} source emits Buffer 'data' and 'end'
+ * @param {(text: string) => void} write
+ * @param {FormatContext} context
+ */
+function formatStream(source, write, context) {
+  const decoder = new StringDecoder('utf8');
+  let pending = '';
+  /**
+   * @param {string} line
+   * @param {string} eol
+   */
+  const emit = (line, eol) => {
+    const out = formatLine(line, context);
+    if (out !== null && (out || eol)) write(out + eol);
+  };
+  source.on('data', (/** @type {Buffer} */ chunk) => {
+    const lines = (pending + decoder.write(chunk)).split('\n');
+    pending = /** @type {string} */ (lines.pop());
+    for (const line of lines) emit(line, '\n');
+  });
+  source.on('end', () => emit(pending + decoder.end(), ''));
+}
+
 module.exports = {
   formatLine,
   formatOutput,
+  formatStream,
   formatAsNpm,
   formatAsYarn,
   formatAsPnpm,
