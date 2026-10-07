@@ -1,0 +1,123 @@
+name: bunpm CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BUN_RUNTIME_TRANSPILER_CACHE_PATH: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.22.2'
+      # Smoke tests run the installed launchers through Bun.
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.3.14'
+      # npm ci refuses a package-lock.json that is out of step with package.json.
+      - name: Install dependencies from package-lock.json
+        id: install
+        run: npm ci --ignore-scripts
+      - name: Build (check JavaScript syntax)
+        id: build
+        run: npm run build
+      - name: Run unit test suite
+        id: test
+        run: npm test
+      # Same commands as the lint, typecheck and format:check scripts in
+      # package.json. They do not depend on the OS, so they run once, here.
+      - name: Lint with ESLint
+        id: lint
+        run: npx eslint . --max-warnings 0
+      - name: Typecheck with tsc
+        id: typecheck
+        run: npx tsc -p jsconfig.json
+      - name: Check formatting with Prettier
+        id: format
+        run: npx prettier --check .
+
+  quality:
+    needs: test-unit
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      BUN_RUNTIME_TRANSPILER_CACHE_PATH: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.22.2'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.3.14'
+      # --frozen-lockfile refuses a bun.lock that is out of step with package.json.
+      - name: Install dependencies from bun.lock
+        id: install
+        run: bun install --frozen-lockfile --ignore-scripts
+      # Reporter flags must precede the glob; Node ignores them after it.
+      - name: Run test suite with a JUnit report
+        id: test
+        run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit "--test-reporter-destination=${{ runner.temp }}/junit.xml" "tests/*.test.js"
+      - name: Upload JUnit report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: junit-${{ matrix.os }}
+          path: ${{ runner.temp }}/junit.xml
+      - name: Enforce test coverage gate
+        id: coverage
+        run: bun run test:coverage
+      - name: Run repeated test suite
+        id: repeat
+        run: bun run test:repeat
+      # Fail the build if any high- or critical-severity advisory is found;
+      # advisories do not depend on the OS
+      - name: Audit dependency security
+        id: audit
+        if: runner.os == 'Linux'
+        run: npm audit --audit-level=high
+      - name: Run cross-platform smoke tests
+        id: smoke
+        run: bun run smoke
+      - name: Verify working tree clean
+        run: git diff --check
+      - name: Parse PowerShell installers
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($file in @('install.ps1', 'uninstall.ps1', 'path.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile("$PWD/bunpm/platforms/windows/scripts/$file", [ref]$tokens, [ref]$errors) > $null
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Run the suite in the isolated container
+        if: runner.os == 'Linux'
+        run: |
+          docker build -t bunpm-test .
+          docker run --rm bunpm-test
+      - name: Validate shell and workflow sources
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          bun run shell:check
+          for file in bunpm/platforms/{linux,macos}/{scripts/*.sh,bin/*}; do bash -n "$file"; done
+          if ! command -v actionlint; then
+            GOBIN="$RUNNER_TEMP/bin" go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+            export PATH="$RUNNER_TEMP/bin:$PATH"
+          fi
+          actionlint
