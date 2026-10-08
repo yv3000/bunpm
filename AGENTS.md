@@ -51,31 +51,49 @@ Ruleset `main-protection` (id 22371642) requires `test-unit`, so:
 3. Restore with the same call and `{"bypass_actors":[]}`, even if the push failed.
 4. `gh run watch`; rerun "not acquired by Runner" failures with `gh run rerun <id> --failed`.
 
-## DataFactor score map
+## Standing permissions (user, Oct 8)
 
-Static scanner (Python `repo_stats.py`/`classify_repo.py`) plus an LLM judge
-(claude-sonnet-5). It never runs code and is noisy: identical areas moved
-10-25 points between scans. Scans: 59 at start, 64 after round 1, 50 after round 2; round 3 (Oct 7) not yet scanned.
+Don't ask again for: the push procedure above, dev-only dependencies (c8 added),
+one `v2.1.0` tag when a release is due, closing Dependabot PRs, CI/docs/test edits.
+Migrating tests to vitest/mocha is allowed only if "No test suite detected"
+survives the round-4 scan. Still ask before force push or history rewrite.
 
-| Dim                    | Last | Scanner evidence                                   | Done                                                                                        | Left                                                                           |
-| ---------------------- | ---- | -------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Builds & tests at HEAD | fail | "no test suite detected"                           | node:test, `npm test`, JUnit upload, `"on"` quoted                                          | re-scan; if still failing, a framework devDep is the last lever (ask the user) |
-| D Architecture         | 55   | plain console.error, no structured logs            | `BUNPM_DEBUG` JSON diagnostics, streaming output, `resolveSpawn`                            | none planned                                                                   |
-| C Cleanliness          | 75   | largest file smoke.test.js 348 LOC                 | dead code removed                                                                           | optional: split smoke.test.js                                                  |
-| F Docs                 | 60   | README long                                        | README 274 to 206 lines, Testing gate table                                                 | -                                                                              |
-| I Security             | 65   | no schema validation framework                     | `npm audit` + `bun audit`, review of the new streaming path                                 | stay dependency-free                                                           |
-| E Dependencies         | 55   | thinks typescript 7.0.2 / eslint 10.12.0 are bogus | verified on registry.npmjs.org: they are current                                            | nothing to fix                                                                 |
-| H CI/CD                | 70   | ci_runs_tests/lint/typecheck=false                 | root cause: bare `on:` reads as `True` in PyYAML; now quoted, steps call `npm run <script>` | confirm the flags flip                                                         |
-| K History              | 55   | single author, one tag                             | small feature+test commits                                                                  | needs time and other contributors                                              |
-| O IaC                  | 10   | not IaC                                            | README "Project Type"                                                                       | not applicable; never add fake IaC                                             |
+## DataFactor strategy
+
+Scanner (Python `repo_stats.py`, `classify_repo.py`) plus an LLM judge; never runs
+code, noisy by 10-25 points. Scans: 59, 64, 50, 54 (after round 3).
+
+Root cause of the low overall: `classify_repo.py` finds no class signal, falls back
+to "infra 0.5", and then IaC (O 5) and "docs don't cover IaC" (F 55) drag
+everything. Levers, in order:
+
+1. Classification: `package.json` `bin` + `keywords: cli` (round 4). If still
+   "Infra", next try a root `bin/bunpm` file or a `cli` mention in `description`.
+2. Machine-detectable tooling: `test_framework`/`coverage_tooling` came back
+   empty for node:test. c8 + `.c8rc.json` added (round 4). Next lever: framework.
+3. Mineable history: one real fix or feature plus its test per commit, a few per
+   day. Take them from CONTRIBUTING "Good first issues".
+4. Never: fake IaC, cosmetic churn, commits without tests.
+
+| Dim (last scan)       | Evidence                        | Round 4                            |
+| --------------------- | ------------------------------- | ---------------------------------- |
+| Builds & tests (fail) | test_framework empty            | c8; framework if still failing     |
+| D Architecture 70     | no metrics/health               | README observability paragraph     |
+| C Cleanliness 78      | largest test 474 LOC            | -                                  |
+| F Docs 55             | "no IaC docs" (misclassified)   | bin/keywords                       |
+| I Security 68         | input_validation_patterns empty | declared validateUrl rules         |
+| E Deps 72             | typescript 7.0.2 "unverifiable" | current on registry; nothing to do |
+| H CI 80               | no deploy (fine)                | coverage artifact                  |
+| K History 62          | single author, one tag          | 2 mapper fixes; tag v2.1.0 later   |
+| O IaC 5               | not IaC                         | classification fix                 |
 
 ## Deliberate non-changes
 
-- `@types/node` stays 16.x so `typecheck` catches post-Node-16 APIs; Dependabot
-  ignores its majors. Don't bump it.
-- No test framework dependency, no IaC, no CodeQL yet.
+- `@types/node` stays 16.x so `typecheck` catches post-Node-16 APIs.
+- No IaC, no CodeQL. The local `~/.bunpm` install on this machine is stale and
+  intercepts `npm`; use `node <node dir>/node_modules/npm/bin/npm-cli.js`.
 
 ## Next
 
-- Re-scan DataFactor and update the table above.
-- Good first issues in CONTRIBUTING.
+- Re-scan; update Last. Then the remaining good first issues (Yarn PnP, profile
+  blank line, Ctrl+C), each its own fix+test commit.
