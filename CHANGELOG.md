@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.1.0 - 2026-10-08
+
 - `pnpm install <pkg>` falls back to pnpm; `bun install` ignores package names,
   so the package was silently not added.
 - `npm install -g` with no package falls back to npm, which installs the current
