@@ -86,13 +86,15 @@ Each is a real, self-contained gap; keep the fix and its test in one commit.
 
 ## Verification Boundaries
 
-`test:coverage` reads the LCOV output of Node's built-in test runner. On every OS
-it requires at least 90% lines and functions across all runtime JavaScript files
-combined. On Windows it additionally requires 90% in **each** runtime file, including bootstrap, because
+`test:coverage` runs the suite under [c8](https://github.com/bcoe/c8), configured in
+[`.c8rc.json`](.c8rc.json). On every OS it requires at least 90% lines and
+functions across all runtime JavaScript files (`bunpm/**/*.js`) combined. On
+Windows CI also runs `npx c8 check-coverage --per-file`, requiring 90% in
+**each** runtime file, including bootstrap, because
 only Windows can execute `wrapper.js`'s batch-shim branch; on Unix that branch is
 unreachable, so a per-file gate there would measure the platform, not the tests.
-Missing files fail the gate. Only tests and development scripts are excluded. The
-gate does not enforce a branch threshold; native subprocess execution is
+Files no test loads still count (`all: true`). The gate does not enforce a branch
+threshold (c8 prints it); native subprocess execution is
 covered by assertions, not counted as parent-process line coverage. CI runs the
 gate on Ubuntu, macOS and Windows.
 

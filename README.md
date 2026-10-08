@@ -188,18 +188,19 @@ offline:
 A passing run ends with a summary whose `tests` count is above zero and whose
 `fail` count is 0. Other checks:
 
-| Command                 | Gate                                                                                                                 |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:coverage` | 90% minimum line and function coverage (`MIN_COVERAGE_PERCENT`), per runtime file on Windows and overall on every OS |
-| `npm run lint`          | ESLint, zero warnings                                                                                                |
-| `npm run typecheck`     | TypeScript strict `checkJs` against `@types/node` 16                                                                 |
-| `npm run format:check`  | Prettier                                                                                                             |
-| `npm run audit`         | `npm audit` and `bun audit`, failing on high severity                                                                |
-| `npm run smoke`         | Native install/uninstall on the current OS                                                                           |
+| Command                 | Gate                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run test:coverage` | [c8](https://github.com/bcoe/c8): 90% minimum line and function coverage, set in [`.c8rc.json`](.c8rc.json); per runtime file on Windows |
+| `npm run lint`          | ESLint, zero warnings                                                                                                                    |
+| `npm run typecheck`     | TypeScript strict `checkJs` against `@types/node` 16                                                                                     |
+| `npm run format:check`  | Prettier                                                                                                                                 |
+| `npm run audit`         | `npm audit` and `bun audit`, failing on high severity                                                                                    |
+| `npm run smoke`         | Native install/uninstall on the current OS                                                                                               |
 
 CI runs install, build, `npm test`, lint, typecheck and format in the required
 `test-unit` job, then the suite, coverage, audit and smoke tests on Ubuntu,
-macOS and Windows, uploading a JUnit report per OS (`junit-<os>` artifact).
+macOS and Windows, uploading a JUnit report and an LCOV coverage report per OS (`junit-<os>` and
+`coverage-<os>` artifacts).
 
 ## License
 

@@ -1,0 +1,9 @@
+{
+  "all": true,
+  "include": ["bunpm/**/*.js"],
+  "check-coverage": true,
+  "lines": 90,
+  "functions": 90,
+  "reporter": ["text", "lcov"],
+  "report-dir": "coverage"
+}

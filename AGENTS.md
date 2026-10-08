@@ -16,8 +16,7 @@ Bun 1.3.14.
 - `bunpm/bootstrap.js`: remote installer (only network I/O)
 - `bunpm/platforms/{windows,linux,macos}/`: launchers and install scripts
 - `tests/*.test.js`: `node:test` + `node:assert/strict`
-- `scripts/`: `syntax.js` (build), `coverage.js` (`MIN_COVERAGE_PERCENT` 90),
-  `repeat.js`
+- `scripts/`: `syntax.js` (build), `repeat.js`; coverage is c8 via `.c8rc.json` (90%)
 
 ## Commands
 
