@@ -207,3 +207,21 @@ test('pnpm workspace selection and npx options fall back', () => {
     ['--package', 'x', 'cmd'],
   ]);
 });
+
+test('a global npm install without a package stays with npm', () => {
+  for (const args of [
+    ['install', '-g'],
+    ['i', '--global'],
+    ['install', '--global', '--ignore-scripts'],
+  ])
+    assert.deepEqual(mapCommand('npm', args), {
+      fallbackTo: 'npm',
+      fallbackArgs: args,
+    });
+  // With a package name it is still a plain global add.
+  assert.deepEqual(mapCommand('npm', ['install', '-g', 'typescript']).bunArgs, [
+    'add',
+    '-g',
+    'typescript',
+  ]);
+});

@@ -232,8 +232,12 @@ function mapCommand(invokedAs, args) {
     invokedAs === 'npm' &&
     ['install', 'i', 'add'].includes(command) &&
     !hasNonFlagArgs(rest)
-  )
+  ) {
+    // npm installs the current folder as a global package; bun install -g
+    // does not, so keep npm's meaning.
+    if (rest.some((arg) => arg === '-g' || arg === '--global')) return fallback;
     mapped = 'install';
+  }
   return {
     useBunx: false,
     bunArgs: [...mapped.split(' '), ...translateFlags(rest, flags)],

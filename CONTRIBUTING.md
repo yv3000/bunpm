@@ -66,10 +66,6 @@ or `tests/smoke.test.js`.
 
 Each is a real, self-contained gap; keep the fix and its test in one commit.
 
-- `npm install -g` with no package installs the current folder globally under
-  npm, but `mapCommand` sends it to `bun install -g` (`bunpm/core/mapper.js`,
-  the `hasNonFlagArgs` branch). Decide on fallback and pin it in
-  `tests/mapper.test.js`.
 - `pnpm install <pkg>` maps to `bun install <pkg>` because `PNPM_TO_BUN` maps
   `install` to `install` (`bunpm/core/mapper.js`). Check what pnpm does with
   package names on `install`, then map to `bun add` or fall back.

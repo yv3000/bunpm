@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `npm install -g` with no package falls back to npm, which installs the current
+  folder globally; it was sent to `bun install -g`, which does not.
+
 - Non-interactive commands (`install`, `add`, `remove`, `update`, ...) stream
   formatted output while Bun runs instead of printing it after exit. The 16 MiB
   capture limit is gone: output beyond it used to kill Bun mid-install
