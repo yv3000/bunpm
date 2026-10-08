@@ -4,7 +4,19 @@
   "private": true,
   "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "type": "commonjs",
+  "keywords": [
+    "cli",
+    "bun",
+    "npm",
+    "yarn",
+    "pnpm",
+    "package-manager",
+    "wrapper"
+  ],
   "license": "MIT",
+  "bin": {
+    "bunpm": "bunpm/core/wrapper.js"
+  },
   "repository": "https://github.com/yv3000/bunpm.git",
   "engines": {
     "node": ">=22.13.0"

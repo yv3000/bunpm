@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const cp = require('node:child_process');
 
 // CI, the Docker image and the dev container must test with the same Node.js
 // and Bun, and Dependabot cannot update the setup-node/setup-bun version inputs.
@@ -21,6 +22,21 @@ test('Node.js and Bun pins agree across CI, Docker, dev container and package.js
   assert.deepEqual(pins(/bun-version: '([^']+)'/g), [bun]);
   assert.equal(pkg.packageManager, `bun@${bun}`);
   assert.equal(devcontainer.build.dockerfile, '../Dockerfile');
+});
+
+// package.json declares the CLI entry, so `npm link` provides a `bunpm` command.
+test('the bunpm bin is an executable Node script that takes a manager name', () => {
+  const { bin } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  assert.equal(bin.bunpm, 'bunpm/core/wrapper.js');
+  assert.match(fs.readFileSync(bin.bunpm, 'utf8'), /^#!\/usr\/bin\/env node\n/);
+  const result = cp.spawnSync(process.execPath, [bin.bunpm], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 1);
+  assert.match(
+    result.stderr,
+    /^bunpm: wrapper: Expected one of: npm, npx, yarn, pnpm/,
+  );
 });
 
 // YAML 1.1 parsers (PyYAML, used by many repository scanners) read a bare

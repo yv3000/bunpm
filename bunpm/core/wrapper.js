@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+// CLI: bunpm <npm|npx|yarn|pnpm> [args...]; the platform launchers call it the same way.
 const cp = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
