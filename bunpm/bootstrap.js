@@ -44,20 +44,25 @@ function filesFor(platform) {
  */
 function validateUrl(value) {
   const url = new URL(value);
-  if (
-    url.protocol !== 'https:' ||
-    url.hostname !== 'raw.githubusercontent.com' ||
-    url.port ||
-    url.username ||
-    url.password ||
-    url.hash ||
-    url.search ||
-    !/^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//.test(url.pathname)
-  ) {
-    throw new Error(
-      'Unsafe download URL: expected this repository at an immutable HTTPS revision',
-    );
-  }
+  // Every download must satisfy all of these; the first broken one is reported.
+  /** @type {[string, boolean][]} */
+  const rules = [
+    ['HTTPS is required', url.protocol === 'https:'],
+    [
+      'host must be raw.githubusercontent.com on the default port',
+      url.hostname === 'raw.githubusercontent.com' && !url.port,
+    ],
+    [
+      'credentials, query and fragment are not allowed',
+      !url.username && !url.password && !url.search && !url.hash,
+    ],
+    [
+      'path must be /yv3000/bunpm/<40-hex commit SHA>/bunpm/',
+      /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//.test(url.pathname),
+    ],
+  ];
+  const broken = rules.find(([, ok]) => !ok);
+  if (broken) throw new Error(`Unsafe download URL: ${broken[0]}`);
   return url;
 }
 

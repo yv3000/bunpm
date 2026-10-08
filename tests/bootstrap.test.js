@@ -66,17 +66,28 @@ test('bootstrap validates platform, manifest and URL trust boundary', () => {
   assert.throws(() => detectPlatform('aix'));
   assert.throws(() => filesFor('other'));
   assert.equal(validateUrl(base + 'core/wrapper.js').protocol, 'https:');
-  for (const url of [
-    'file:///tmp/x',
-    'http://raw.githubusercontent.com/x',
-    base.replace('raw.githubusercontent.com', 'evil.test'),
-    base.replace(sha, 'main'),
-    base + 'x?token=x',
-    base + 'x#hash',
-    base.replace('https://', 'https://user:pass@'),
-    base.replace('.com/', '.com:444/'),
+  for (const [url, rule] of [
+    ['file:///tmp/x', /HTTPS is required/],
+    ['http://raw.githubusercontent.com/x', /HTTPS is required/],
+    [base.replace('raw.githubusercontent.com', 'evil.test'), /host must be/],
+    [base.replace('.com/', '.com:444/'), /host must be/],
+    [base + 'x?token=x', /query and fragment/],
+    [base + 'x#hash', /query and fragment/],
+    [base.replace('https://', 'https://user:pass@'), /credentials/],
+    [base.replace(sha, 'main'), /40-hex commit SHA/],
+    [base.replace(sha, sha.slice(1)), /40-hex commit SHA/],
+    [
+      base.replace(sha, sha.toUpperCase().replace(/A/g, 'F')),
+      /40-hex commit SHA/,
+    ],
+    [base.replace('/yv3000/', '/someone/'), /40-hex commit SHA/],
+    [base.replace('/bunpm/' + sha, '/bunpm-fork/' + sha), /40-hex commit SHA/],
+    // URL parsing resolves '..', so traversal leaves the bunpm/ directory.
+    [base + '../package.json', /40-hex commit SHA/],
   ])
-    assert.throws(() => validateUrl(url));
+    assert.throws(() => validateUrl(url), {
+      message: new RegExp('^Unsafe download URL: .*' + rule.source),
+    });
 });
 
 test('bootstrap manifest lists exactly the runtime files in the checkout', () => {
