@@ -66,9 +66,6 @@ or `tests/smoke.test.js`.
 
 Each is a real, self-contained gap; keep the fix and its test in one commit.
 
-- `pnpm install <pkg>` maps to `bun install <pkg>` because `PNPM_TO_BUN` maps
-  `install` to `install` (`bunpm/core/mapper.js`). Check what pnpm does with
-  package names on `install`, then map to `bun add` or fall back.
 - Yarn Berry Plug'n'Play projects (with `.pnp.cjs`) get a `node_modules` folder
   when `yarn add` runs through Bun. A cwd check in `bunpm/core/wrapper.js` could
   fall back (the mapper stays I/O-free).

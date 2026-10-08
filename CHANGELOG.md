@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `pnpm install <pkg>` falls back to pnpm; `bun install` ignores package names,
+  so the package was silently not added.
 - `npm install -g` with no package falls back to npm, which installs the current
   folder globally; it was sent to `bun install -g`, which does not.
 

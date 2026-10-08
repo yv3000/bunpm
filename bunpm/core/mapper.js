@@ -186,6 +186,10 @@ function mapCommand(invokedAs, args) {
     rest = rest.slice(1);
   }
   if (!mapped) return fallback;
+  // pnpm treats package names on install differently from bun install, which
+  // ignores them; let pnpm decide instead of guessing.
+  if (invokedAs === 'pnpm' && mapped === 'install' && hasNonFlagArgs(rest))
+    return fallback;
   if (mapped === 'run' || mapped.startsWith('run ')) {
     // Package-manager options before the script name must not become script args.
     if (rest[0]?.startsWith('-') && mapped === 'run') return fallback;

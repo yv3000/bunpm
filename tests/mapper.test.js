@@ -225,3 +225,16 @@ test('a global npm install without a package stays with npm', () => {
     'typescript',
   ]);
 });
+
+test('pnpm install with package names falls back to pnpm', () => {
+  for (const args of [
+    ['install', 'lodash'],
+    ['i', '--frozen-lockfile', 'lodash'],
+  ])
+    assert.equal(mapCommand('pnpm', args).fallbackTo, 'pnpm');
+  // A plain or flag-only install still runs through Bun.
+  assert.deepEqual(mapCommand('pnpm', ['i', '--frozen-lockfile']).bunArgs, [
+    'install',
+    '--frozen-lockfile',
+  ]);
+});
