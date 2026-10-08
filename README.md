@@ -143,7 +143,11 @@ network I/O, restricted to this repository at one commit SHA; child processes
 reach registries under their own configuration. Installers write only under
 `~/.bunpm`, one shell profile, or Windows User PATH. bunpm's own failures are
 always `bunpm: <component>: <message>` on stderr; set `BUNPM_DEBUG=1` to get an
-extra JSON line (`level`, `component`, `message`, `code`) per failure. See
+extra JSON line (`level`, `component`, `message`, `code`) per failure.
+
+Observability: bunpm is a one-shot process with no daemon or port, so it has no
+logging backend, metrics or health endpoint. Its exit code and the stderr lines
+above (plus `BUNPM_DEBUG`) are the whole diagnostic surface. See
 [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ## Development
