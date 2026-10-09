@@ -3,25 +3,25 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const cp = require('node:child_process');
 
-// CI, the Docker image and the dev container must test with the same Node.js
-// and Bun, and Dependabot cannot update the setup-node/setup-bun version inputs.
-test('Node.js and Bun pins agree across CI, Docker, dev container and package.json', () => {
+// Every CI job must test with the same Node.js and Bun, and Dependabot cannot
+// update the setup-node/setup-bun version inputs.
+test('Node.js and Bun pins agree across CI jobs and package.json', () => {
   const ci = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
-  const dockerfile = fs.readFileSync('Dockerfile', 'utf8');
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  const devcontainer = JSON.parse(
-    fs.readFileSync('.devcontainer/devcontainer.json', 'utf8'),
-  );
   /** @param {RegExp} pattern */
   const pins = (pattern) => [
     ...new Set([...ci.matchAll(pattern)].map((match) => match[1])),
   ];
-  const node = dockerfile.match(/^FROM node:(\d+\.\d+\.\d+)-/m)?.[1];
-  const bun = dockerfile.match(/^FROM oven\/bun:(\d+\.\d+\.\d+)/m)?.[1];
-  assert.deepEqual(pins(/node-version: '([^']+)'/g), [node]);
-  assert.deepEqual(pins(/bun-version: '([^']+)'/g), [bun]);
+  const [node, ...otherNode] = pins(/node-version: '([^']+)'/g);
+  const [bun, ...otherBun] = pins(/bun-version: '([^']+)'/g);
+  assert.deepEqual([otherNode, otherBun], [[], []]);
   assert.equal(pkg.packageManager, `bun@${bun}`);
-  assert.equal(devcontainer.build.dockerfile, '../Dockerfile');
+  // The CI Node.js must satisfy the development engine floor.
+  const floor = pkg.engines.node.replace('>=', '').split('.').map(Number);
+  const pinned = node.split('.').map(Number);
+  assert.ok(
+    pinned[0] > floor[0] || (pinned[0] === floor[0] && pinned[1] >= floor[1]),
+  );
 });
 
 // package.json declares the CLI entry, so `npm link` provides a `bunpm` command.

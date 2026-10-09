@@ -169,9 +169,7 @@ bun install --ignore-scripts
 npm install --package-lock-only --ignore-scripts
 ```
 
-The [dev container](.devcontainer/devcontainer.json) and
-`docker compose run --rm test` run the same install and tests in an isolated
-Linux image. [CONTRIBUTING.md](CONTRIBUTING.md) has the full validation
+[CONTRIBUTING.md](CONTRIBUTING.md) has the full validation
 sequence and contribution rules; [CHANGELOG.md](CHANGELOG.md) lists changes.
 
 ## Testing
