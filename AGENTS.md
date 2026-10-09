@@ -11,7 +11,7 @@ Bun 1.3.14.
 
 ## Layout
 
-- `bunpm/core/`: `wrapper.js` (entry; `resolveSpawn`, async `main`, `diagnose`),
+- `bunpm/core/`: `wrapper.js` (entry; `resolveSpawn`, async `main`, signal forwarding), `doctor.js`,
   `mapper.js` (pure tables), `detector.js`, `formatter.js` (`formatStream`)
 - `bunpm/bootstrap.js`: remote installer (only network I/O)
 - `bunpm/platforms/{windows,linux,macos}/`: launchers and install scripts
@@ -61,7 +61,7 @@ survives the round-4 scan. Still ask before force push or history rewrite.
 ## DataFactor strategy
 
 Scanner (Python `repo_stats.py`, `classify_repo.py`) plus an LLM judge; never runs
-code, noisy by 10-25 points. Scans: 59, 64, 50, 54 (after round 3).
+code, noisy by 10-25 points. Scans: 59, 64, 50, 54 (after round 3); rounds 4-5 not yet scanned.
 
 Root cause of the low overall: `classify_repo.py` finds no class signal, falls back
 to "infra 0.5", and then IaC (O 5) and "docs don't cover IaC" (F 55) drag
@@ -93,7 +93,17 @@ everything. Levers, in order:
 - No IaC, no CodeQL. The local `~/.bunpm` install on this machine is stale and
   intercepts `npm`; use `node <node dir>/node_modules/npm/bin/npm-cli.js`.
 
+## Round 5 (Oct 8)
+
+Removed all container files (user request: the classifier reads them as\ninfra). Added `bunpm doctor`, SIGINT/SIGTERM
+forwarding, ARCHITECTURE.md, c8 gates (statements 95, branches 90 overall),
+tool-named CI steps with a coverage job summary, and split every file under 300
+lines (tests: main, formatter, installer). Kept on purpose: NUL-only argument
+rejection (control characters such as newlines are legal arguments), and
+`process.exitCode` instead of `process.exit` so stdout flushes.
+
 ## Next
 
-- Re-scan; update Last. Then the remaining good first issues (Yarn PnP, profile
-  blank line, Ctrl+C), each its own fix+test commit.
+- Re-scan; update the scores above. If still "Infra", try a root `bin/` folder.
+- If "No test suite detected" persists, migrate to vitest (user approved).
+- Remaining good first issues: Yarn PnP, profile blank line.
