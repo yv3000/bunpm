@@ -152,6 +152,7 @@ offline:
 - `bootstrap.test.js`: download transport against a loopback server.
 - `uninstall.test.js`: Unix profile cleanup (skipped on Windows).
 - `toolchain.test.js`: Node/Bun pins, the `bunpm` bin and workflow syntax.
+- `installer.test.js`: installer PATH edits and prerequisite failures.
 - `smoke.test.js`: native install, launchers, fallback and uninstall.
 
 A passing run ends with a summary whose `tests` count is above zero and whose
