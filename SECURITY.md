@@ -9,5 +9,5 @@ not in a public issue. Include the bunpm commit, OS, Node.js and Bun versions,
 and the exact command that shows the problem.
 
 What bunpm does and does not trust is described under "Trust boundaries" in
-[README.md](README.md#architecture-and-boundaries) and in
+[ARCHITECTURE.md](ARCHITECTURE.md) and in
 [Remote Bootstrap](README.md#remote-bootstrap).

@@ -108,55 +108,11 @@ Uninstall removes `~/.bunpm` and bunpm's exact PATH entries, keeping unrelated
 profile lines, Bun and the original managers. To update, uninstall, review the
 new checkout and install again. There is no background updater.
 
-## Architecture And Boundaries
+## Architecture
 
-One short-lived process per invocation: no daemon, no shared state. A launcher
-in `bunpm/platforms/<os>/bin/` runs `core/wrapper.js` with the manager name and
-the untouched arguments; the wrapper then spawns at most one child: Bun or the
-original manager.
-
-```mermaid
-flowchart LR
-  L["launcher<br/>platforms/&lt;os&gt;/bin"] --> W["wrapper.js<br/>main()"]
-  W --> M["mapper.js<br/>mapCommand()"]
-  M -->|translated| B["detector.js<br/>getBunPath()"]
-  M -->|fallback| O["detector.js<br/>locateBinary()"]
-  B --> X["wrapper.js<br/>resolveSpawn() / spawn"]
-  O --> X
-  X -->|streamed lines| F["formatter.js<br/>formatStream()"]
-  X -->|interactive stdio| E["child exit code<br/>or signal"]
-  F --> E
-```
-
-- [`core/wrapper.js`](bunpm/core/wrapper.js): entry point. Validates every
-  spawn in `resolveSpawn` (absolute executable, argument array, `shell: false`;
-  a generic Windows `.cmd`/`.bat` shim runs through an explicit `cmd.exe` and
-  rejects shell-sensitive arguments), streams output, returns the exit code.
-- [`core/mapper.js`](bunpm/core/mapper.js): pure command and flag tables that
-  return Bun arguments or a fallback. No I/O. Ambiguity always resolves to
-  fallback, never a guess.
-- [`core/detector.js`](bunpm/core/detector.js): finds Bun and the original
-  managers on absolute PATH entries (then `~/.bun/bin`), skipping bunpm's own
-  copies and empty or relative entries.
-- [`core/formatter.js`](bunpm/core/formatter.js): line-by-line cosmetic rewrite
-  of non-interactive Bun output.
-
-[`bootstrap.js`](bunpm/bootstrap.js) and the platform installers run once, by
-hand, and are never imported by the wrapper. Bootstrap imports nothing from
-`core/` because those files are not downloaded yet when it starts.
-
-Trust boundaries: bunpm runs whatever Bun and original managers your absolute
-PATH entries resolve to, without validating them. Only `bootstrap.js` performs
-network I/O, restricted to this repository at one commit SHA; child processes
-reach registries under their own configuration. Installers write only under
-`~/.bunpm`, one shell profile, or Windows User PATH. bunpm's own failures are
-always `bunpm: <component>: <message>` on stderr; set `BUNPM_DEBUG=1` to get an
-extra JSON line (`level`, `component`, `message`, `code`) per failure.
-
-Observability: bunpm is a one-shot process with no daemon or port, so it has no
-logging backend, metrics or health endpoint. Its exit code and the stderr lines
-above (plus `BUNPM_DEBUG`) are the whole diagnostic surface. See
-[SECURITY.md](SECURITY.md) to report a vulnerability.
+One short-lived process per invocation: launcher, `wrapper.js`, at most one
+child (Bun or the original manager). See [ARCHITECTURE.md](ARCHITECTURE.md) for
+the request flow, each module's role, error handling and trust boundaries.
 
 ## Development
 
