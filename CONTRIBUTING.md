@@ -73,9 +73,6 @@ Each is a real, self-contained gap; keep the fix and its test in one commit.
   `install.sh` writes a blank line before the marker and the `uninstall.sh` awk
   filter keeps it (`bunpm/platforms/{linux,macos}/scripts/`). Extend
   `tests/uninstall.test.js`.
-- Ctrl+C during a streamed install: `bunpm/core/wrapper.js` has no SIGINT
-  handler, so the wrapper can exit before Bun finishes its own cleanup and its
-  last output lines are lost. Reproduce on Unix before changing anything.
 
 ## Verification Boundaries
 

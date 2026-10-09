@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- SIGINT and SIGTERM received by the wrapper are forwarded to a streamed Bun
+  child, and the wrapper waits for Bun to exit instead of quitting first.
+
 ## 2.1.0 - 2026-10-08
 
 - `pnpm install <pkg>` falls back to pnpm; `bun install` ignores package names,

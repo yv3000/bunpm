@@ -178,6 +178,20 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
         /** @type {import('node:child_process').ChildProcessByStdio<null, import('node:stream').Readable, import('node:stream').Readable>} */ (
           /** @type {unknown} */ (cp.spawn(file, argv, options))
         );
+      // Forward Ctrl+C and termination to Bun, and keep the wrapper alive until
+      // Bun exits, so its last output and exit status are not lost and a
+      // SIGTERM sent only to the wrapper cannot orphan the install.
+      // ponytail: on a Unix terminal Bun may see SIGINT twice (process group
+      // plus forward); dedupe by checking the process group if that matters.
+      const signals = /** @type {const} */ (['SIGINT', 'SIGTERM']);
+      const forward = (/** @type {NodeJS.Signals} */ signal) =>
+        child.kill(signal);
+      for (const signal of signals) process.on(signal, forward);
+      /** @param {Pick<SpawnResult, 'error' | 'signal' | 'status'>} value */
+      const done = (value) => {
+        for (const signal of signals) process.off(signal, forward);
+        resolve(value);
+      };
       /** @type {Error | undefined} */
       let failure;
       child.on('spawn', () => (started = true));
@@ -185,13 +199,13 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
       child.on('error', (error) =>
         started
           ? (failure = error)
-          : resolve({ error, status: null, signal: null }),
+          : done({ error, status: null, signal: null }),
       );
       formatStream(child.stdout, (text) => process.stdout.write(text), context);
       formatStream(child.stderr, (text) => process.stderr.write(text), context);
       // 'close' fires after exit and after both pipes ended (and were written).
       child.on('close', (status, signal) =>
-        resolve({ error: failure, status, signal }),
+        done({ error: failure, status, signal }),
       );
     });
     // Only a child that never started may be retried with the original manager.

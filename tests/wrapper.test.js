@@ -291,6 +291,33 @@ test('output beyond the old 16 MiB buffer streams in full from a real child', as
   assert.equal(length, line.replace('installed', 'added').length * count);
 });
 
+test('SIGINT and SIGTERM reach the streamed Bun child and handlers are removed', async () => {
+  mock(detector, 'getBunPath', () => process.execPath);
+  const child = Object.assign(new EventEmitter(), {
+    stdout: new PassThrough(),
+    stderr: new PassThrough(),
+    kill: (/** @type {string} */ signal) => sent.push(signal),
+  });
+  /** @type {string[]} */
+  const sent = [];
+  mock(cp, 'spawn', () => child);
+  const before = ['SIGINT', 'SIGTERM'].map((s) => process.listenerCount(s));
+  const pending = main('npm', ['install']);
+  child.emit('spawn');
+  process.emit('SIGINT', 'SIGINT');
+  process.emit('SIGTERM', 'SIGTERM');
+  assert.deepEqual(sent, ['SIGINT', 'SIGTERM']);
+  child.stdout.end();
+  child.stderr.end();
+  await new Promise((resolve) => setImmediate(resolve));
+  child.emit('close', null, 'SIGINT');
+  assert.equal(await pending, 130);
+  assert.deepEqual(
+    ['SIGINT', 'SIGTERM'].map((s) => process.listenerCount(s)),
+    before,
+  );
+});
+
 test('fallback runs only before Bun starts and errors never become success', async () => {
   mock(console, 'error', () => {});
   mock(detector, 'getBunPath', () => process.execPath);
