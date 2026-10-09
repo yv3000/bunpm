@@ -1,15 +1,13 @@
 # bunpm
 
+**Project type:** Standalone Node.js CLI tool and package manager wrapper. It is
+not a backend service or infrastructure project: no Terraform, Kubernetes,
+Helm, Pulumi, Ansible or containers.
+
 A small wrapper that routes a supported subset of `npm`, `npx`, `yarn` and
 `pnpm` commands through [Bun](https://bun.sh), and falls back to the original
 manager whenever a command cannot be translated safely. Plain CommonJS, Node
 built-ins only, zero runtime dependencies, no build step.
-
-## Project Type
-
-bunpm is a command-line (CLI) wrapper and developer utility, not
-infrastructure-as-code. It provisions no cloud resources and contains no
-Terraform, Kubernetes, Helm, Pulumi or Ansible configuration.
 
 ## Requirements
 
