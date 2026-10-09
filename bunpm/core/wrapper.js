@@ -203,7 +203,7 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
   }
 }
 
-module.exports = { main, spawnCommand, exitCode, diagnose };
+module.exports = { main, spawnCommand, exitCode };
 if (require.main === module)
   main().then((code) => {
     process.exitCode = code;
