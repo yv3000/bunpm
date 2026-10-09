@@ -7,6 +7,7 @@ const os = require('node:os');
 const detector = require('./detector');
 const { mapCommand, validateArgs } = require('./mapper');
 const { formatStream } = require('./formatter');
+const { doctor } = require('./doctor');
 
 /**
  * @typedef {import('node:child_process').SpawnSyncReturns<string | Buffer>} SpawnResult
@@ -142,6 +143,8 @@ const notStarted = (error) =>
  */
 async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
   try {
+    if (invokedAs === 'doctor' && !args.length)
+      return doctor({ spawn: spawnCommand });
     const mapped = mapCommand(invokedAs, args);
     const bun = mapped.fallbackTo ? null : detector.getBunPath();
     const original = () => {

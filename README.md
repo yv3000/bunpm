@@ -84,6 +84,16 @@ lockfile, layout, lifecycle, registry and workspace semantics for translated
 commands, and pnpm isolation and Yarn PnP are not preserved. Use the original
 manager when that matters.
 
+## Check An Installation
+
+```sh
+node ~/.bunpm/core/wrapper.js doctor   # or `bunpm doctor` after npm link
+```
+
+It prints one line per check (Node.js 16.9+, Bun found and `bun --version`
+works, launchers present, original managers found) and exits 1 if any required
+check fails, with the reason on stderr.
+
 ## Uninstall And Update
 
 ```powershell

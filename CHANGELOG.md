@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `bunpm doctor` checks the Node.js version, finds Bun and runs `bun --version`,
+  checks the launchers and lists the original managers. It exits 1 on any
+  failed check.
+
 - SIGINT and SIGTERM received by the wrapper are forwarded to a streamed Bun
   child, and the wrapper waits for Bun to exit instead of quitting first.
 
