@@ -142,13 +142,16 @@ The suite uses Node's built-in `node:test` runner and `node:assert`, so there
 is no test framework to install. `npm test` runs `node --test "tests/*.test.js"`
 offline:
 
-- `core.test.js`: mapper and formatter units, plus a seeded property test of
-  streamed against buffered formatting.
+- `core.test.js`: mapper units (dependency operations, scripts, fallbacks).
 - `mapper.test.js`: command, alias and flag tables and their fallbacks.
-- `wrapper.test.js`: spawning, streaming, fallback, exit codes, diagnostics.
+- `formatter.test.js`: output formatting, plus a seeded property test of
+  streamed against buffered formatting.
+- `main.test.js`: streaming, signal forwarding, fallback and exit codes.
+- `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
+- `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js`: download transport against a loopback server.
 - `uninstall.test.js`: Unix profile cleanup (skipped on Windows).
-- `toolchain.test.js`: Node/Bun pins and workflow syntax agree.
+- `toolchain.test.js`: Node/Bun pins, the `bunpm` bin and workflow syntax.
 - `smoke.test.js`: native install, launchers, fallback and uninstall.
 
 A passing run ends with a summary whose `tests` count is above zero and whose
