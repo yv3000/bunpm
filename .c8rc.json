@@ -3,6 +3,8 @@
   "include": ["bunpm/**/*.js"],
   "check-coverage": true,
   "lines": 90,
+  "statements": 95,
+  "branches": 90,
   "functions": 90,
   "reporter": ["text", "lcov"],
   "report-dir": "coverage"

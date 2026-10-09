@@ -31,20 +31,20 @@ jobs:
       - name: Install dependencies from package-lock.json
         id: install
         run: npm ci --ignore-scripts
-      - name: Build (check JavaScript syntax)
+      - name: Build (node --check)
         id: build
         run: npm run build
-      - name: Run unit test suite
+      - name: Test (node:test)
         id: test
         run: npm test
       # ESLint, tsc and Prettier do not depend on the OS, so they run once, here.
-      - name: Lint with ESLint
+      - name: Lint (eslint)
         id: lint
         run: npm run lint
-      - name: Typecheck with tsc
+      - name: Typecheck (tsc)
         id: typecheck
         run: npm run typecheck
-      - name: Check formatting with Prettier
+      - name: Format check (prettier)
         id: format
         run: npm run format:check
 
@@ -82,14 +82,25 @@ jobs:
         with:
           name: junit-${{ matrix.os }}
           path: ${{ runner.temp }}/junit.xml
-      - name: Enforce test coverage gate
+      - name: Test with coverage (c8 node:test)
         id: coverage
         run: npm run test:coverage
       # Only Windows runs wrapper.js's batch-shim branch, so only Windows can
-      # hold every runtime file to the minimum on its own.
-      - name: Enforce per-file coverage
+      # hold every runtime file to the line minimum on its own. Branches are
+      # gated overall: each OS takes only its own side of platform checks.
+      - name: Per-file coverage (c8)
         if: runner.os == 'Windows'
-        run: npx c8 check-coverage --per-file
+        run: npx c8 check-coverage --per-file --branches 0
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          {
+            echo "### Coverage (${{ matrix.os }})"
+            echo '```'
+            npx c8 report --reporter=text
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -102,7 +113,7 @@ jobs:
       # Fails on any high- or critical-severity advisory in either lockfile:
       # package-lock.json via npm, bun.lock via Bun. Advisories do not depend
       # on the OS.
-      - name: Audit dependency security
+      - name: Dependency audit (npm audit)
         id: audit
         if: runner.os == 'Linux'
         run: npm run audit

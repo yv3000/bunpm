@@ -77,8 +77,8 @@ Each is a real, self-contained gap; keep the fix and its test in one commit.
 ## Verification Boundaries
 
 `test:coverage` runs the suite under [c8](https://github.com/bcoe/c8), configured in
-[`.c8rc.json`](.c8rc.json). On every OS it requires at least 90% lines and
-functions across all runtime JavaScript files (`bunpm/**/*.js`) combined. On
+[`.c8rc.json`](.c8rc.json). On every OS it requires at least 90% lines,
+functions and branches and 95% statements across all runtime JavaScript files (`bunpm/**/*.js`) combined. On
 Windows CI also runs `npx c8 check-coverage --per-file`, requiring 90% in
 **each** runtime file, including bootstrap, because
 only Windows can execute `wrapper.js`'s batch-shim branch; on Unix that branch is
