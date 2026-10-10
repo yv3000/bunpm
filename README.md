@@ -1,13 +1,26 @@
 # bunpm
 
-**Project type:** Standalone Node.js CLI tool and package manager wrapper. It is
-not a backend service or infrastructure project: no Terraform, Kubernetes,
-Helm, Pulumi, Ansible or containers.
+**Project type:** Standalone zero-dependency Node.js CLI tool. It is not a
+backend daemon or web service: no Terraform, Kubernetes, Helm, Pulumi, Ansible
+or containers.
 
 A small wrapper that routes a supported subset of `npm`, `npx`, `yarn` and
 `pnpm` commands through [Bun](https://bun.sh), and falls back to the original
 manager whenever a command cannot be translated safely. Plain CommonJS, Node
 built-ins only, zero runtime dependencies, no build step.
+
+## Quickstart
+
+```sh
+git clone https://github.com/yv3000/bunpm.git
+cd bunpm
+npm ci --ignore-scripts
+npm test
+```
+
+Requires Node.js 22.13+. A passing run ends with a summary whose `tests`
+count is above 0 and `fail` is 0. See [Development](#development) for the
+full check list.
 
 ## Requirements
 
