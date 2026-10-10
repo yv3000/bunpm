@@ -148,6 +148,8 @@ offline:
   streamed against buffered formatting.
 - `main.test.js`: streaming, signal forwarding, fallback and exit codes.
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
+- `validation.test.js`: trust-boundary input validation fails closed.
+- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema.
 - `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js`: download transport against a loopback server.
 - `uninstall.test.js`: Unix profile cleanup (skipped on Windows).
