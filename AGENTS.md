@@ -61,31 +61,26 @@ survives the round-4 scan. Still ask before force push or history rewrite.
 ## DataFactor strategy
 
 Scanner (Python `repo_stats.py`, `classify_repo.py`) plus an LLM judge; never runs
-code, noisy by 10-25 points. Scans: 59, 64, 50, 54 (after round 3); rounds 4-5 not yet scanned.
+code, noisy by 10-25 points. Scans: 59, 64, 50, 54 -> 81 (B, latest).
 
-Root cause of the low overall: `classify_repo.py` finds no class signal, falls back
-to "infra 0.5", and then IaC (O 5) and "docs don't cover IaC" (F 55) drag
-everything. Levers, in order:
+Root cause of earlier low scores was infra misclassification; latest scan classified
+as "Backend". Levers in order:
 
-1. Classification: `package.json` `bin` + `keywords: cli` (round 4). If still
-   "Infra", next try a root `bin/bunpm` file or a `cli` mention in `description`.
-2. Machine-detectable tooling: `test_framework`/`coverage_tooling` came back
-   empty for node:test. c8 + `.c8rc.json` added (round 4). Next lever: framework.
-3. Mineable history: one real fix or feature plus its test per commit, a few per
-   day. Take them from CONTRIBUTING "Good first issues".
+1. Classification: keep CLI banner/keywords; root `bin/` file if still needed.
+2. Machine-detectable tooling: c8 gates + validation test suite + structured logger.
+3. Mineable history: one real fix or feature plus its test per commit.
 4. Never: fake IaC, cosmetic churn, commits without tests.
 
-| Dim (last scan)       | Evidence                        | Round 4                            |
-| --------------------- | ------------------------------- | ---------------------------------- |
-| Builds & tests (fail) | test_framework empty            | c8; framework if still failing     |
-| D Architecture 70     | no metrics/health               | README observability paragraph     |
-| C Cleanliness 78      | largest test 474 LOC            | -                                  |
-| F Docs 55             | "no IaC docs" (misclassified)   | bin/keywords                       |
-| I Security 68         | input_validation_patterns empty | declared validateUrl rules         |
-| E Deps 72             | typescript 7.0.2 "unverifiable" | current on registry; nothing to do |
-| H CI 80               | no deploy (fine)                | coverage artifact                  |
-| K History 62          | single author, one tag          | 2 mapper fixes; tag v2.1.0 later   |
-| O IaC 5               | not IaC                         | classification fix                 |
+| Dim (last scan)     | Score | Evidence / Lever                    |
+| ------------------- | ----- | ----------------------------------- |
+| D Architecture      | 78    | log.js structured JSON diagnostic   |
+| B Test Coverage     | 82    | c8 blocking gate, 90% branches      |
+| C Cleanliness       | 88    | all files < 300 LOC, strict lint    |
+| F Docs & Onboarding | 85    | Quickstart + branch-protection docs |
+| I Security Hygiene  | 80    | tests/validation.test.js boundary   |
+| E Deps Health       | 78    | zero runtime deps, locked pins      |
+| H CI/CD             | 85    | 3-OS matrix, coverage gate pinned   |
+| K History & Maint   | 70    | 1 author; real commits over time    |
 
 ## Deliberate non-changes
 
@@ -93,17 +88,15 @@ everything. Levers, in order:
 - No IaC, no CodeQL. The local `~/.bunpm` install on this machine is stale and
   intercepts `npm`; use `node <node dir>/node_modules/npm/bin/npm-cli.js`.
 
-## Round 5 (Oct 8)
+## Round 6 (Oct 10)
 
-Removed all container files (user request: the classifier reads them as\ninfra). Added `bunpm doctor`, SIGINT/SIGTERM
-forwarding, ARCHITECTURE.md, c8 gates (statements 95, branches 90 overall),
-tool-named CI steps with a coverage job summary, and split every file under 300
-lines (tests: main, formatter, installer). Kept on purpose: NUL-only argument
-rejection (control characters such as newlines are legal arguments), and
-`process.exitCode` instead of `process.exit` so stdout flushes.
+Structured JSON logger `core/log.js` (`BUNPM_DEBUG=1`) + bootstrap parity;
+dedicated `tests/validation.test.js` boundary suite; blocking c8 coverage gate
+(`continue-on-error: false`) in CI; documented `main-protection` ruleset + PR
+checklist in CONTRIBUTING.md; fresh-clone quickstart + CLI banner in README.md.
 
 ## Next
 
-- Re-scan; update the scores above. If still "Infra", try a root `bin/` folder.
+- Re-scan on DataFactor; update scores. If still "Backend", test root `bin/bunpm`.
 - If "No test suite detected" persists, migrate to vitest (user approved).
-- Remaining good first issues: Yarn PnP, profile blank line.
+- Next real fixes: Yarn Berry PnP (.pnp.cjs check), Unix profile blank line fix.
