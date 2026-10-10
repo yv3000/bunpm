@@ -46,3 +46,27 @@ test('CI workflow quotes its trigger key', () => {
   assert.doesNotMatch(ci, /^on:/m);
   assert.match(ci, /^(['"])on\1:\n {2}push:/m);
 });
+
+// The coverage gate must be able to fail the build, not just report.
+test('c8 enforces the coverage thresholds and CI cannot ignore a miss', () => {
+  const c8 = JSON.parse(fs.readFileSync('.c8rc.json', 'utf8'));
+  assert.equal(c8['check-coverage'], true);
+  assert.equal(c8.all, true);
+  for (const [metric, minimum] of [
+    ['lines', 90],
+    ['functions', 90],
+    ['branches', 90],
+    ['statements', 95],
+  ])
+    assert.ok(
+      c8[metric] >= minimum,
+      `${metric} threshold ${c8[metric]} < ${minimum}`,
+    );
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  assert.match(pkg.scripts['test:coverage'], /^c8 node --test /);
+  const ci = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+  assert.match(
+    ci,
+    /name: Test with coverage \(c8 node:test\)\n\s+id: coverage\n\s+continue-on-error: false\n\s+run: npm run test:coverage/,
+  );
+});

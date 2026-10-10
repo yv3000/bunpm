@@ -82,8 +82,10 @@ jobs:
         with:
           name: junit-${{ matrix.os }}
           path: ${{ runner.temp }}/junit.xml
+      # c8 exits non-zero when any .c8rc.json threshold is missed, failing the job.
       - name: Test with coverage (c8 node:test)
         id: coverage
+        continue-on-error: false
         run: npm run test:coverage
       # Only Windows runs wrapper.js's batch-shim branch, so only Windows can
       # hold every runtime file to the line minimum on its own. Branches are
