@@ -74,6 +74,34 @@ Each is a real, self-contained gap; keep the fix and its test in one commit.
   filter keeps it (`bunpm/platforms/{linux,macos}/scripts/`). Extend
   `tests/uninstall.test.js`.
 
+## Branch Protection & Pull Request Gate
+
+`main` is protected by an active GitHub ruleset (`main-protection`):
+
+- The branch cannot be deleted.
+- Force-pushes and other non-fast-forward updates are rejected.
+- The `test-unit` CI job (install, build, `npm test`, lint, typecheck, format
+  check) must pass before a commit can land on `main`.
+
+The `quality` job then runs the suite, the c8 coverage gate, the dependency
+audit and native smoke tests on Ubuntu, macOS and Windows for every push and
+pull request. It is not a ruleset-required check, but a red `quality` run is
+treated as a broken `main` and fixed before anything else lands.
+
+### Pull Request Submission Checklist
+
+- [ ] One behaviour change and its test per commit, with a Conventional Commit
+      message (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `ci:`).
+- [ ] `npm ci --ignore-scripts` and `npm run build` succeed.
+- [ ] `npm test` ends with `tests` above 0 and `fail 0`.
+- [ ] `npm run lint` (zero warnings), `npm run typecheck` and
+      `npm run format:check` pass.
+- [ ] `npm run test:coverage` meets the `.c8rc.json` thresholds.
+- [ ] `npm run smoke` passes on your OS.
+- [ ] User-visible changes have a `CHANGELOG.md` entry under Unreleased.
+- [ ] `package-lock.json` and `bun.lock` are refreshed together when
+      dependencies change.
+
 ## Verification Boundaries
 
 `test:coverage` runs the suite under [c8](https://github.com/bcoe/c8), configured in
