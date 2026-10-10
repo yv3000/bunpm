@@ -212,8 +212,18 @@ async function main(args = process.argv.slice(2)) {
 module.exports = { detectPlatform, filesFor, validateUrl, download, main };
 if (require.main === module)
   main().catch((error) => {
-    // Same `bunpm: <component>: <message>` convention as core/wrapper.js, spelled
-    // out here because bootstrap must not import files it has not downloaded yet.
+    // Same format as core/log.js, spelled out here because bootstrap must not
+    // import files it has not downloaded yet.
     console.error(`bunpm: bootstrap: ${error.message}`);
+    if (process.env.BUNPM_DEBUG === '1')
+      console.error(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'error',
+          component: 'bootstrap',
+          message: error.message,
+          ...(error.code && { code: error.code }),
+        }),
+      );
     process.exitCode = 1;
   });

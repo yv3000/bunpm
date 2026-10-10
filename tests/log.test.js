@@ -73,17 +73,20 @@ test('BUNPM_DEBUG=1 adds one schema-valid JSON line after the human one', () => 
   );
 });
 
-test('the wrapper entry emits the same JSON line from a real process', () => {
-  const result = cp.spawnSync(
-    process.execPath,
-    ['bunpm/core/wrapper.js', 'bad'],
-    {
+for (const [script, args, component] of [
+  ['bunpm/core/wrapper.js', ['bad'], 'wrapper'],
+  // bootstrap cannot import log.js, so its inline copy must match the schema.
+  ['bunpm/bootstrap.js', [], 'bootstrap'],
+])
+  test(`${script} emits the same JSON line from a real process`, () => {
+    const result = cp.spawnSync(process.execPath, [script, ...args], {
       encoding: 'utf8',
       env: { ...process.env, BUNPM_DEBUG: '1' },
-    },
-  );
-  assert.equal(result.status, 1);
-  const [human, json] = result.stderr.trim().split(/\r?\n/);
-  assert.equal(human, 'bunpm: wrapper: Expected one of: npm, npx, yarn, pnpm');
-  assert.equal(assertSchema(json).component, 'wrapper');
-});
+    });
+    assert.equal(result.status, 1);
+    const [human, json] = result.stderr.trim().split(/\r?\n/);
+    assert.match(human, new RegExp(`^bunpm: ${component}: \\S`));
+    const record = assertSchema(json);
+    assert.equal(record.component, component);
+    assert.equal(human, `bunpm: ${component}: ${record.message}`);
+  });
