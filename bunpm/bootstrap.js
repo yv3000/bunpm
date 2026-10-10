@@ -25,6 +25,7 @@ function filesFor(platform) {
   const files = [
     'detector.js',
     'doctor.js',
+    'log.js',
     'mapper.js',
     'formatter.js',
     'wrapper.js',

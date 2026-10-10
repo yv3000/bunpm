@@ -8,6 +8,7 @@ const detector = require('./detector');
 const { mapCommand, validateArgs } = require('./mapper');
 const { formatStream } = require('./formatter');
 const { doctor } = require('./doctor');
+const { log: diagnose } = require('./log');
 
 /**
  * @typedef {import('node:child_process').SpawnSyncReturns<string | Buffer>} SpawnResult
@@ -82,29 +83,6 @@ function resolveSpawn(binary, args, options) {
 function spawnCommand(binary, args, options = {}) {
   const [file, argv, resolved] = resolveSpawn(binary, args, options);
   return cp.spawnSync(file, argv, resolved);
-}
-
-// Every bunpm component reports failures on stderr as
-// `bunpm: <component>: <actionable message>` so users can tell bunpm's own
-// diagnostics apart from the child manager's output. Child exit codes and the
-// underlying cause text are preserved unchanged. With BUNPM_DEBUG=1 the same
-// failure is also written as one JSON line for tools that embed bunpm.
-/**
- * @param {string} component
- * @param {string} message
- * @param {string} [code] error code such as ENOENT, when known
- */
-function diagnose(component, message, code) {
-  console.error(`bunpm: ${component}: ${message}`);
-  if (process.env.BUNPM_DEBUG === '1')
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        component,
-        message,
-        ...(code && { code }),
-      }),
-    );
 }
 
 /**

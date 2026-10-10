@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const detector = require('./detector');
+const { log } = require('./log');
 
 const MIN_NODE = [16, 9];
 const LAUNCHERS = ['npm', 'npx', 'yarn', 'pnpm'];
@@ -38,7 +39,7 @@ function doctor({
   /** @param {string} message */
   const fail = (message) => {
     healthy = false;
-    console.error(`bunpm: doctor: ${message}`);
+    log('doctor', message);
   };
   const [major, minor] = nodeVersion.split('.').map(Number);
   if (major > MIN_NODE[0] || (major === MIN_NODE[0] && minor >= MIN_NODE[1]))

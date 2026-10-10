@@ -52,15 +52,15 @@ profiles in a test. Formatting-only work belongs in a separate commit.
 
 bunpm's own failures go to stderr as `bunpm: <component>: <actionable message>`,
 where the component is the failing part (`wrapper`, `exec`, `detector`,
-`bootstrap`, `install`, `uninstall`). `core/wrapper.js` has a local `diagnose`
-helper; `bootstrap.js` repeats the prefix inline because it must not import files
-it has not downloaded yet, and the shell/PowerShell installers spell it out in
-their own messages. Child process output is never rewritten into this form, exit
-codes and cause text are preserved, and there are no timestamps, log files or
-telemetry. `BUNPM_DEBUG=1` adds one JSON line per wrapper diagnostic for tools
-that parse them. Changing a diagnostic requires updating its assertion in
-`tests/wrapper.test.js`, `tests/bootstrap.test.js`, `tests/uninstall.test.js`,
-or `tests/smoke.test.js`.
+`bootstrap`, `install`, `uninstall`, `doctor`). Runtime modules log through
+[`core/log.js`](bunpm/core/log.js); `bootstrap.js` repeats the same format inline
+because it must not import files it has not downloaded yet, and the
+shell/PowerShell installers spell it out in their own messages. Child process
+output is never rewritten into this form, and exit codes and cause text are
+preserved. There are no log files or telemetry. `BUNPM_DEBUG=1` adds one JSON
+line per diagnostic (`timestamp`, `level`, `component`, `message`, optional
+`code`); `tests/log.test.js` pins that schema. Changing a diagnostic requires
+updating its assertion in the matching `tests/*.test.js` file.
 
 ## Good first issues
 
