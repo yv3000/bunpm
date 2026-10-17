@@ -96,16 +96,24 @@ mapped to `128 + signo`. Wrapper-level errors exit with code `1`.
 
 ### Trust Boundaries
 
-bunpm enforces fail-closed validation at all external trust boundaries via [`bunpm/core/validate.js`](bunpm/core/validate.js):
+bunpm validates runtime arguments through [`bunpm/core/validate.js`](bunpm/core/validate.js).
+The standalone bootstrap has its own guards, tested against the same contract:
 
-| Validator                    | Boundary Guarded                                          | Call Sites                                                                       | Test Coverage                                         |
-| ---------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `validateArgs(args)`         | Argument arrays without NUL bytes                         | `core/mapper.js:mapCommand`, `core/wrapper.js:resolveSpawn`, `bootstrap.js:main` | `tests/validation.test.js`, `tests/bootstrap.test.js` |
-| `validateManager(invokedAs)` | Supported package managers (`npm`, `npx`, `yarn`, `pnpm`) | `core/mapper.js:mapCommand`                                                      | `tests/validation.test.js`                            |
-| `validateBinary(binary)`     | Absolute executable binary paths                          | `core/wrapper.js:resolveSpawn`                                                   | `tests/validation.test.js`                            |
-| `validateUrl(value)`         | Pinned HTTPS download URLs                                | `bootstrap.js:download` (initial & redirects)                                    | `tests/validation.test.js`, `tests/bootstrap.test.js` |
+| Validator                    | Boundary Guarded                                          | Call Sites                                                             | Test Coverage                                                                             |
+| ---------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Core `validateArgs(args)`    | Argument arrays without NUL bytes                         | `core/mapper.js:mapCommand`, `core/wrapper.js:resolveSpawn`            | `tests/validation.test.js`                                                                |
+| `validateManager(invokedAs)` | Supported package managers (`npm`, `npx`, `yarn`, `pnpm`) | `core/mapper.js:mapCommand`                                            | `tests/validation.test.js`                                                                |
+| `validateBinary(binary)`     | Absolute executable binary paths                          | `core/wrapper.js:resolveSpawn`                                         | `tests/validation.test.js`                                                                |
+| Core `validateUrl(value)`    | String or URL instance, pinned HTTPS URL                  | Exported validation contract; bootstrap uses its standalone equivalent | `tests/validation.test.js`                                                                |
+| Bootstrap guards             | Arguments and pinned HTTPS download URLs                  | `bootstrap.js:main`, `bootstrap.js:download` (initial & redirects)     | `tests/validation.test.js`, `tests/bootstrap-contract.test.js`, `tests/bootstrap.test.js` |
 
-Executable contents found on PATH are trusted once resolved to absolute paths. Only `bootstrap.js` performs remote network I/O, cryptographically restricted to this repository at an exact 40-character commit SHA over TLS. Installers write only under `~/.bunpm`, one shell profile, or Windows User PATH. [`bootstrap.js`](bunpm/bootstrap.js) deliberately maintains self-contained validation rather than importing `core/validate.js` because remote downloads run it as a standalone installer before any runtime files exist locally. It runs once by hand and is never imported by the runtime wrapper.
+Executable contents found on PATH are trusted once resolved to absolute paths.
+Only `bootstrap.js` performs remote network I/O. It restricts HTTPS requests and
+redirects to this repository at a 40-character commit SHA; it does not verify an
+independent payload hash or signature. Installers write under `~/.bunpm`, one
+shell profile, or Windows User PATH. [`bootstrap.js`](bunpm/bootstrap.js) keeps
+self-contained guards because runtime files do not exist before download. It
+runs once by hand and is never imported by the runtime wrapper.
 
 Dependency boundaries & pruning rationale:
 

@@ -2,6 +2,22 @@
 
 Hand-off notes for the next agent session. Read this, not the whole repo.
 
+## Current checkpoint (Oct 17)
+
+- Latest user-supplied DataFactor score is 79/B; 88+ is a target, not a result.
+- Follow SCORE-ROADMAP.md. Generated lockfiles are exempt from the user's strict
+  line budget; all authored files are below 265 lines after test modularization.
+- Structured logger calls and frozen LOG_LEVELS are explicit; diagnostics remain
+  compatible. npm cache is keyed to package-lock.json in both CI setup steps.
+- URL object-coercion guards merged through PR #26 / issue #24. Freshness JSON
+  validation merged through PR #27 / issue #25. Both accounts have the same owner.
+- Local: 88 tests / 17 suites, 83 pass, 5 skips; 100% statements/lines/functions,
+  96.16% branches. All three native OS jobs passed for both PRs; both audits clean.
+- Commit 1633ef9 (`/4`) was created outside this agent's commands and preserved;
+  do not rewrite it or misattribute it to the secondary account.
+- Native node:test remains: Mocha cannot run these imports/mocks as-is. The
+  proprietary scanner is unavailable locally; no detection fix is claimed yet.
+
 ## Purpose
 
 bunpm: CommonJS CLI that routes `npm`/`npx`/`yarn`/`pnpm` through Bun and falls

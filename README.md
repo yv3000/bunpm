@@ -169,17 +169,20 @@ offline:
 
 - `core.test.js`: mapper units (dependency operations, scripts, fallbacks).
 - `mapper.test.js`: command, alias and flag tables and their fallbacks.
-- `formatter.test.js`: output formatting, plus a seeded property test of
-  streamed against buffered formatting.
+- `formatter.test.js` and `formatter-stream.test.js`: line formats, bounded
+  buffering, split UTF-8 and seeded streaming properties.
 - `main.test.js`: streaming, signal forwarding, fallback and exit codes.
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
 - `validation.test.js`: trust-boundary input validation fails closed.
 - `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema.
 - `doctor.test.js`: `bunpm doctor` checks and messages.
-- `bootstrap.test.js`: download transport against a loopback server.
+- `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
+  transport, manifest, URL boundary and entrypoint contracts.
 - `uninstall.test.js`: Unix profile cleanup (skipped on Windows).
 - `toolchain.test.js`: Node/Bun pins, the `bunpm` bin and workflow syntax.
-- `installer.test.js`: installer PATH edits and prerequisite failures.
+- `installer.test.js` and `installer-unix.test.js`: native PATH edits,
+  prerequisite failures and rollback ownership.
+- `freshness.test.js`: dependency-report failures and advisory artifacts.
 - `smoke.test.js`: native install, launchers, fallback and uninstall.
 
 A passing run ends with a summary whose `tests` count is above zero and whose

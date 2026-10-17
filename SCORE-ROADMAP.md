@@ -5,6 +5,22 @@ Updated: 2026-10-17. Planning baseline: `09fc5ec` (v2.3.2).
 This document is a handoff for the requested 88+ recovery work. It records
 evidence and acceptance criteria; it does not claim a future score.
 
+## Execution checkpoint
+
+- Gates 0-4 delivered: baseline, cohesive test modularization, explicit logger,
+  frozen levels, direct pattern declaration, URL type guards, CI cache and names.
+- Gate 6 delivered as real fixes: issue #24 / PR #26 (URL coercion) and issue
+  #25 / PR #27 (freshness failures). Same-owner authorship/review is disclosed.
+- 88 tests in 17 suites; Windows 83 pass, 5 Unix skips, zero failures. Coverage
+  100% statements/lines/functions, 96.16% branches. Both audits are clean.
+- Both PRs passed all three native OS jobs before merge. PR #27 evidence:
+  https://github.com/yv3000/bunpm/actions/runs/39006763549.
+- All authored files are below 265 lines. No runtime dependency or test framework
+  was added. Both lockfiles were synchronized without content changes.
+- Gate 5: native-test evidence is in tests/README.md and CI artifacts. The actual
+  scanner remains proprietary; rescan follows final fresh-clone verification.
+- The existing external commit 1633ef9 (`/4`) was preserved without rewriting.
+
 ## Guardrails
 
 - Keep zero runtime dependencies and Node 16 API compatibility.
