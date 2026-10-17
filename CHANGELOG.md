@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 2.3.3 - 2026-10-17
 
 - Mark failed dependency freshness queries as unavailable, including registry
   failures that share npm's exit code for outdated packages; retain an advisory

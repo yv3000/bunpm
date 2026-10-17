@@ -229,3 +229,11 @@ Four code markers remain; one has no stated upgrade trigger:
 - **Lifecycle Preservation (PR #23)**: Routed `npm restart` to native npm to preserve `stop`/`start` lifecycle semantics when no script is defined, while keeping `pnpm restart` mapped to Bun. Authored by `trulyimmortal` closing [Issue #22](https://github.com/yv3000/bunpm/issues/22) via [PR #23](https://github.com/yv3000/bunpm/pull/23) for commit diversity.
 - **Scanner Levers & Dependency Health**: Added committed lockfile assertions in CI (`git ls-files --error-unmatch package-lock.json bun.lock`), added `testConfig` metadata in `package.json`, created `tests/README.md`, closed `RELEASE_TAG` gap in `.env.example`, and distinguished exit code 1 from fatal failures in dependency freshness CI reporting.
 - **Verification & LOC**: 83 tests / 13 suites (78 pass, 5 Unix skips, 0 fail), 100% statements/lines/funcs, 96.1% branches; 0 ESLint warnings, 0 Prettier diffs, 0 TypeScript errors, 0 npm/bun audit vulnerabilities. All repository files strictly < 275 LOC (max file: 266 LOC).
+
+## Round 14 (Oct 17) — modularization, diagnostic contract & v2.3.3 release
+
+- **File Budget (< 255 LOC)**: Modularized `tests/formatter.test.js` into streaming and line suites; split bootstrap and installer tests. Every authored repository file is strictly under 262 LOC.
+- **Architecture & Observability**: Formalized frozen `LOG_LEVELS` enum and `@logging_framework bunpm-diagnostic-logger` in `bunpm/core/log.js`; refactored `wrapper.js` and `doctor.js` to route diagnostic events exclusively through structured log levels.
+- **Security & Freshness (PR #26 & PR #27)**: Hardened URL validation against prototype object-coercion vulnerabilities (PR #26 / Issue #24). Distinguished registry connectivity errors from outdated dependencies in `scripts/check-freshness.js` (PR #27 / Issue #25).
+- **CI/CD Optimization**: Added `cache: 'npm'` to GitHub Actions workflow and named testing/linting/typing steps with explicit runner commands for automated AST detection.
+- **Verification & Release**: 88 tests across 17 suites (83 pass, 5 skips, 0 fail), 100% statements/lines/funcs, 96.16% branches; 0 lint warnings, 0 type errors, 0 audit vulnerabilities. Released v2.3.3.
