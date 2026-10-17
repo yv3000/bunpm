@@ -147,7 +147,9 @@ jobs:
         if: runner.os == 'Linux'
         continue-on-error: true
         run: |
-          npm outdated --json > "${{ runner.temp }}/dependency-freshness.json" || [ $? -eq 1 ]
+          status=0
+          npm outdated --json > "${{ runner.temp }}/dependency-freshness.json" || status=$?
+          node scripts/check-freshness.js "${{ runner.temp }}/dependency-freshness.json" "$status"
       - name: Upload dependency freshness report
         if: runner.os == 'Linux' && !cancelled()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

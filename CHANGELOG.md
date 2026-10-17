@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Mark failed dependency freshness queries as unavailable, including registry
+  failures that share npm's exit code for outdated packages; retain an advisory
+  artifact instead of treating the failed query as successful.
 - Reject arbitrary object coercion at core and bootstrap URL validation
   boundaries before parsing; strings and URL instances retain existing checks.
 - Route wrapper and doctor failures through the explicit structured logger;

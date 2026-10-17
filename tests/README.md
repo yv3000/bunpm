@@ -28,6 +28,7 @@ Native test runner and coverage configuration for bunpm.
 14. `tests/uninstall.test.js`: Shell profile marker removal and idempotent profile cleanup.
 15. `tests/toolchain.test.js`: Node/Bun version pins, bin scripts, and CI workflow invariants.
 16. `tests/smoke.test.js`: End-to-end native installation, execution, launcher, and uninstall lifecycle.
+17. `tests/freshness.test.js`: Advisory dependency-report classification and CLI artifacts.
 
 ## Commands
 

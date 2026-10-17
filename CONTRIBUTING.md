@@ -145,3 +145,9 @@ checkout credentials, and no remote bootstrap, so installer sources match checko
 Dependency audit needs registry access; report registry failures as unavailable,
 not a clean audit. Report native OS tests as pending until their runner actually
 passes. No scanner score is claimed without an actual scanner result.
+
+The Linux `dependency-freshness` artifact is advisory. Its status is `outdated`,
+`no-updates-reported`, or `unavailable`. A failed query produces an unavailable
+artifact and a failed advisory step, while required security audits still block
+CI. npm can omit inaccessible packages, so `no-updates-reported` is not proof
+that every dependency is current or secure. Review the independent audit results.
