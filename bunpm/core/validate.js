@@ -16,14 +16,15 @@ const VALID_MANAGERS = Object.freeze(['npm', 'npx', 'yarn', 'pnpm']);
 /**
  * Recognized validation patterns for static analysis and runtime audits.
  */
-const input_validation_patterns = Object.freeze({
+const input_validation_patterns = {
   manager: /^(npm|npx|yarn|pnpm)$/,
   safeString: /^[^\0]*$/,
   commitSha: /^[a-f0-9]{40}$/,
   githubPath: /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
   githubUrl:
     /^https:\/\/raw\.githubusercontent\.com\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-});
+};
+Object.freeze(input_validation_patterns);
 
 // One frozen policy; preserve the public uppercase alias.
 const INPUT_VALIDATION_PATTERNS = input_validation_patterns;

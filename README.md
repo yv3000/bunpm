@@ -195,6 +195,7 @@ A passing run ends with a summary whose `tests` count is above zero and whose
 | `npm run typecheck`     | TypeScript strict `checkJs` against `@types/node` 16                                                                                                          |
 | `npm run format:check`  | Prettier                                                                                                                                                      |
 | `npm run audit`         | `npm audit` and `bun audit`, failing on high severity                                                                                                         |
+| `npm run freshness`     | Confirmed `npm outdated` dependency freshness check and artifact generation                                                                                   |
 | `npm run smoke`         | Native install/uninstall on the current OS                                                                                                                    |
 
 CI runs install, build, `npm test`, lint, typecheck and format in the required

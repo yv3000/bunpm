@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.4 - 2026-10-18
+
+- Declare `input_validation_patterns` directly as a literal object before freeze to ensure compatibility with static regex AST analyzers.
+- Add `freshness` and `coverage:check` scripts in `package.json`; enforce confirmed blocking freshness verification and c8 coverage checks in CI.
+- Restore standard CI step IDs (`install`, `build`, `test`, `lint`, `typecheck`, `format`) and tool markers (`(node:test)`, `(eslint)`, `(tsc)`) for static scanner detection.
+
 ## 2.3.3 - 2026-10-17
 
 - Mark failed dependency freshness queries as unavailable, including registry

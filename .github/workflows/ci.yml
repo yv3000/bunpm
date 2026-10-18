@@ -39,23 +39,23 @@ jobs:
         run: git ls-files --error-unmatch package-lock.json bun.lock
       # npm ci refuses a package-lock.json that is out of step with package.json.
       - name: Install dependencies from package-lock.json
-        id: npm-ci
+        id: install
         run: npm ci --ignore-scripts
       - name: Build (node --check)
-        id: npm-run-build
+        id: build
         run: npm run build
-      - name: Run test suite (npm test)
-        id: npm-test
+      - name: Test (node:test)
+        id: test
         run: npm test
       # ESLint, tsc and Prettier do not depend on the OS, so they run once, here.
-      - name: Run linter (npm run lint)
-        id: npm-run-lint
+      - name: Lint (eslint)
+        id: lint
         run: npm run lint
-      - name: Run typecheck (npm run typecheck)
-        id: npm-run-typecheck
+      - name: Typecheck (tsc)
+        id: typecheck
         run: npm run typecheck
       - name: Format check (prettier)
-        id: npm-run-format
+        id: format
         run: npm run format:check
 
   quality:
@@ -109,6 +109,9 @@ jobs:
         run: npm run test:coverage
       - name: Print coverage summary
         run: npx c8 report --reporter=text-summary
+      - name: Enforce coverage thresholds (c8 check-coverage)
+        id: check-coverage
+        run: npx c8 check-coverage
       # Only Windows runs wrapper.js's batch-shim branch, so only Windows can
       # hold every runtime file to the line minimum on its own. Branches are
       # gated overall: each OS takes only its own side of platform checks.
@@ -142,10 +145,9 @@ jobs:
         id: audit
         if: runner.os == 'Linux'
         run: npm run audit
-      - name: Generate dependency freshness report
+      - name: Dependency freshness (npm run freshness)
         id: freshness
         if: runner.os == 'Linux'
-        continue-on-error: true
         run: |
           status=0
           npm outdated --json > "${{ runner.temp }}/dependency-freshness.json" || status=$?

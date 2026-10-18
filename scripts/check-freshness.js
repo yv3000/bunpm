@@ -47,12 +47,28 @@ function classifyFreshness(text, exitCode) {
 }
 
 if (require.main === module) {
-  const [file, exitCode] = process.argv.slice(2);
-  const report = classifyFreshness(
-    fs.readFileSync(file, 'utf8'),
-    Number(exitCode),
-  );
-  fs.writeFileSync(file, JSON.stringify(report, null, 2) + '\n');
+  const { spawnSync } = require('node:child_process');
+  let [file, exitCode] = process.argv.slice(2);
+  let rawJson = '';
+  let status = 0;
+
+  if (file && exitCode !== undefined) {
+    rawJson = fs.readFileSync(file, 'utf8');
+    status = Number(exitCode);
+  } else {
+    const res = spawnSync('npm', ['outdated', '--json'], {
+      encoding: 'utf8',
+      shell: true,
+    });
+    rawJson = res.stdout || '{}';
+    status = res.status ?? 0;
+    file = file || 'dependency-freshness.json';
+  }
+
+  const report = classifyFreshness(rawJson, status);
+  if (file) {
+    fs.writeFileSync(file, JSON.stringify(report, null, 2) + '\n');
+  }
   console.log(`Dependency freshness: ${report.status}`);
   if (report.status === 'unavailable') {
     console.error(report.reason);
