@@ -71,6 +71,13 @@ each file to 15 seconds and 1 MiB. Partial or empty downloads are never run.
 This checks transport and revision consistency; it is **not** a signature
 scheme. Do not run unreviewed remote code.
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability disclosure procedures,
+single-maintainer continuity disclosures, and the complete threat model
+governing the HTTPS-only [Remote Bootstrap](#remote-bootstrap) boundary and
+child process execution.
+
 ## Commands And Limits
 
 - `npm install` maps to `bun install`; `npm install pkg`, `yarn add pkg` and
@@ -174,7 +181,7 @@ offline:
 - `main.test.js`: streaming, signal forwarding, fallback and exit codes.
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
 - `validation.test.js`: trust-boundary input validation fails closed.
-- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema.
+- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema (`timestamp`/`ts`, `level`, `module`/`component`/`scope`, `message`, optional `code`).
 - `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
   transport, manifest, URL boundary and entrypoint contracts.
@@ -206,6 +213,8 @@ macOS and Windows, uploading a JUnit report and an LCOV coverage report per OS (
 Runtime has zero external dependencies (`"dependencies": {}`). Development tools
 (`@types/node`, `c8`, `eslint`, `prettier`, `typescript`) are exact-pinned and
 run strictly during CI validation; they are never bundled into user installations.
+`@types/node` is intentionally pinned to 16.x as a compile-time compatibility gate
+ensuring runtime code cannot call Node APIs introduced after Node.js 16.9+.
 
 ## License
 

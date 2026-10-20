@@ -47,13 +47,16 @@ jobs:
       - name: Test (node:test)
         id: test
         run: npm test
+      - name: Enforce coverage thresholds (c8 check-coverage)
+        id: check-coverage
+        run: npm run test:coverage && npm run coverage:check
       # ESLint, tsc and Prettier do not depend on the OS, so they run once, here.
       - name: Lint (eslint)
         id: lint
-        run: npm run lint
+        run: npx eslint . --max-warnings 0
       - name: Typecheck (tsc)
         id: typecheck
-        run: npm run typecheck
+        run: npx tsc -p jsconfig.json
       - name: Format check (prettier)
         id: format
         run: npm run format:check

@@ -101,12 +101,18 @@ treated as a broken `main` and fixed before anything else lands.
 - [ ] `npm run lint` (zero warnings), `npm run typecheck` and
       `npm run format:check` pass.
 - [ ] `npm run test:coverage` meets the `.c8rc.json` thresholds.
+- [ ] `npm run coverage:check` passes without coverage regression.
 - [ ] `npm run smoke` passes on your OS.
 - [ ] Any change touching `bunpm/core/*.js` includes tests under `tests/`
       verifying the change.
 - [ ] User-visible changes have a `CHANGELOG.md` entry under Unreleased.
 - [ ] `package-lock.json` and `bun.lock` are refreshed together when
       dependencies change.
+
+Coverage Gate Thresholds (`.c8rc.json`): Every pull request must meet blocking
+coverage thresholds in CI before merge: statements >= 95%, branches >= 90%,
+functions >= 90%, and lines >= 90% across all runtime code, plus 90% lines
+per-file on Windows. Run `npm run test:coverage && npm run coverage:check` locally.
 
 ## Verification Boundaries
 
