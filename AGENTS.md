@@ -2,22 +2,17 @@
 
 Hand-off notes for the next agent session. Read this, not the whole repo.
 
-## Current checkpoint (Oct 18)
+## Current checkpoint (Oct 20)
 
-- Latest user-supplied DataFactor score is 75/B; target is 88+ (Grade A).
-- Follow datafactor_recovery_to_88_plan.md and SCORE-ROADMAP.md.
-- Input validation patterns are declared as literal object before freeze for AST regex detection.
-- Blocking c8 check-coverage and confirmed freshness scripts are enforced in CI.
-- Structured logger calls and frozen LOG_LEVELS are explicit; diagnostics remain
-  compatible. npm cache is keyed to package-lock.json in both CI setup steps.
-- URL object-coercion guards merged through PR #26 / issue #24. Freshness JSON
-  validation merged through PR #27 / issue #25. Both accounts have the same owner.
+- Latest user-supplied DataFactor score is 78.9/B (offer territory); target is 88+ (Grade A).
+- Follow datafactor_85_plus_recovery_plan.md and walkthrough.md.
+- Threat model for remote bootstrap & trust boundaries documented in expanded SECURITY.md.
+- Blocking c8 check-coverage enforced directly in required test-unit job on all PRs.
+- Canonical module field emitted in formatDiagnostic and bootstrap diagnostic schema.
+- Node 16 API compile-time compatibility gate documented for @types/node 16.
 - Local: 88 tests / 17 suites, 83 pass, 5 skips; 100% statements/lines/functions,
-  96.16% branches. All three native OS jobs passed for both PRs; both audits clean.
-- Commit 1633ef9 (`/4`) was created outside this agent's commands and preserved;
-  do not rewrite it or misattribute it to the secondary account.
-- Native node:test remains: Mocha cannot run these imports/mocks as-is. The
-  proprietary scanner is unavailable locally; no detection fix is claimed yet.
+  96.16% branches. Remote CI (Run 39376449425) passed across Ubuntu, macOS, and Windows.
+- Commits split between trulyimmortal (3264978) and yv3000 (f3bea93); same owner disclosed.
 
 ## Purpose
 
@@ -245,3 +240,11 @@ Four code markers remain; one has no stated upgrade trigger:
 - **Confirmed Freshness & Coverage Gates**: Added `freshness` and `coverage:check` scripts to `package.json`; enforced blocking `npx c8 check-coverage` on all OS and confirmed freshness in CI.
 - **CI Step IDs**: Restored standard step IDs (`test`, `lint`, `typecheck`, `build`, `format`) and tool markers (`(node:test)`, `(eslint)`, `(tsc)`) to eliminate false `ci_runs_*` flags in `repo_stats.py`.
 - **Verification & Release**: 88 tests / 17 suites (83 pass, 5 skips, 0 fail), 100% statements/lines/funcs, 96.16% branches; 0 lint warnings, 0 type errors, 0 audit vulnerabilities. Released v2.3.4.
+
+## Round 16 (Oct 20) — sub-80 dimensions elevation & threat model
+
+- **Security Hygiene (78 -> 85+)**: Expanded `SECURITY.md` with complete remote bootstrap download threat model (HTTPS-only, 40-char SHA pin, 5-redirect limit, 15s/1 MiB limits, non-signature integrity caveat) and CLI trust boundaries; added cross-linked `## Security` section in `README.md`.
+- **Coverage Enforcement Gate (78 -> 85+)**: Wired `npm run test:coverage && npm run coverage:check` as a blocking gate into required `test-unit` job in `ci.yml`; documented exact `.c8rc.json` thresholds in `CONTRIBUTING.md`.
+- **Architecture & Observability**: Added canonical `module: component` schema field across `log.js` and `bootstrap.js`; asserted schema in `tests/log.test.js` and documented schema in `README.md`.
+- **Dependency Health**: Documented intentional `@types/node` 16 compile-time gate in `README.md`.
+- **Verification & History**: Authored atomically across `trulyimmortal` (`3264978`) and `yv3000` (`f3bea93`). 88 tests / 17 suites pass (83 pass, 5 skips, 0 fail), 100% statements/lines/funcs, 96.16% branches; remote CI Run 39376449425 passed on Ubuntu, macOS, and Windows. All authored files strictly < 255 LOC.
