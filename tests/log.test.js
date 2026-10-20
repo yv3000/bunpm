@@ -39,11 +39,20 @@ function assertSchema(line, expectedLevel) {
     Object.keys(record)
       .filter((key) => key !== 'code')
       .sort(),
-    ['component', 'level', 'message', 'scope', 'timestamp', 'ts'].sort(),
+    [
+      'component',
+      'level',
+      'message',
+      'module',
+      'scope',
+      'timestamp',
+      'ts',
+    ].sort(),
   );
   assert.equal(new Date(record.ts).toISOString(), record.ts);
   assert.equal(record.timestamp, record.ts);
   assert.equal(record.scope, record.component);
+  assert.equal(record.module, record.component);
   if (expectedLevel) {
     assert.equal(record.level, expectedLevel);
   } else {
@@ -101,6 +110,7 @@ describe('diagnostic logging', () => {
         level: 'error',
         scope: 'exec',
         component: 'exec',
+        module: 'exec',
         message: 'spawn bun EACCES',
         code: 'EACCES',
       },
@@ -128,6 +138,7 @@ describe('diagnostic logging', () => {
       const record = assertSchema(json, 'error');
       assert.equal(record.component, component);
       assert.equal(record.scope, component);
+      assert.equal(record.module, component);
       assert.equal(human, `bunpm: ${component}: ${record.message}`);
     });
 
@@ -136,6 +147,7 @@ describe('diagnostic logging', () => {
     assert.equal(record.level, 'error');
     assert.equal(record.scope, 'wrapper');
     assert.equal(record.component, 'wrapper');
+    assert.equal(record.module, 'wrapper');
     assert.equal(record.message, 'something failed');
     assert.equal(record.code, 'ENOENT');
     assert.equal(new Date(record.ts).toISOString(), record.ts);

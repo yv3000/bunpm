@@ -3,11 +3,53 @@
 Only the latest commit on `main` is supported; there are no maintained release
 branches.
 
-Report a vulnerability privately through GitHub's
-[private advisory form](https://github.com/yv3000/bunpm/security/advisories/new),
-not in a public issue. Include the bunpm commit, OS, Node.js and Bun versions,
-and the exact command that shows the problem.
+## Vulnerability Reporting
 
-What bunpm does and does not trust is described under "Trust boundaries" in
-[ARCHITECTURE.md](ARCHITECTURE.md) and in
-[Remote Bootstrap](README.md#remote-bootstrap).
+Report a vulnerability privately through GitHub's
+[private advisory form](https://github.com/yv3000/bunpm/security/advisories/new)
+or by emailing the maintainer directly at `191557828+yv3000@users.noreply.github.com`.
+Do not open a public issue for an unpatched vulnerability. Include the bunpm
+commit SHA, OS platform, Node.js and Bun versions, and minimal reproduction steps.
+
+## Single-Maintainer Context
+
+bunpm is a focused utility maintained by an individual developer. If the primary
+maintainer becomes unavailable, security disclosures and triage follow the
+governance and continuity procedure recorded in [MAINTAINERS.md](MAINTAINERS.md).
+
+## Trust Boundaries & Threat Model
+
+bunpm operates with zero runtime dependencies. Its security boundaries enforce
+defense-in-depth across three execution vectors:
+
+### 1. Remote Bootstrap (`bunpm/bootstrap.js`)
+
+When users invoke the remote bootstrap script without a local checkout:
+
+- **HTTPS-Only Transport**: Download requests reject non-HTTPS URLs at the trust
+  boundary (`TypeError`).
+- **Commit SHA Pinning**: Remote downloads require a strict 40-character commit
+  SHA (`--revision <sha>`). URLs must match `https://raw.githubusercontent.com/yv3000/bunpm/<sha>/bunpm/*`.
+- **Redirect Limits**: HTTP redirects are permitted only within the same repository
+  and same revision, bounded strictly to a maximum of 5 hops to prevent loop exhaustion.
+- **Resource Limits**: Every downloaded runtime file is bounded to 15 seconds
+  and a maximum size of 1 MiB. Partial or truncated streams are destroyed and cleaned up.
+- **Integrity Notice**: Revision matching ensures transport integrity and strict
+  content pinning; it is **not** a cryptographic author signature. Users should
+  review code before executing bootstrap in sensitive environments.
+
+### 2. Trust-Boundary Validation (`bunpm/core/validate.js`)
+
+- **Argument Sanitization**: `validateArgs` ensures all arguments are string arrays
+  without embedded NUL bytes (`\0`), preventing process spawn truncation and command
+  injection attacks.
+- **Manager Validation**: `validateManager` rejects any invocation name not in
+  the supported manager set (`npm`, `npx`, `yarn`, `pnpm`).
+- **Executable Binary Validation**: `validateBinary` enforces absolute paths or
+  safe alphanumeric binary basenames, rejecting relative traversal (`../`).
+
+### 3. Native Child Process Execution (`bunpm/core/wrapper.js`)
+
+- On Windows, batch script arguments routed to native `.cmd` shims avoid shell
+  concatenation vulnerabilities, preventing metacharacter execution.
+- Child process exit codes and signals are passed through without alteration.

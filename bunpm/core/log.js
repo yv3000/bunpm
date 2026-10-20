@@ -18,6 +18,7 @@ const LOG_LEVELS = Object.freeze(['error', 'warn', 'info', 'debug']);
  * @property {LogLevel} level diagnostic severity level
  * @property {string} scope failing part: wrapper, exec, detector, doctor, ...
  * @property {string} component failing part (alias)
+ * @property {string} module failing part (alias)
  * @property {string} message actionable text, cause preserved verbatim
  * @property {string} [code] error code such as ENOENT, when known
  */
@@ -39,6 +40,7 @@ function formatDiagnostic(component, message, code, level = 'error') {
     level,
     scope: component,
     component,
+    module: component,
     message,
     ...(code && { code }),
   };

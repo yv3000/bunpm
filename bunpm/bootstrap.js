@@ -251,6 +251,7 @@ if (require.main === module)
           level: 'error',
           scope: 'bootstrap',
           component: 'bootstrap',
+          module: 'bootstrap',
           message: error.message,
           ...(error.code && { code: error.code }),
         }),
