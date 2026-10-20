@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.5 - 2026-10-20
+
+- Document remote bootstrap download threat model, commit SHA pinning, and trust boundaries in expanded `SECURITY.md` with cross-link in `README.md`.
+- Wire `npm run test:coverage && npm run coverage:check` as a blocking gate directly into the required `test-unit` CI job on all pull requests.
+- Add canonical `module: component` alias in diagnostic logging (`bunpm/core/log.js` and `bunpm/bootstrap.js`) to guarantee all schema fields `(timestamp, level, module, message)` are present in JSON output.
+- Document exact `.c8rc.json` coverage thresholds in `CONTRIBUTING.md` and document the `@types/node` 16 compile-time compatibility gate in `README.md`.
+
 ## 2.3.4 - 2026-10-18
 
 - Declare `input_validation_patterns` directly as a literal object before freeze to ensure compatibility with static regex AST analyzers.
