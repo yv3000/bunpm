@@ -15,9 +15,10 @@ describe('integration smoke tests', () => {
   test(
     'native offline install, launcher, package script, fallback and uninstall',
     {
+      skip: !getBunPath() ? 'Bun not found' : false,
       timeout: 30000,
     },
-    () => {
+    (t) => {
       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-smoke-'));
       const windows = process.platform === 'win32';
       const platform = windows
@@ -27,6 +28,10 @@ describe('integration smoke tests', () => {
           : 'linux';
       const bun = getBunPath();
       const node = locateBinary('node');
+      if (!bun || !node) {
+        if (typeof t?.skip === 'function') t.skip('Bun not found');
+        return;
+      }
       assert.notEqual(bun, null);
       assert.notEqual(node, null);
       const home = path.join(root, 'home with spaces');

@@ -181,7 +181,7 @@ offline:
 - `main.test.js`: streaming, signal forwarding, fallback and exit codes.
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
 - `validation.test.js`: trust-boundary input validation fails closed.
-- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema (`timestamp`/`ts`, `level`, `module`/`component`/`scope`, `message`, optional `code`).
+- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema (`timestamp`/`ts`, `level`, `module`/`component`/`scope`, `message`, `code`).
 - `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
   transport, manifest, URL boundary and entrypoint contracts.

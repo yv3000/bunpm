@@ -36,10 +36,9 @@ function capture(run) {
 function assertSchema(line, expectedLevel) {
   const record = JSON.parse(line);
   assert.deepEqual(
-    Object.keys(record)
-      .filter((key) => key !== 'code')
-      .sort(),
+    Object.keys(record).sort(),
     [
+      'code',
       'component',
       'level',
       'message',
@@ -60,7 +59,11 @@ function assertSchema(line, expectedLevel) {
   }
   assert.match(record.component, /^[a-z]+$/);
   assert.equal(typeof record.message, 'string');
-  if ('code' in record) assert.match(record.code, /^E[A-Z]+$/);
+  if (record.code !== null) {
+    assert.match(record.code, /^E[A-Z]+$/);
+  } else {
+    assert.equal(record.code, null);
+  }
   return record;
 }
 
@@ -115,10 +118,10 @@ describe('diagnostic logging', () => {
         code: 'EACCES',
       },
     );
-    // No code: the key is left out rather than null.
+    // No code: code is null rather than omitted.
     assert.equal(
-      'code' in assertSchema(capture(() => log('wrapper', 'boom'))[1]),
-      false,
+      assertSchema(capture(() => log('wrapper', 'boom'))[1]).code,
+      null,
     );
   });
 
@@ -153,7 +156,7 @@ describe('diagnostic logging', () => {
     assert.equal(new Date(record.ts).toISOString(), record.ts);
     assert.equal(record.timestamp, record.ts);
     const withoutCode = formatDiagnostic('doctor', 'no code');
-    assert.equal('code' in withoutCode, false);
+    assert.equal(withoutCode.code, null);
   });
 
   test('logger methods and formatDiagnostic emit valid records across log levels', () => {
@@ -204,5 +207,18 @@ describe('diagnostic logging', () => {
     const debugLines = capture(() => logger.debug('detector', 'checking PATH'));
     assert.equal(debugLines[0], 'bunpm: detector: checking PATH');
     assert.equal(assertSchema(debugLines[1], 'debug').level, 'debug');
+  });
+
+  test('every emitted debug line contains all five canonical keys', () => {
+    process.env.BUNPM_DEBUG = '1';
+    for (const level of LOG_LEVELS) {
+      const lines = capture(() => logger[level]('wrapper', 'queryable event'));
+      assert.equal(lines.length, 2);
+      const parsed = JSON.parse(lines[1]);
+      for (const key of ['timestamp', 'level', 'module', 'message', 'code']) {
+        assert.ok(key in parsed, `missing key: ${key}`);
+      }
+      assert.equal(parsed.code, null);
+    }
   });
 });

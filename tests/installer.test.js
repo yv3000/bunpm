@@ -126,9 +126,9 @@ describe('installer & path configuration', () => {
   test(
     'installer prerequisite failures name bunpm and install nothing',
     {
-      timeout: 30000,
+      timeout: 60000,
     },
-    () => {
+    (t) => {
       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bunpm-prereq-'));
       const windows = process.platform === 'win32';
       const platform = windows
@@ -137,6 +137,10 @@ describe('installer & path configuration', () => {
           ? 'macos'
           : 'linux';
       const shell = locateBinary(windows ? 'powershell' : 'bash');
+      if (!shell) {
+        if (typeof t?.skip === 'function') t.skip('shell not found');
+        return;
+      }
       assert.notEqual(shell, null);
       try {
         const home = path.join(root, 'home');

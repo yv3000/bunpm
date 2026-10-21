@@ -20,7 +20,7 @@ const LOG_LEVELS = Object.freeze(['error', 'warn', 'info', 'debug']);
  * @property {string} component failing part (alias)
  * @property {string} module failing part (alias)
  * @property {string} message actionable text, cause preserved verbatim
- * @property {string} [code] error code such as ENOENT, when known
+ * @property {string|null} code error code such as ENOENT, when known
  */
 
 /**
@@ -42,7 +42,7 @@ function formatDiagnostic(component, message, code, level = 'error') {
     component,
     module: component,
     message,
-    ...(code && { code }),
+    code: code || null,
   };
 }
 

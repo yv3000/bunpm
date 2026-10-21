@@ -253,7 +253,7 @@ if (require.main === module)
           component: 'bootstrap',
           module: 'bootstrap',
           message: error.message,
-          ...(error.code && { code: error.code }),
+          code: error.code || null,
         }),
       );
     }
