@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Ensure deterministic 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
+- Add unit test in `tests/log.test.js` validating queryable 5-key JSON diagnostic output across all log levels.
+- Add guarded skips in `tests/smoke.test.js` and `tests/installer.test.js` enabling fresh clones without Bun to run unit tests and exit 0.
+- Update devDependencies: TypeScript 7.0.2, ESLint 10.13.0, and Prettier 3.9.10; synchronize `package-lock.json` and `bun.lock`.
+
 ## 2.3.5 - 2026-10-20
 
 - Document remote bootstrap download threat model, commit SHA pinning, and trust boundaries in expanded `SECURITY.md` with cross-link in `README.md`.
