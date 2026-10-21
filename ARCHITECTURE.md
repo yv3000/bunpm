@@ -74,13 +74,13 @@ channels and a lightweight logger (`bunpm/core/log.js`):
    When `BUNPM_DEBUG=1` is set in the environment, bunpm emits an additional
    single-line JSON object on stderr for automated CI pipelines and tooling:
 
-   | Field                 | Type      | Description                                                              |
-   | --------------------- | --------- | ------------------------------------------------------------------------ |
-   | `ts` (`timestamp`)    | `string`  | ISO 8601 UTC timestamp of the diagnostic event                           |
-   | `scope` (`component`) | `string`  | Failing subsystem (`wrapper`, `exec`, `detector`, `doctor`, `bootstrap`) |
-   | `level`               | `string`  | Severity level (`"error"`, `"warn"`, `"info"`, `"debug"`)                |
-   | `message`             | `string`  | Actionable diagnostic message preserving root cause                      |
-   | `code`                | `string?` | Optional system errno code (e.g., `ENOENT`, `EACCES`) when known         |
+   | Field                          | Type             | Description                                                              |
+   | ------------------------------ | ---------------- | ------------------------------------------------------------------------ |
+   | `timestamp` (`ts`)             | `string`         | ISO 8601 UTC timestamp of the diagnostic event                           |
+   | `level`                        | `string`         | Severity level (`"error"`, `"warn"`, `"info"`, `"debug"`)                |
+   | `module` (`component`/`scope`) | `string`         | Failing subsystem (`wrapper`, `exec`, `detector`, `doctor`, `bootstrap`) |
+   | `message`                      | `string`         | Actionable diagnostic message preserving root cause                      |
+   | `code`                         | `string \| null` | System errno code (e.g., `ENOENT`, `EACCES`) or `null` when not set      |
 
    The logger provides named level methods (`logger.error()`, `logger.warn()`,
    `logger.info()`, `logger.debug()`) and `formatDiagnostic()` conforming to this schema
@@ -125,9 +125,9 @@ Dependency boundaries & pruning rationale:
   All 5 `devDependencies` are pinned to exact versions for automated CI gates only:
   - `@types/node` (`16.18.126`): enforces Node 16 runtime compatibility at compile-time.
   - `c8` (`12.0.0`): collects native V8 code coverage without modifying source code.
-  - `eslint` (`10.12.0`): enforces zero-warning code quality across all JavaScript files.
-  - `prettier` (`3.9.9`): zero-dependency code formatter.
-  - `typescript` (`5.7.3`): strictly typechecks JSDoc annotations via `tsc -p jsconfig.json` with zero transitive dependencies.
+  - `eslint` (`10.13.0`): enforces zero-warning code quality across all JavaScript files.
+  - `prettier` (`3.9.10`): zero-dependency code formatter.
+  - `typescript` (`7.0.2`): strictly typechecks JSDoc annotations via `tsc -p jsconfig.json` with zero transitive dependencies.
     None of these tools or their transitive dependencies are included in user installations.
 
 - **Dependabot Cadence & Automated Review Policy**:
