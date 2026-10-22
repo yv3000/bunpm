@@ -191,19 +191,21 @@ offline:
   prerequisite failures and rollback ownership.
 - `freshness.test.js`: dependency-report failures and advisory artifacts.
 - `smoke.test.js`: native install, launchers, fallback and uninstall.
+- `no-skips.test.js`: zero-skip integration smoke assertions and TAP report parsing.
 
 A passing run ends with a summary whose `tests` count is above zero and whose
 `fail` count is 0. Other checks:
 
-| Command                 | Gate                                                                                                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:coverage` | [c8](https://github.com/bcoe/c8), set in [`.c8rc.json`](.c8rc.json): lines and functions 90%, statements 95%, branches 90%; lines per runtime file on Windows |
-| `npm run lint`          | ESLint, zero warnings                                                                                                                                         |
-| `npm run typecheck`     | TypeScript strict `checkJs` against `@types/node` 16                                                                                                          |
-| `npm run format:check`  | Prettier                                                                                                                                                      |
-| `npm run audit`         | `npm audit` and `bun audit`, failing on high severity                                                                                                         |
-| `npm run freshness`     | Confirmed `npm outdated` dependency freshness check and artifact generation                                                                                   |
-| `npm run smoke`         | Native install/uninstall on the current OS                                                                                                                    |
+| Command                  | Gate                                                                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run test:coverage`  | [c8](https://github.com/bcoe/c8), set in [`.c8rc.json`](.c8rc.json): lines and functions 90%, statements 95%, branches 90%; lines per runtime file on Windows |
+| `npm run lint`           | ESLint, zero warnings                                                                                                                                         |
+| `npm run typecheck`      | TypeScript strict `checkJs` against `@types/node` 16                                                                                                          |
+| `npm run format:check`   | Prettier                                                                                                                                                      |
+| `npm run audit`          | `npm audit` and `bun audit`, failing on high severity                                                                                                         |
+| `npm run freshness`      | Confirmed `npm outdated` dependency freshness check and artifact generation                                                                                   |
+| `npm run smoke`          | Native install/uninstall on the current OS                                                                                                                    |
+| `npm run check-no-skips` | Confirmed 0-skip execution of native smoke tests in CI matrix                                                                                                 |
 
 CI runs install, build, `npm test`, lint, typecheck and format in the required
 `test-unit` job, then the suite, coverage, audit and smoke tests on Ubuntu,

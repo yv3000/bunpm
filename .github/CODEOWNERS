@@ -1,0 +1,15 @@
+# CODEOWNERS for yv3000/bunpm
+# Declares path-based ownership and required review areas.
+
+# Global maintainers
+* @yv3000 @trulyimmortal
+
+# Core runtime, security validation boundaries, and diagnostic logger
+/bunpm/core/ @yv3000 @trulyimmortal
+/bunpm/bootstrap.js @yv3000 @trulyimmortal
+
+# Platform installers and launcher scripts
+/bunpm/platforms/ @yv3000 @trulyimmortal
+
+# CI/CD workflows and automated release gates
+/.github/workflows/ @yv3000 @trulyimmortal

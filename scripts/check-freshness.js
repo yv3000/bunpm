@@ -56,7 +56,7 @@ if (require.main === module) {
     rawJson = fs.readFileSync(file, 'utf8');
     status = Number(exitCode);
   } else {
-    const res = spawnSync('npm', ['outdated', '--json'], {
+    const res = spawnSync('npm outdated --json', {
       encoding: 'utf8',
       shell: true,
     });

@@ -25,3 +25,9 @@ No backup maintainer or transfer of repository access is currently promised.
 Any future appointment should be recorded here after the person accepts,
 with their review and release responsibilities. GitHub administration and
 release rights remain with the current owner until then.
+
+## Code ownership
+
+Review requirements and path-based ownership are declared in
+[`.github/CODEOWNERS`](.github/CODEOWNERS) covering core runtime, platform
+installers, and CI/CD automation.

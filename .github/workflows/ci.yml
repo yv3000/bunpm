@@ -53,10 +53,10 @@ jobs:
       # ESLint, tsc and Prettier do not depend on the OS, so they run once, here.
       - name: Lint (eslint)
         id: lint
-        run: npx eslint . --max-warnings 0
+        run: npm run lint
       - name: Typecheck (tsc)
         id: typecheck
-        run: npx tsc -p jsconfig.json
+        run: npm run typecheck
       - name: Format check (prettier)
         id: format
         run: npm run format:check
@@ -164,6 +164,9 @@ jobs:
       - name: Run cross-platform smoke tests
         id: smoke
         run: npm run smoke
+      - name: Verify smoke tests executed with zero skips
+        id: check-no-skips
+        run: npm run check-no-skips
       - name: Verify working tree clean
         run: git diff --check
       - name: Parse PowerShell installers
