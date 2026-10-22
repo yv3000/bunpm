@@ -233,4 +233,26 @@ describe('diagnostic logging', () => {
     metrics.reset();
     assert.deepEqual(metrics.snapshot(), {});
   });
+
+  test('logger.onError receives error diagnostics and ignores hook crashes', () => {
+    const received = [];
+    logger.onError((d) => received.push(d));
+    capture(() => logger.info('core', 'informational'));
+    assert.equal(received.length, 0);
+
+    capture(() => logger.error('wrapper', 'exec failure', 'ENOENT'));
+    assert.equal(received.length, 1);
+    assert.equal(received[0].module, 'wrapper');
+    assert.equal(received[0].message, 'exec failure');
+    assert.equal(received[0].code, 'ENOENT');
+    assert.equal(received[0].level, 'error');
+
+    // Fault tolerance: faulty downstream hook does not bubble up.
+    logger.onError(() => {
+      throw new Error('collector failure');
+    });
+    capture(() => logger.error('wrapper', 'safe call'));
+
+    logger.onError(null);
+  });
 });

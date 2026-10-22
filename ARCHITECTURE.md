@@ -95,6 +95,12 @@ channels and a lightweight logger (`bunpm/core/log.js`):
    (`commands_translated`, `commands_fallback`) and environment checks
    (`doctor_checks_total`) with zero external dependencies.
 
+4. **Error Tracking Hook (`bunpm/core/log.js:logger.onError`)**:
+   Downstream monitoring agents and tooling can register an error hook
+   (`logger.onError(callback)`) to capture structured error diagnostic records
+   in-memory. Callback execution is wrapped defensively to prevent monitoring
+   failures from interrupting CLI workflows.
+
 Exit codes are preserved verbatim from child processes, with signal terminations
 mapped to `128 + signo`. Wrapper-level errors exit with code `1`.
 

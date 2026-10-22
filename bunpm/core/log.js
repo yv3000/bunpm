@@ -46,6 +46,9 @@ function formatDiagnostic(component, message, code, level = 'error') {
   };
 }
 
+/** @type {((diagnostic: DiagnosticRecord) => void) | null} */
+let errorHook = null;
+
 /**
  * Emit human message to stderr and structured JSON when BUNPM_DEBUG=1.
  *
@@ -56,14 +59,21 @@ function formatDiagnostic(component, message, code, level = 'error') {
  */
 function log(component, message, code, level = 'error') {
   console.error(`bunpm: ${component}: ${message}`);
+  const diagnostic = formatDiagnostic(component, message, code, level);
   if (process.env.BUNPM_DEBUG === '1')
-    console.error(
-      JSON.stringify(formatDiagnostic(component, message, code, level)),
-    );
+    console.error(JSON.stringify(diagnostic));
+  if (level === 'error' && errorHook) {
+    try {
+      errorHook(diagnostic);
+    } catch {
+      // Error tracking hooks must never crash the CLI.
+    }
+  }
 }
 
 /**
  * Structured logger methods for multi-level diagnostics.
+ * @error_tracking bunpm-diagnostic-error-tracking
  */
 const logger = Object.freeze({
   /** @param {string} component @param {string} message @param {string} [code] */
@@ -74,6 +84,13 @@ const logger = Object.freeze({
   info: (component, message, code) => log(component, message, code, 'info'),
   /** @param {string} component @param {string} message @param {string} [code] */
   debug: (component, message, code) => log(component, message, code, 'debug'),
+  /**
+   * Register an optional error-tracking callback for downstream monitoring.
+   * @param {((diagnostic: DiagnosticRecord) => void) | null} callback
+   */
+  onError: (callback) => {
+    errorHook = typeof callback === 'function' ? callback : null;
+  },
 });
 
 /**
