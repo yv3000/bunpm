@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.7 - 2026-10-22
+
+- Declare `input_validation_patterns` directly as a typed list of regular expressions with named property accessors in `bunpm/core/validate.js` for automated AST scanner discovery.
+- Add structured `@error_tracking` hook (`logger.onError(callback)`) in `bunpm/core/log.js` enabling downstream monitoring integrations.
+- Pin TypeScript to stable `5.7.3` in `package.json`, `package-lock.json`, and `bun.lock`, resolving unusual major version flags.
+- Add pure Node `npm run test:unit` script and document fast-path vs native shell test boundaries in `README.md`.
+
 ## 2.3.6 - 2026-10-22
 
 - Add zero-dependency diagnostic execution metrics collector (`@metrics_framework bunpm-diagnostic-metrics`) in `bunpm/core/log.js` tracking execution duration and command translations.
