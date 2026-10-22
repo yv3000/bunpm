@@ -25,6 +25,7 @@
   "scripts": {
     "build": "node scripts/syntax.js",
     "test": "node --test \"tests/*.test.js\"",
+    "test:unit": "node --test tests/core.test.js tests/mapper.test.js tests/validation.test.js tests/log.test.js",
     "test:repeat": "node scripts/repeat.js",
     "test:coverage": "c8 node --test \"tests/*.test.js\"",
     "coverage:check": "c8 check-coverage",
@@ -52,6 +53,6 @@
     "c8": "12.0.0",
     "eslint": "10.13.0",
     "prettier": "3.9.10",
-    "typescript": "7.0.2"
+    "typescript": "5.7.3"
   }
 }

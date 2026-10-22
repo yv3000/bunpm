@@ -194,10 +194,15 @@ offline:
 - `no-skips.test.js`: zero-skip integration smoke assertions and TAP report parsing.
 
 A passing run ends with a summary whose `tests` count is above zero and whose
-`fail` count is 0. Other checks:
+`fail` count is 0. Pure unit tests (`tests/core.test.js`, `tests/mapper.test.js`,
+`tests/validation.test.js`, `tests/log.test.js`) run in-process under Node with zero
+external tool dependencies via `npm run test:unit`. Integration suites (`smoke.test.js`,
+`installer.test.js`, `installer-unix.test.js`) test native installer scripts and Bun
+launchers, skipping gracefully when Bun or platform shells are absent. Other checks:
 
 | Command                  | Gate                                                                                                                                                          |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run test:unit`      | Pure Node in-process unit tests (no Bun or native shell spawns required)                                                                                      |
 | `npm run test:coverage`  | [c8](https://github.com/bcoe/c8), set in [`.c8rc.json`](.c8rc.json): lines and functions 90%, statements 95%, branches 90%; lines per runtime file on Windows |
 | `npm run lint`           | ESLint, zero warnings                                                                                                                                         |
 | `npm run typecheck`      | TypeScript strict `checkJs` against `@types/node` 16                                                                                                          |
