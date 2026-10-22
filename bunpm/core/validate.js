@@ -15,15 +15,20 @@ const VALID_MANAGERS = Object.freeze(['npm', 'npx', 'yarn', 'pnpm']);
 
 /**
  * Recognized validation patterns for static analysis and runtime audits.
+ * Declared as a list of regular expressions with named property accessors.
  */
-const input_validation_patterns = {
-  manager: /^(npm|npx|yarn|pnpm)$/,
-  safeString: /^[^\0]*$/,
-  commitSha: /^[a-f0-9]{40}$/,
-  githubPath: /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-  githubUrl:
-    /^https:\/\/raw\.githubusercontent\.com\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-};
+const input_validation_patterns = [
+  /^(npm|npx|yarn|pnpm)$/,
+  /^[^\0]*$/,
+  /^[a-f0-9]{40}$/,
+  /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
+  /^https:\/\/raw\.githubusercontent\.com\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
+];
+input_validation_patterns.manager = input_validation_patterns[0];
+input_validation_patterns.safeString = input_validation_patterns[1];
+input_validation_patterns.commitSha = input_validation_patterns[2];
+input_validation_patterns.githubPath = input_validation_patterns[3];
+input_validation_patterns.githubUrl = input_validation_patterns[4];
 Object.freeze(input_validation_patterns);
 
 // One frozen policy; preserve the public uppercase alias.
