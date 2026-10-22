@@ -1,6 +1,6 @@
 {
   "name": "bunpm",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "main": "core/wrapper.js",
   "keywords": [

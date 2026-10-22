@@ -1,6 +1,6 @@
 {
   "name": "bunpm",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "private": true,
   "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "type": "commonjs",
@@ -35,6 +35,7 @@
     "typecheck": "tsc -p jsconfig.json",
     "audit": "npm audit --audit-level=high && bun audit --audit-level=high",
     "freshness": "node scripts/check-freshness.js",
+    "check-no-skips": "node scripts/check-no-skips.js tests/smoke.test.js",
     "shell:check": "shellcheck bunpm/platforms/linux/scripts/*.sh bunpm/platforms/macos/scripts/*.sh bunpm/platforms/linux/bin/* bunpm/platforms/macos/bin/*"
   },
   "testConfig": {

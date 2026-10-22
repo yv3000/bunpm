@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.3.6 - 2026-10-22
 
+- Add zero-dependency diagnostic execution metrics collector (`@metrics_framework bunpm-diagnostic-metrics`) in `bunpm/core/log.js` tracking execution duration and command translations.
+- Add `scripts/check-no-skips.js` and `npm run check-no-skips` CI gate validating zero-skip native smoke execution in matrix runners.
+- Document repository review boundaries and code ownership in `.github/CODEOWNERS` and `MAINTAINERS.md`.
 - Ensure deterministic 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
 - Add unit test in `tests/log.test.js` validating queryable 5-key JSON diagnostic output across all log levels.
 - Add guarded skips in `tests/smoke.test.js` and `tests/installer.test.js` enabling fresh clones without Bun to run unit tests and exit 0.
