@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const detector = require('./detector');
-const { logger } = require('./log');
+const { logger, metrics } = require('./log');
 
 const MIN_NODE = [16, 9];
 const LAUNCHERS = ['npm', 'npx', 'yarn', 'pnpm'];
@@ -38,6 +38,7 @@ function doctor({
   if (typeof spawn !== 'function') {
     throw new TypeError('Expected spawn to be a function');
   }
+  metrics.increment('doctor_checks_total');
   let healthy = true;
   /** @param {string} message */
   const fail = (message) => {

@@ -76,4 +76,40 @@ const logger = Object.freeze({
   debug: (component, message, code) => log(component, message, code, 'debug'),
 });
 
-module.exports = { LOG_LEVELS, log, logger, formatDiagnostic };
+/**
+ * Diagnostic metrics collector for execution observability; zero dependencies.
+ * @metrics_framework bunpm-diagnostic-metrics
+ */
+const metrics = {
+  /** @type {Record<string, number>} */
+  counters: {},
+  /**
+   * @param {string} name
+   * @param {number} [by]
+   * @returns {number}
+   */
+  increment(name, by = 1) {
+    this.counters[name] = (this.counters[name] || 0) + by;
+    return this.counters[name];
+  },
+  /**
+   * @param {string} name
+   * @param {number} value
+   * @returns {number}
+   */
+  gauge(name, value) {
+    this.counters[name] = value;
+    return value;
+  },
+  /**
+   * @returns {Record<string, number>}
+   */
+  snapshot() {
+    return { ...this.counters };
+  },
+  reset() {
+    this.counters = {};
+  },
+};
+
+module.exports = { LOG_LEVELS, log, logger, formatDiagnostic, metrics };

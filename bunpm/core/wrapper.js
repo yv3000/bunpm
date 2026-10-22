@@ -9,7 +9,7 @@ const { mapCommand } = require('./mapper');
 const { validateArgs, validateBinary } = require('./validate');
 const { formatStream } = require('./formatter');
 const { doctor } = require('./doctor');
-const { logger } = require('./log');
+const { logger, metrics } = require('./log');
 
 /**
  * @typedef {import('node:child_process').SpawnSyncReturns<string | Buffer>} SpawnResult
@@ -120,6 +120,9 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     if (invokedAs === 'doctor' && !args.length)
       return doctor({ spawn: spawnCommand });
     const mapped = mapCommand(invokedAs, args);
+    metrics.increment(
+      mapped.fallbackTo ? 'commands_fallback' : 'commands_translated',
+    );
     // Yarn Berry Plug'n'Play repos (.pnp.cjs or .pnp.js) require native Yarn;
     // running through Bun would generate an incompatible node_modules tree.
     // Include parent directories when invoked inside a workspace package.
@@ -223,7 +226,8 @@ async function main(invokedAs = process.argv[2], args = process.argv.slice(3)) {
     if (!started && notStarted(result.error)) return original();
     return exitCode(result);
   } catch (error) {
-    logger.error('wrapper', /** @type {Error} */ (error).message);
+    const err = /** @type {NodeJS.ErrnoException} */ (error);
+    logger.error('wrapper', err.message, err.code);
     return 1;
   }
 }

@@ -6,6 +6,7 @@ const {
   log,
   logger,
   formatDiagnostic,
+  metrics,
 } = require('../bunpm/core/log');
 const { exitCode } = require('../bunpm/core/wrapper');
 
@@ -220,5 +221,16 @@ describe('diagnostic logging', () => {
       }
       assert.equal(parsed.code, null);
     }
+  });
+
+  test('metrics collector tracks counters, gauges, snapshots and resets', () => {
+    metrics.reset();
+    assert.deepEqual(metrics.snapshot(), {});
+    assert.equal(metrics.increment('calls_total'), 1);
+    assert.equal(metrics.increment('calls_total', 2), 3);
+    assert.equal(metrics.gauge('latency_ms', 42), 42);
+    assert.deepEqual(metrics.snapshot(), { calls_total: 3, latency_ms: 42 });
+    metrics.reset();
+    assert.deepEqual(metrics.snapshot(), {});
   });
 });

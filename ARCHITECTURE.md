@@ -89,6 +89,12 @@ channels and a lightweight logger (`bunpm/core/log.js`):
    `logger.error()` explicitly; the standalone bootstrap retains its inline
    diagnostic implementation until the runtime files have been downloaded.
 
+3. **Execution Metrics (`bunpm/core/log.js:metrics`)**:
+   bunpm collects lightweight in-memory diagnostic counters (`metrics.increment()`,
+   `metrics.gauge()`, `metrics.snapshot()`) tracking command translation
+   (`commands_translated`, `commands_fallback`) and environment checks
+   (`doctor_checks_total`) with zero external dependencies.
+
 Exit codes are preserved verbatim from child processes, with signal terminations
 mapped to `128 + signo`. Wrapper-level errors exit with code `1`.
 
