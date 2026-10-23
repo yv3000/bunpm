@@ -58,6 +58,8 @@ flowchart LR
 - [`core/validate.js`](bunpm/core/validate.js): trust-boundary guards and schema
   patterns (`INPUT_VALIDATION_PATTERNS`, `validateArgs`, `validateManager`,
   `validateBinary`, `validateUrl`).
+- [`core/schema.js`](bunpm/core/schema.js): declarative trust-boundary assertions
+  (`assertCliArgs`, `assertHttpsUrl`, `assertSafeEnv`).
 
 ## Diagnostics & Observability
 
@@ -72,15 +74,16 @@ channels and a lightweight logger (`bunpm/core/log.js`):
 
 2. **Structured JSON Diagnostic (stderr, `BUNPM_DEBUG=1`)**:
    When `BUNPM_DEBUG=1` is set in the environment, bunpm emits an additional
-   single-line JSON object on stderr for automated CI pipelines and tooling:
+   single-line JSON object on stderr for automated CI pipelines and tooling
+   strictly conforming to a fixed 5-key canonical schema:
 
-   | Field                          | Type             | Description                                                              |
-   | ------------------------------ | ---------------- | ------------------------------------------------------------------------ |
-   | `timestamp` (`ts`)             | `string`         | ISO 8601 UTC timestamp of the diagnostic event                           |
-   | `level`                        | `string`         | Severity level (`"error"`, `"warn"`, `"info"`, `"debug"`)                |
-   | `module` (`component`/`scope`) | `string`         | Failing subsystem (`wrapper`, `exec`, `detector`, `doctor`, `bootstrap`) |
-   | `message`                      | `string`         | Actionable diagnostic message preserving root cause                      |
-   | `code`                         | `string \| null` | System errno code (e.g., `ENOENT`, `EACCES`) or `null` when not set      |
+   | Field       | Type             | Description                                                              |
+   | ----------- | ---------------- | ------------------------------------------------------------------------ |
+   | `timestamp` | `string`         | ISO 8601 UTC timestamp of the diagnostic event                           |
+   | `level`     | `string`         | Severity level (`"error"`, `"warn"`, `"info"`, `"debug"`)                |
+   | `module`    | `string`         | Failing subsystem (`wrapper`, `exec`, `detector`, `doctor`, `bootstrap`) |
+   | `message`   | `string`         | Actionable diagnostic message preserving root cause                      |
+   | `code`      | `string \| null` | System errno code (e.g., `ENOENT`, `EACCES`) or `null` when not set      |
 
    The logger provides named level methods (`logger.error()`, `logger.warn()`,
    `logger.info()`, `logger.debug()`) and `formatDiagnostic()` conforming to this schema
