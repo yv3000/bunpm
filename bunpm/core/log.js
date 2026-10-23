@@ -13,18 +13,15 @@ const LOG_LEVELS = Object.freeze(['error', 'warn', 'info', 'debug']);
 /**
  * @typedef {(typeof LOG_LEVELS)[number]} LogLevel
  * @typedef {object} DiagnosticRecord
- * @property {string} ts ISO 8601 UTC timestamp
- * @property {string} timestamp ISO 8601 UTC timestamp (alias)
+ * @property {string} timestamp ISO 8601 UTC timestamp
  * @property {LogLevel} level diagnostic severity level
- * @property {string} scope failing part: wrapper, exec, detector, doctor, ...
- * @property {string} component failing part (alias)
- * @property {string} module failing part (alias)
+ * @property {string} module failing part: wrapper, exec, detector, doctor, ...
  * @property {string} message actionable text, cause preserved verbatim
  * @property {string|null} code error code such as ENOENT, when known
  */
 
 /**
- * Create a structured diagnostic record matching the schema.
+ * Create a structured diagnostic record matching the canonical 5-key schema.
  *
  * @param {string} component
  * @param {string} message
@@ -33,13 +30,9 @@ const LOG_LEVELS = Object.freeze(['error', 'warn', 'info', 'debug']);
  * @returns {DiagnosticRecord}
  */
 function formatDiagnostic(component, message, code, level = 'error') {
-  const ts = new Date().toISOString();
   return {
-    ts,
-    timestamp: ts,
+    timestamp: new Date().toISOString(),
     level,
-    scope: component,
-    component,
     module: component,
     message,
     code: code || null,
