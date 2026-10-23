@@ -38,27 +38,15 @@ function assertSchema(line, expectedLevel) {
   const record = JSON.parse(line);
   assert.deepEqual(
     Object.keys(record).sort(),
-    [
-      'code',
-      'component',
-      'level',
-      'message',
-      'module',
-      'scope',
-      'timestamp',
-      'ts',
-    ].sort(),
+    ['code', 'level', 'message', 'module', 'timestamp'],
   );
-  assert.equal(new Date(record.ts).toISOString(), record.ts);
-  assert.equal(record.timestamp, record.ts);
-  assert.equal(record.scope, record.component);
-  assert.equal(record.module, record.component);
+  assert.equal(new Date(record.timestamp).toISOString(), record.timestamp);
   if (expectedLevel) {
     assert.equal(record.level, expectedLevel);
   } else {
     assert.ok(['error', 'warn', 'info', 'debug'].includes(record.level));
   }
-  assert.match(record.component, /^[a-z]+$/);
+  assert.match(record.module, /^[a-z]+$/);
   assert.equal(typeof record.message, 'string');
   if (record.code !== null) {
     assert.match(record.code, /^E[A-Z]+$/);
@@ -107,13 +95,10 @@ describe('diagnostic logging', () => {
     assert.equal(lines[0], 'bunpm: exec: spawn bun EACCES');
     const record = assertSchema(lines[1], 'error');
     assert.deepEqual(
-      { ...record, timestamp: undefined, ts: undefined },
+      { ...record, timestamp: undefined },
       {
-        ts: undefined,
         timestamp: undefined,
         level: 'error',
-        scope: 'exec',
-        component: 'exec',
         module: 'exec',
         message: 'spawn bun EACCES',
         code: 'EACCES',
@@ -140,8 +125,6 @@ describe('diagnostic logging', () => {
       const [human, json] = result.stderr.trim().split(/\r?\n/);
       assert.match(human, new RegExp(`^bunpm: ${component}: \\S`));
       const record = assertSchema(json, 'error');
-      assert.equal(record.component, component);
-      assert.equal(record.scope, component);
       assert.equal(record.module, component);
       assert.equal(human, `bunpm: ${component}: ${record.message}`);
     });
@@ -149,13 +132,10 @@ describe('diagnostic logging', () => {
   test('formatDiagnostic creates a schema-valid diagnostic record', () => {
     const record = formatDiagnostic('wrapper', 'something failed', 'ENOENT');
     assert.equal(record.level, 'error');
-    assert.equal(record.scope, 'wrapper');
-    assert.equal(record.component, 'wrapper');
     assert.equal(record.module, 'wrapper');
     assert.equal(record.message, 'something failed');
     assert.equal(record.code, 'ENOENT');
-    assert.equal(new Date(record.ts).toISOString(), record.ts);
-    assert.equal(record.timestamp, record.ts);
+    assert.equal(new Date(record.timestamp).toISOString(), record.timestamp);
     const withoutCode = formatDiagnostic('doctor', 'no code');
     assert.equal(withoutCode.code, null);
   });
