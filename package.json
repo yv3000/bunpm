@@ -1,6 +1,6 @@
 {
   "name": "bunpm",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "private": true,
   "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "type": "commonjs",
@@ -25,7 +25,7 @@
   "scripts": {
     "build": "node scripts/syntax.js",
     "test": "node --test \"tests/*.test.js\"",
-    "test:unit": "node --test tests/core.test.js tests/mapper.test.js tests/validation.test.js tests/log.test.js",
+    "test:unit": "node --test tests/core.test.js tests/mapper.test.js tests/validation.test.js tests/schema.test.js tests/log.test.js",
     "test:repeat": "node scripts/repeat.js",
     "test:coverage": "c8 node --test \"tests/*.test.js\"",
     "coverage:check": "c8 check-coverage",
