@@ -243,14 +243,10 @@ if (require.main === module)
     // import files it has not downloaded yet.
     console.error(`bunpm: bootstrap: ${error.message}`);
     if (process.env.BUNPM_DEBUG === '1') {
-      const ts = new Date().toISOString();
       console.error(
         JSON.stringify({
-          ts,
-          timestamp: ts,
+          timestamp: new Date().toISOString(),
           level: 'error',
-          scope: 'bootstrap',
-          component: 'bootstrap',
           module: 'bootstrap',
           message: error.message,
           code: error.code || null,
