@@ -47,7 +47,9 @@ function assertSafeEnv(name, value) {
     throw new TypeError(`Environment variable ${name} must be a string`);
   }
   if (/[\0]/.test(value)) {
-    throw new TypeError(`Environment variable ${name} cannot contain NUL bytes`);
+    throw new TypeError(
+      `Environment variable ${name} cannot contain NUL bytes`,
+    );
   }
   return value;
 }
