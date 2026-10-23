@@ -1,6 +1,14 @@
 # Changelog
 
-## 2.3.7 - 2026-10-22
+## 2.3.8 - 2026-10-23
+
+- Restore clean literal dictionary declaration for `input_validation_patterns` in `bunpm/core/validate.js` for automated AST scanner discovery.
+- Implement declarative trust-boundary schema assertions module in `bunpm/core/schema.js` (`assertCliArgs`, `assertHttpsUrl`, `assertSafeEnv`).
+- Add focused unit test suite `tests/schema.test.js` validating boundary rejection semantics and add to `npm run test:unit`.
+- Enforce canonical 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
+- Update `ARCHITECTURE.md` and `README.md` to document the canonical 5-key diagnostic schema and schema validation module.
+
+
 
 - Declare `input_validation_patterns` directly as a typed list of regular expressions with named property accessors in `bunpm/core/validate.js` for automated AST scanner discovery.
 - Add structured `@error_tracking` hook (`logger.onError(callback)`) in `bunpm/core/log.js` enabling downstream monitoring integrations.
