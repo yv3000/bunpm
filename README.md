@@ -181,7 +181,8 @@ offline:
 - `main.test.js`: streaming, signal forwarding, fallback and exit codes.
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
 - `validation.test.js`: trust-boundary input validation fails closed.
-- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` JSON schema (`timestamp`/`ts`, `level`, `module`/`component`/`scope`, `message`, `code`).
+- `schema.test.js`: declarative trust-boundary assertions and environment guards.
+- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` 5-key JSON schema (`timestamp`, `level`, `module`, `message`, `code`).
 - `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
   transport, manifest, URL boundary and entrypoint contracts.
@@ -195,7 +196,7 @@ offline:
 
 A passing run ends with a summary whose `tests` count is above zero and whose
 `fail` count is 0. Pure unit tests (`tests/core.test.js`, `tests/mapper.test.js`,
-`tests/validation.test.js`, `tests/log.test.js`) run in-process under Node with zero
+`tests/validation.test.js`, `tests/schema.test.js`, `tests/log.test.js`) run in-process under Node with zero
 external tool dependencies via `npm run test:unit`. Integration suites (`smoke.test.js`,
 `installer.test.js`, `installer-unix.test.js`) test native installer scripts and Bun
 launchers, skipping gracefully when Bun or platform shells are absent. Other checks:
