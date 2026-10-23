@@ -36,10 +36,13 @@ function capture(run) {
  */
 function assertSchema(line, expectedLevel) {
   const record = JSON.parse(line);
-  assert.deepEqual(
-    Object.keys(record).sort(),
-    ['code', 'level', 'message', 'module', 'timestamp'],
-  );
+  assert.deepEqual(Object.keys(record).sort(), [
+    'code',
+    'level',
+    'message',
+    'module',
+    'timestamp',
+  ]);
   assert.equal(new Date(record.timestamp).toISOString(), record.timestamp);
   if (expectedLevel) {
     assert.equal(record.level, expectedLevel);
