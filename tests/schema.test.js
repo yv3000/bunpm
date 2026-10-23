@@ -28,7 +28,10 @@ test.describe('trust boundary schema assertions', () => {
       () => assertHttpsUrl('http://raw.githubusercontent.com/yv3000/bunpm/x'),
       TypeError,
     );
-    assert.throws(() => assertHttpsUrl('https://evil.com/malicious'), TypeError);
+    assert.throws(
+      () => assertHttpsUrl('https://evil.com/malicious'),
+      TypeError,
+    );
     assert.throws(
       () =>
         assertHttpsUrl(
@@ -40,7 +43,10 @@ test.describe('trust boundary schema assertions', () => {
 
   test('assertSafeEnv guards environment variable keys and content', () => {
     assert.equal(assertSafeEnv('BUNPM_DEBUG', '1'), '1');
-    assert.equal(assertSafeEnv('PATH', 'C:\\Windows\\system32'), 'C:\\Windows\\system32');
+    assert.equal(
+      assertSafeEnv('PATH', 'C:\\Windows\\system32'),
+      'C:\\Windows\\system32',
+    );
     assert.throws(() => assertSafeEnv('KEY\0', 'val'), TypeError);
     assert.throws(() => assertSafeEnv('KEY', null), TypeError);
     assert.throws(() => assertSafeEnv('KEY', 'val\0evil'), TypeError);
