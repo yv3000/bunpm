@@ -14,37 +14,17 @@ const path = require('node:path');
 const VALID_MANAGERS = Object.freeze(['npm', 'npx', 'yarn', 'pnpm']);
 
 /**
- * @typedef {RegExp[] & {
- *   manager: RegExp,
- *   safeString: RegExp,
- *   commitSha: RegExp,
- *   githubPath: RegExp,
- *   githubUrl: RegExp
- * }} ValidationPatternList
- */
-
-/**
  * Recognized validation patterns for static analysis and runtime audits.
- * Declared as a list of regular expressions with named property accessors.
- * @type {ValidationPatternList}
+ * @type {Record<string, RegExp>}
  */
-const input_validation_patterns = Object.assign(
-  [
-    /^(npm|npx|yarn|pnpm)$/,
-    /^[^\0]*$/,
-    /^[a-f0-9]{40}$/,
-    /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
+const input_validation_patterns = {
+  manager: /^(npm|npx|yarn|pnpm)$/,
+  safeString: /^[^\0]*$/,
+  commitSha: /^[a-f0-9]{40}$/,
+  githubPath: /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
+  githubUrl:
     /^https:\/\/raw\.githubusercontent\.com\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-  ],
-  {
-    manager: /^(npm|npx|yarn|pnpm)$/,
-    safeString: /^[^\0]*$/,
-    commitSha: /^[a-f0-9]{40}$/,
-    githubPath: /^\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-    githubUrl:
-      /^https:\/\/raw\.githubusercontent\.com\/yv3000\/bunpm\/[a-f0-9]{40}\/bunpm\//,
-  },
-);
+};
 Object.freeze(input_validation_patterns);
 
 // One frozen policy; preserve the public uppercase alias.
