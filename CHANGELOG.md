@@ -8,8 +8,6 @@
 - Enforce canonical 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
 - Update `ARCHITECTURE.md` and `README.md` to document the canonical 5-key diagnostic schema and schema validation module.
 
-
-
 - Declare `input_validation_patterns` directly as a typed list of regular expressions with named property accessors in `bunpm/core/validate.js` for automated AST scanner discovery.
 - Add structured `@error_tracking` hook (`logger.onError(callback)`) in `bunpm/core/log.js` enabling downstream monitoring integrations.
 - Pin TypeScript to stable `5.7.3` in `package.json`, `package-lock.json`, and `bun.lock`, resolving unusual major version flags.
