@@ -28,6 +28,7 @@ function filesFor(platform) {
     'log.js',
     'mapper.js',
     'formatter.js',
+    'schema.js',
     'validate.js',
     'wrapper.js',
   ].map((file) => `core/${file}`);
