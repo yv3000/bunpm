@@ -65,7 +65,7 @@ because it must not import files it has not downloaded yet, and the
 shell/PowerShell installers spell it out in their own messages. Child process
 output is never rewritten into this form, and exit codes and cause text are
 preserved. There are no log files or telemetry. `BUNPM_DEBUG=1` adds one JSON
-line per diagnostic (`timestamp`, `level`, `component`, `message`, optional
+line per diagnostic (`timestamp`, `level`, `module`, `message`, optional
 `code`); `tests/log.test.js` pins that schema. Changing a diagnostic requires
 updating its assertion in the matching `tests/*.test.js` file.
 
