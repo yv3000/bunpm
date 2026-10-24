@@ -13,8 +13,12 @@
     "transparent"
   ],
   "dependencies": {},
-  "author": "",
+  "author": "Yash <191557828+yv3000@users.noreply.github.com>",
   "license": "MIT",
+  "homepage": "https://github.com/yv3000/bunpm#readme",
+  "bugs": {
+    "url": "https://github.com/yv3000/bunpm/issues"
+  },
   "engines": {
     "node": ">=16.9.0"
   },
