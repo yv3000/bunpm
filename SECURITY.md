@@ -38,15 +38,17 @@ When users invoke the remote bootstrap script without a local checkout:
   content pinning; it is **not** a cryptographic author signature. Users should
   review code before executing bootstrap in sensitive environments.
 
-### 2. Trust-Boundary Validation (`bunpm/core/validate.js`)
+### 2. Trust-Boundary Validation & Schema Assertions (`bunpm/core/validate.js` & `bunpm/core/schema.js`)
 
-- **Argument Sanitization**: `validateArgs` ensures all arguments are string arrays
+- **Argument Sanitization**: `validateArgs` and `assertCliArgs` ensure all arguments are string arrays
   without embedded NUL bytes (`\0`), preventing process spawn truncation and command
   injection attacks.
 - **Manager Validation**: `validateManager` rejects any invocation name not in
   the supported manager set (`npm`, `npx`, `yarn`, `pnpm`).
 - **Executable Binary Validation**: `validateBinary` enforces absolute paths or
   safe alphanumeric binary basenames, rejecting relative traversal (`../`).
+- **Environment & URL Boundaries**: `assertSafeEnv` guards against poisoned environment keys or
+  NUL bytes, while `validateUrl` and `assertHttpsUrl` restrict remote download endpoints to pinned HTTPS.
 
 ### 3. Native Child Process Execution (`bunpm/core/wrapper.js`)
 
