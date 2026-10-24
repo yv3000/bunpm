@@ -9,7 +9,7 @@ Hand-off notes for the next agent session. Read this, not the whole repo.
   - Security Hygiene: restored clean literal dictionary declaration for `input_validation_patterns` matching static scanner AST patterns (`input_validation_patterns\s*[:=]\s*\{`).
   - Architecture & Robustness: implemented declarative trust-boundary assertions in `bunpm/core/schema.js` (`assertCliArgs`, `assertHttpsUrl`, `assertSafeEnv`) backed by `tests/schema.test.js` (Recommendation 03).
   - Observability & Schema: enforced canonical 5-key structured JSON debug schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js` (Recommendation 04).
-  - Manifest & CI Hardening: filled author, homepage, and bugs in manifests; documented unit test isolation in CONTRIBUTING.md and wired fast-path test:unit in CI (Recommendation 06).
+  - Manifest & CI Hardening: filled author, homepage, and bugs in manifests; documented unit test isolation in CONTRIBUTING.md and aligned ARCHITECTURE.md, SECURITY.md, and tests/README.md.
   - Community & Governance: opened deliberate GitHub issues #28 and #29 for external contributor roadmap.
 - Local: 98 tests / 19 suites, 93 pass, 5 skips; 100% statements/lines/functions, 96.5% branches. All authored files strictly < 265 LOC.
 
