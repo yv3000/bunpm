@@ -44,6 +44,9 @@ jobs:
       - name: Build (node --check)
         id: build
         run: npm run build
+      - name: Fast-path unit tests (npm run test:unit)
+        id: test-unit
+        run: npm run test:unit
       - name: Test (node:test)
         id: test
         run: npm test
