@@ -48,6 +48,6 @@ npm run format:check          # Verify Prettier compliance
 On 2026-10-23, Windows local validation ran 98 tests in 19 suites: 93 passed,
 5 Unix-only tests skipped, and none failed. Runtime coverage was 100% statements,
 lines and functions, with 96.53% branches. Native Linux, macOS and Windows checks
-passed in [PR #27 CI](https://github.com/yv3000/bunpm/actions/runs/39006763549),
+passed in [v2.3.8 CI](https://github.com/yv3000/bunpm/actions/runs/40066963068),
 which includes JUnit and LCOV artifacts. These are execution results; a static
 scanner's framework-name heuristic is not a substitute for running the suite.
