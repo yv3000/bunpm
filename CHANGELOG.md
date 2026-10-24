@@ -6,7 +6,11 @@
 - Implement declarative trust-boundary schema assertions module in `bunpm/core/schema.js` (`assertCliArgs`, `assertHttpsUrl`, `assertSafeEnv`).
 - Add focused unit test suite `tests/schema.test.js` validating boundary rejection semantics and add to `npm run test:unit`.
 - Enforce canonical 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
+- Add complete package manifest metadata (`author`, `homepage`, `bugs`) to `package.json` and `bunpm/package.json`.
+- Document unit test isolation from external tools in `CONTRIBUTING.md` and add fast-path `npm run test:unit` step to CI.
 - Update `ARCHITECTURE.md` and `README.md` to document the canonical 5-key diagnostic schema and schema validation module.
+
+## 2.3.7 - 2026-10-22
 
 - Declare `input_validation_patterns` directly as a typed list of regular expressions with named property accessors in `bunpm/core/validate.js` for automated AST scanner discovery.
 - Add structured `@error_tracking` hook (`logger.onError(callback)`) in `bunpm/core/log.js` enabling downstream monitoring integrations.
