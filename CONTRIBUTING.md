@@ -114,6 +114,15 @@ coverage thresholds in CI before merge: statements >= 95%, branches >= 90%,
 functions >= 90%, and lines >= 90% across all runtime code, plus 90% lines
 per-file on Windows. Run `npm run test:coverage && npm run coverage:check` locally.
 
+### Unit Test Isolation (`npm run test:unit`)
+
+`npm run test:unit` executes pure in-process unit tests (`tests/core.test.js`,
+`tests/mapper.test.js`, `tests/validation.test.js`, `tests/schema.test.js`,
+`tests/log.test.js`) requiring only Node.js with zero external dependencies, no
+native platform shells, and no Bun binary on PATH. In contrast, `npm run smoke`
+tests end-to-end integration and native OS installers, requiring Bun and native
+platform shells.
+
 ## Verification Boundaries
 
 `test:coverage` runs the suite under [c8](https://github.com/bcoe/c8), configured in
