@@ -87,7 +87,7 @@ channels and a lightweight logger (`bunpm/core/log.js`):
 
    The logger provides named level methods (`logger.error()`, `logger.warn()`,
    `logger.info()`, `logger.debug()`) and `formatDiagnostic()` conforming to this schema
-   with `ts`, `scope`, `message`, and `code`.
+   with `timestamp`, `level`, `module`, `message`, and `code`.
    `LOG_LEVELS` is the frozen level contract. Wrapper and doctor failures call
    `logger.error()` explicitly; the standalone bootstrap retains its inline
    diagnostic implementation until the runtime files have been downloaded.
@@ -120,6 +120,7 @@ The standalone bootstrap has its own guards, tested against the same contract:
 | `validateManager(invokedAs)` | Supported package managers (`npm`, `npx`, `yarn`, `pnpm`) | `core/mapper.js:mapCommand`                                            | `tests/validation.test.js`                                                                |
 | `validateBinary(binary)`     | Absolute executable binary paths                          | `core/wrapper.js:resolveSpawn`                                         | `tests/validation.test.js`                                                                |
 | Core `validateUrl(value)`    | String or URL instance, pinned HTTPS URL                  | Exported validation contract; bootstrap uses its standalone equivalent | `tests/validation.test.js`                                                                |
+| Core schema assertions       | Declarative CLI args, HTTPS URLs, and safe environment    | `core/schema.js` (`assertCliArgs`, `assertHttpsUrl`, `assertSafeEnv`)  | `tests/schema.test.js`                                                                    |
 | Bootstrap guards             | Arguments and pinned HTTPS download URLs                  | `bootstrap.js:main`, `bootstrap.js:download` (initial & redirects)     | `tests/validation.test.js`, `tests/bootstrap-contract.test.js`, `tests/bootstrap.test.js` |
 
 Executable contents found on PATH are trusted once resolved to absolute paths.
@@ -142,7 +143,7 @@ Dependency boundaries & pruning rationale:
   - `c8` (`12.0.0`): collects native V8 code coverage without modifying source code.
   - `eslint` (`10.13.0`): enforces zero-warning code quality across all JavaScript files.
   - `prettier` (`3.9.10`): zero-dependency code formatter.
-  - `typescript` (`7.0.2`): strictly typechecks JSDoc annotations via `tsc -p jsconfig.json` with zero transitive dependencies.
+  - `typescript` (`5.7.3`): strictly typechecks JSDoc annotations via `tsc -p jsconfig.json` with zero transitive dependencies.
     None of these tools or their transitive dependencies are included in user installations.
 
 - **Dependabot Cadence & Automated Review Policy**:
