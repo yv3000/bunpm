@@ -17,6 +17,11 @@
   "bin": {
     "bunpm": "bunpm/core/wrapper.js"
   },
+  "author": "Yash <191557828+yv3000@users.noreply.github.com>",
+  "homepage": "https://github.com/yv3000/bunpm#readme",
+  "bugs": {
+    "url": "https://github.com/yv3000/bunpm/issues"
+  },
   "repository": "https://github.com/yv3000/bunpm.git",
   "engines": {
     "node": ">=22.13.0"
