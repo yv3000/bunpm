@@ -8,7 +8,7 @@
 - Enforce canonical 5-key structured JSON diagnostic schema (`timestamp`, `level`, `module`, `message`, `code`) across `bunpm/core/log.js` and `bunpm/bootstrap.js`.
 - Add complete package manifest metadata (`author`, `homepage`, `bugs`) to `package.json` and `bunpm/package.json`.
 - Document unit test isolation from external tools in `CONTRIBUTING.md` and add fast-path `npm run test:unit` step to CI.
-- Update `ARCHITECTURE.md` and `README.md` to document the canonical 5-key diagnostic schema and schema validation module.
+- Update `ARCHITECTURE.md`, `SECURITY.md`, and `README.md` to document the canonical 5-key diagnostic schema, trust boundary assertions, and stable dependency pins.
 
 ## 2.3.7 - 2026-10-22
 
