@@ -182,7 +182,7 @@ offline:
 - `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
 - `validation.test.js`: trust-boundary input validation fails closed.
 - `schema.test.js`: declarative trust-boundary assertions and environment guards.
-- `log.test.js`: diagnostic lines and the `BUNPM_DEBUG` 5-key JSON schema (`timestamp`, `level`, `module`, `message`, `code`).
+- `log.test.js`: diagnostic lines, structured `logger.child` output, and the canonical 5-key schema (`timestamp`, `level`, `module`, `message`, `code`).
 - `doctor.test.js`: `bunpm doctor` checks and messages.
 - `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
   transport, manifest, URL boundary and entrypoint contracts.
