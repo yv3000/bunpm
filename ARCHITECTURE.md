@@ -92,13 +92,19 @@ channels and a lightweight logger (`bunpm/core/log.js`):
    `logger.error()` explicitly; the standalone bootstrap retains its inline
    diagnostic implementation until the runtime files have been downloaded.
 
-3. **Execution Metrics (`bunpm/core/log.js:metrics`)**:
+3. **Structured Logger Option (`bunpm/core/log.js:logger.child`)**:
+   Subsystems and tooling can instantiate a scoped structured logger via
+   `logger.child(module)` (or `createLogger(module)`) that directly emits
+   schema-valid `{ timestamp, level, module, message, code }` JSON lines to stderr
+   regardless of `BUNPM_DEBUG`.
+
+4. **Execution Metrics (`bunpm/core/log.js:metrics`)**:
    bunpm collects lightweight in-memory diagnostic counters (`metrics.increment()`,
    `metrics.gauge()`, `metrics.snapshot()`) tracking command translation
    (`commands_translated`, `commands_fallback`) and environment checks
    (`doctor_checks_total`) with zero external dependencies.
 
-4. **Error Tracking Hook (`bunpm/core/log.js:logger.onError`)**:
+5. **Error Tracking Hook (`bunpm/core/log.js:logger.onError`)**:
    Downstream monitoring agents and tooling can register an error hook
    (`logger.onError(callback)`) to capture structured error diagnostic records
    in-memory. Callback execution is wrapped defensively to prevent monitoring
@@ -157,6 +163,11 @@ Dependency boundaries & pruning rationale:
       schedule:
         interval: weekly
         day: monday
+      ignore:
+        - dependency-name: '@types/node'
+          update-types: ['version-update:semver-major']
+        - dependency-name: 'typescript'
+          update-types: ['version-update:semver-major']
     - package-ecosystem: github-actions
       directory: /
       schedule:
