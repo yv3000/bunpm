@@ -9,6 +9,8 @@
 - Add complete package manifest metadata (`author`, `homepage`, `bugs`) to `package.json` and `bunpm/package.json`.
 - Document unit test isolation from external tools in `CONTRIBUTING.md` and add fast-path `npm run test:unit` step to CI.
 - Update `ARCHITECTURE.md`, `SECURITY.md`, and `README.md` to document the canonical 5-key diagnostic schema, trust boundary assertions, and stable dependency pins.
+- Expose `logger.child(module)` style structured logger in `bunpm/core/log.js` emitting 5-key JSON diagnostic records to stderr without requiring `BUNPM_DEBUG`.
+- Ignore TypeScript major updates in `.github/dependabot.yml` to preserve stable 5.x compiler baseline.
 
 ## 2.3.7 - 2026-10-22
 
