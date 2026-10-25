@@ -8,7 +8,7 @@ Hand-off notes for the next agent session. Read this, not the whole repo.
 - Targeted recovery across Architecture & Robustness, Dependency Health, and History & Maintenance:
   - Architecture & Robustness: implemented pluggable structured logger `logger.child(module)` in `bunpm/core/log.js` emitting canonical 5-key records without `BUNPM_DEBUG` (Recommendation 04).
   - Dependency Health: migrated `.github/dependabot.yml` to native `package-ecosystem: bun` resolving Dependabot crashes on `bun.lock`, and ignored TypeScript semver-major updates.
-  - Manifest & Release: bumped manifests and lockfiles to v2.3.9; synchronized `tests/README.md`, `CHANGELOG.md`, and `ARCHITECTURE.md`.
+  - Manifest & Release: published v2.3.9 release on GitHub (Release run [40178073828](https://github.com/yv3000/bunpm/actions/runs/40178073828)); synchronized docs and cross-links.
   - Verification: 99 tests / 19 suites, 94 pass, 5 Unix skips; 100% statements/lines/functions, 96.42% branches. All authored files strictly < 265 LOC.
 
 ## Purpose
