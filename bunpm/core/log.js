@@ -84,7 +84,36 @@ const logger = Object.freeze({
   onError: (callback) => {
     errorHook = typeof callback === 'function' ? callback : null;
   },
+  /**
+   * Create a child structured logger bound to a module that always emits
+   * canonical 5-key JSON diagnostic records to stderr regardless of BUNPM_DEBUG.
+   * @param {string} [module]
+   */
+  child: (module) => {
+    const mod = typeof module === 'string' && module ? module : 'wrapper';
+    /** @param {LogLevel} level @param {string} message @param {string} [code] */
+    const emit = (level, message, code) => {
+      const diagnostic = formatDiagnostic(mod, message, code, level);
+      console.error(JSON.stringify(diagnostic));
+      if (level === 'error' && errorHook) {
+        try {
+          errorHook(diagnostic);
+        } catch {
+          // Error tracking hooks must never crash the CLI.
+        }
+      }
+    };
+    return Object.freeze({
+      error: (message, code) => emit('error', message, code),
+      warn: (message, code) => emit('warn', message, code),
+      info: (message, code) => emit('info', message, code),
+      debug: (message, code) => emit('debug', message, code),
+      child: (submodule) => logger.child(`${mod}:${submodule}`),
+    });
+  },
 });
+
+const createLogger = (module) => logger.child(module);
 
 /**
  * Diagnostic metrics collector for execution observability; zero dependencies.
@@ -122,4 +151,11 @@ const metrics = {
   },
 };
 
-module.exports = { LOG_LEVELS, log, logger, formatDiagnostic, metrics };
+module.exports = {
+  LOG_LEVELS,
+  log,
+  logger,
+  formatDiagnostic,
+  metrics,
+  createLogger,
+};
