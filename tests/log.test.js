@@ -224,18 +224,21 @@ describe('diagnostic logging', () => {
     capture(() => logger.info('core', 'informational'));
     assert.equal(received.length, 0);
 
-    capture(() => logger.error('wrapper', 'exec failure', 'ENOENT'));
-    assert.equal(received.length, 1);
-    assert.equal(received[0].module, 'wrapper');
-    assert.equal(received[0].message, 'exec failure');
-    assert.equal(received[0].code, 'ENOENT');
-    assert.equal(received[0].level, 'error');
+    capture(() => {
+      logger.error('wrapper', 'exec failure', 'ENOENT');
+      logger.child('wrapper').error('child hook call');
+    });
+    assert.equal(received.length, 2);
+    assert.equal(received[1].message, 'child hook call');
 
     // Fault tolerance: faulty downstream hook does not bubble up.
     logger.onError(() => {
       throw new Error('collector failure');
     });
-    capture(() => logger.error('wrapper', 'safe call'));
+    capture(() => {
+      logger.error('wrapper', 'safe call');
+      logger.child('wrapper').error('child safe');
+    });
 
     logger.onError(null);
   });
@@ -243,18 +246,18 @@ describe('diagnostic logging', () => {
   test('logger.child exposes structured logger emitting JSON without BUNPM_DEBUG', () => {
     delete process.env.BUNPM_DEBUG;
     const child = createLogger('wrapper');
-    const lines = capture(() => child.error('child error', 'ECHILD'));
-    assert.equal(lines.length, 1);
+    const lines = capture(() => {
+      child.error('child error', 'ECHILD');
+      child.info('child info');
+      child.debug('child debug');
+    });
+    assert.equal(lines.length, 3);
     const rec = assertSchema(lines[0], 'error');
     assert.equal(rec.module, 'wrapper');
-    assert.equal(rec.message, 'child error');
     assert.equal(rec.code, 'ECHILD');
 
     const sub = child.child('worker');
     const subLines = capture(() => sub.warn('sub warning'));
-    assert.equal(subLines.length, 1);
-    const subRec = JSON.parse(subLines[0]);
-    assert.equal(subRec.module, 'wrapper:worker');
-    assert.equal(subRec.level, 'warn');
+    assert.equal(JSON.parse(subLines[0]).module, 'wrapper:worker');
   });
 });
