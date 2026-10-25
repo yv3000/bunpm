@@ -104,15 +104,21 @@ const logger = Object.freeze({
       }
     };
     return Object.freeze({
+      /** @param {string} message @param {string} [code] */
       error: (message, code) => emit('error', message, code),
+      /** @param {string} message @param {string} [code] */
       warn: (message, code) => emit('warn', message, code),
+      /** @param {string} message @param {string} [code] */
       info: (message, code) => emit('info', message, code),
+      /** @param {string} message @param {string} [code] */
       debug: (message, code) => emit('debug', message, code),
+      /** @param {string} submodule */
       child: (submodule) => logger.child(`${mod}:${submodule}`),
     });
   },
 });
 
+/** @param {string} [module] */
 const createLogger = (module) => logger.child(module);
 
 /**
