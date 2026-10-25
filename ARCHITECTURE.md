@@ -158,7 +158,7 @@ Dependency boundaries & pruning rationale:
   ```yaml
   version: 2
   updates:
-    - package-ecosystem: npm
+    - package-ecosystem: bun
       directory: /
       schedule:
         interval: weekly
