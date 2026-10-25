@@ -7,6 +7,7 @@ const {
   logger,
   formatDiagnostic,
   metrics,
+  createLogger,
 } = require('../bunpm/core/log');
 const { exitCode } = require('../bunpm/core/wrapper');
 
@@ -237,5 +238,23 @@ describe('diagnostic logging', () => {
     capture(() => logger.error('wrapper', 'safe call'));
 
     logger.onError(null);
+  });
+
+  test('logger.child exposes structured logger emitting JSON without BUNPM_DEBUG', () => {
+    delete process.env.BUNPM_DEBUG;
+    const child = createLogger('wrapper');
+    const lines = capture(() => child.error('child error', 'ECHILD'));
+    assert.equal(lines.length, 1);
+    const rec = assertSchema(lines[0], 'error');
+    assert.equal(rec.module, 'wrapper');
+    assert.equal(rec.message, 'child error');
+    assert.equal(rec.code, 'ECHILD');
+
+    const sub = child.child('worker');
+    const subLines = capture(() => sub.warn('sub warning'));
+    assert.equal(subLines.length, 1);
+    const subRec = JSON.parse(subLines[0]);
+    assert.equal(subRec.module, 'wrapper:worker');
+    assert.equal(subRec.level, 'warn');
   });
 });
