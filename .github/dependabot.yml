@@ -23,6 +23,8 @@ updates:
     ignore:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
     # One pull request per week for all tooling instead of one per package.
     groups:
       dev-tooling:
