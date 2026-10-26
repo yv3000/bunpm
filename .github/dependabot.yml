@@ -5,8 +5,11 @@ updates:
   # Every dependency in package.json is a development dependency: bunpm ships
   # zero runtime dependencies.
   #
-  # The bun updater natively parses package.json and modern text bun.lock.
-  - package-ecosystem: bun
+  # The npm updater refreshes package.json and package-lock.json but cannot
+  # update bun.lock. CI installs with both `npm ci` and
+  # `bun install --frozen-lockfile`, so such a pull request fails until
+  # `bun install --ignore-scripts` is run and bun.lock is committed with it.
+  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly

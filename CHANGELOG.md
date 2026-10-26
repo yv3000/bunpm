@@ -1,13 +1,5 @@
 # Changelog
 
-## 2.3.9 - 2026-10-25
-
-- Expose `logger.child(module)` style pluggable structured logger in `bunpm/core/log.js` emitting canonical 5-key JSON diagnostic records to stderr without requiring `BUNPM_DEBUG`.
-- Add explicit JSDoc parameter annotations and typed method signatures for `logger.child` and `createLogger`.
-- Expand unit test assertions in `tests/log.test.js` validating structured child emission and error hooks across log levels (99 tests in 19 suites).
-- Migrate `.github/dependabot.yml` to native `package-ecosystem: bun` for reliable `bun.lock` parsing and ignore TypeScript major updates.
-- Synchronize manifests and lockfiles to 2.3.9 with verified clean git tree.
-
 ## 2.3.8 - 2026-10-23
 
 - Restore clean literal dictionary declaration for `input_validation_patterns` in `bunpm/core/validate.js` for automated AST scanner discovery.
@@ -17,6 +9,8 @@
 - Add complete package manifest metadata (`author`, `homepage`, `bugs`) to `package.json` and `bunpm/package.json`.
 - Document unit test isolation from external tools in `CONTRIBUTING.md` and add fast-path `npm run test:unit` step to CI.
 - Update `ARCHITECTURE.md`, `SECURITY.md`, and `README.md` to document the canonical 5-key diagnostic schema, trust boundary assertions, and stable dependency pins.
+- Expose `logger.child(module)` style structured logger in `bunpm/core/log.js` emitting 5-key JSON diagnostic records to stderr without requiring `BUNPM_DEBUG`.
+- Ignore TypeScript major updates in `.github/dependabot.yml` to preserve stable 5.x compiler baseline.
 
 ## 2.3.7 - 2026-10-22
 

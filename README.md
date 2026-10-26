@@ -143,7 +143,7 @@ Ownership, review expectations and continuity are documented in
 
 - **Maintenance Status**: Actively maintained with continuous multi-OS automated CI validation across Ubuntu, macOS, and Windows.
 - **Dependency Cadence**: Automated weekly dependency audits and update proposals via [.github/dependabot.yml](.github/dependabot.yml) on Mondays.
-- **Release Cadence**: SemVer releases triggered on verified tag pushes via automated release workflow ([.github/workflows/release.yml](.github/workflows/release.yml)).
+- **Release Cadence**: SemVer releases triggered on verified tag pushes via automated release workflow (.github/workflows/release.yml).
 - **Last Reviewed**: October 2026 for Node.js 16.9–22.x and Bun 1.3.14 toolchain compatibility.
 
 ## Development
