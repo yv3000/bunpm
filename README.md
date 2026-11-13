@@ -75,6 +75,7 @@ yarn global add bunpm-cli
 ```
 
 > **Instant Run (No Install):**
+>
 > ```bash
 > npx bunpm-cli doctor
 > ```
@@ -102,16 +103,16 @@ bash bunpm/platforms/linux/scripts/install.sh
 
 ## 📋 Transparent Command Routing
 
-| Invoked Command | Transparent Routing | Fallback Condition |
-| :--- | :--- | :--- |
-| `npm install` | ➔ `bun install` | None |
-| `npm install <pkg>` | ➔ `bun add <pkg>` | Explicit unsupported flags |
-| `npm run <script>` | ➔ `bun run <script>` | Options before script name |
-| `npx <pkg>` | ➔ `bun x <pkg>` | Options before package name |
-| `yarn add <pkg>` | ➔ `bun add <pkg>` | Yarn Berry PnP repo |
-| `pnpm add <pkg>` | ➔ `bun add <pkg>` | Recursive / filter options |
+| Invoked Command             | Transparent Routing   | Fallback Condition          |
+| :-------------------------- | :-------------------- | :-------------------------- |
+| `npm install`               | ➔ `bun install`       | None                        |
+| `npm install <pkg>`         | ➔ `bun add <pkg>`     | Explicit unsupported flags  |
+| `npm run <script>`          | ➔ `bun run <script>`  | Options before script name  |
+| `npx <pkg>`                 | ➔ `bun x <pkg>`       | Options before package name |
+| `yarn add <pkg>`            | ➔ `bun add <pkg>`     | Yarn Berry PnP repo         |
+| `pnpm add <pkg>`            | ➔ `bun add <pkg>`     | Recursive / filter options  |
 | `npm audit` / `npm publish` | ➔ **Native fallback** | Always native (fail-closed) |
-| `npm login` / `whoami` | ➔ **Native fallback** | Always native (fail-closed) |
+| `npm login` / `whoami`      | ➔ **Native fallback** | Always native (fail-closed) |
 
 ---
 
@@ -148,14 +149,14 @@ npm test
 
 ### Validation Gates
 
-| Command | Check |
-| :--- | :--- |
-| `npm run test:unit` | Pure Node in-process unit tests |
+| Command                 | Check                                                    |
+| :---------------------- | :------------------------------------------------------- |
+| `npm run test:unit`     | Pure Node in-process unit tests                          |
 | `npm run test:coverage` | c8 coverage gate (100% stmts/lines/funcs, 90%+ branches) |
-| `npm run lint` | ESLint (zero warnings allowed) |
-| `npm run typecheck` | TypeScript strict checkJs against `@types/node` 16 |
-| `npm run format:check` | Prettier formatting verification |
-| `npm run audit` | Dual high-severity audit on npm & bun |
+| `npm run lint`          | ESLint (zero warnings allowed)                           |
+| `npm run typecheck`     | TypeScript strict checkJs against `@types/node` 16       |
+| `npm run format:check`  | Prettier formatting verification                         |
+| `npm run audit`         | Dual high-severity audit on npm & bun                    |
 
 CI runs install, build, `npm test`, lint, typecheck, and coverage across Ubuntu, macOS, and Windows matrices.
 
