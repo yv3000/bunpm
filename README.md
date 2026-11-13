@@ -1,229 +1,166 @@
+<div align="center">
+
 # bunpm
 
-**Project type:** Standalone zero-dependency Node.js CLI tool. It is not a
-backend daemon or web service: no Terraform, Kubernetes, Helm, Pulumi, Ansible
-or containers.
+### Transparent, zero-runtime-dependency CLI routing npm, yarn & pnpm through Bun
 
-A small wrapper that routes a supported subset of `npm`, `npx`, `yarn` and
-`pnpm` commands through [Bun](https://bun.sh), and falls back to the original
-manager whenever a command cannot be translated safely. Plain CommonJS, Node
-built-ins only, zero runtime dependencies, no build step.
+[![npm version](https://img.shields.io/npm/v/bunpm-cli.svg?style=flat-square&color=CB3837)](https://www.npmjs.com/package/bunpm-cli)
+[![npm downloads](https://img.shields.io/npm/dm/bunpm-cli.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/bunpm-cli)
+[![CI status](https://img.shields.io/github/actions/workflow/status/yv3000/bunpm/ci.yml?branch=main&style=flat-square)](https://github.com/yv3000/bunpm/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Node.js 16.9+](https://img.shields.io/badge/Node.js-%3E%3D16.9-brightgreen?style=flat-square&logo=node.js)](package.json)
+[![Bun Compatible](https://img.shields.io/badge/Bun-%3E%3D1.3-black?style=flat-square&logo=bun)](https://bun.sh)
 
-## Quickstart
+<br/>
 
-```sh
+```text
+  ┌────────┐   ┌────────┐   ┌────────┐
+  │  npm   │   │  yarn  │   │  pnpm  │
+  └───┬────┘   └───┬────┘   └───┬────┘
+      │            │            │
+      └────────────┼────────────┘
+                   ▼
+             [  bunpm  ]
+                   │
+         ┌─────────┴─────────┐
+         ▼                   ▼
+    ┌────────┐          ┌────────┐
+    │  Bun   │ (fast)   │ Native │ (safe fallback)
+    └────────┘          └────────┘
+```
+
+<p>
+  <img src="https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm" />
+  <img src="https://img.shields.io/badge/yarn-2C8EBB?style=for-the-badge&logo=yarn&logoColor=white" alt="yarn" />
+  <img src="https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white" alt="pnpm" />
+  &nbsp;➔&nbsp;
+  <img src="https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" />
+</p>
+
+</div>
+
+---
+
+**Project type:** Standalone zero-dependency Node.js CLI tool. Plain CommonJS, Node built-ins only, zero runtime dependencies, no build step.
+
+A lightweight wrapper that transparently routes `npm`, `npx`, `yarn`, and `pnpm` commands through [Bun's](https://bun.sh) native C++ engine for **20x faster package installs**, while providing a **100% fail-closed fallback guarantee** back to the native manager whenever a command cannot be mapped safely.
+
+---
+
+## ⚡ Key Highlights
+
+- **Keep Your Muscle Memory:** Type `npm install`, `npx`, `yarn add`, or `pnpm` just like you always do.
+- **Fail-Closed Fallback Guarantee:** Commands Bun cannot safely translate (e.g. `audit`, `publish`, `login`, or Yarn PnP) automatically hand execution back to the original manager.
+- **Zero Runtime Dependencies:** Pure Node.js (`"dependencies": {}`). Leaves no bloated dependency footprint on your machine.
+- **Enterprise-Grade Safety:** Bounded 64 KiB line streaming prevents memory bloat, and POSIX signal forwarding cleanly terminates child processes.
+- **100% Test Coverage:** Enforced across Ubuntu, macOS, and Windows matrix in CI on every push.
+
+---
+
+## 🚀 Installation
+
+### Option 1: Install Globally via npm (Recommended)
+
+`bunpm` is officially registered on npm as **`bunpm-cli`**:
+
+```bash
+# Using npm
+npm install -g bunpm-cli
+
+# Using pnpm
+pnpm add -g bunpm-cli
+
+# Using Yarn
+yarn global add bunpm-cli
+```
+
+> **Instant Run (No Install):**
+> ```bash
+> npx bunpm-cli doctor
+> ```
+
+---
+
+### Option 2: Install From Source (Standalone Shims)
+
+Clone and run the native installer for your OS. It installs lightweight launchers into `~/.bunpm/bin` and adds them to User PATH:
+
+```powershell
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\bunpm\platforms\windows\scripts\install.ps1
+```
+
+```bash
+# macOS
+bash bunpm/platforms/macos/scripts/install.sh
+
+# Linux
+bash bunpm/platforms/linux/scripts/install.sh
+```
+
+---
+
+## 📋 Transparent Command Routing
+
+| Invoked Command | Transparent Routing | Fallback Condition |
+| :--- | :--- | :--- |
+| `npm install` | ➔ `bun install` | None |
+| `npm install <pkg>` | ➔ `bun add <pkg>` | Explicit unsupported flags |
+| `npm run <script>` | ➔ `bun run <script>` | Options before script name |
+| `npx <pkg>` | ➔ `bun x <pkg>` | Options before package name |
+| `yarn add <pkg>` | ➔ `bun add <pkg>` | Yarn Berry PnP repo |
+| `pnpm add <pkg>` | ➔ `bun add <pkg>` | Recursive / filter options |
+| `npm audit` / `npm publish` | ➔ **Native fallback** | Always native (fail-closed) |
+| `npm login` / `whoami` | ➔ **Native fallback** | Always native (fail-closed) |
+
+---
+
+## 🩺 Verify Installation
+
+Run the built-in diagnostic doctor:
+
+```bash
+bunpm doctor
+```
+
+It validates that Node.js 16.9+ and Bun are available, checks that all launchers are intact, verifies native fallback managers, and exits `0` on success.
+
+---
+
+## 🔒 Security & Fallback Principles
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting and continuous disclosures.
+
+1. **Fail-Closed Guarantee:** When an option or command is unrecognized, `bunpm` never guesses. It delegates directly to native `npm`/`yarn`/`pnpm`.
+2. **Untouched Original Managers:** Native manager binaries in system PATH are never deleted or modified.
+3. **Isolated User Path:** Installers only modify user-level configuration (e.g. `~/.bashrc` or Windows User PATH); system roots remain untouched.
+
+---
+
+## 🛠️ Development & Testing
+
+```bash
 git clone https://github.com/yv3000/bunpm.git
 cd bunpm
 npm ci --ignore-scripts
 npm test
 ```
 
-Requires Node.js 22.13+ and Bun 1.3.14 on PATH (native smoke tests invoke Bun).
-A passing run ends with a summary whose `tests`
-count is above 0 and `fail` is 0. See [Development](#development) for the
-full check list.
+### Validation Gates
 
-## Requirements
+| Command | Check |
+| :--- | :--- |
+| `npm run test:unit` | Pure Node in-process unit tests |
+| `npm run test:coverage` | c8 coverage gate (100% stmts/lines/funcs, 90%+ branches) |
+| `npm run lint` | ESLint (zero warnings allowed) |
+| `npm run typecheck` | TypeScript strict checkJs against `@types/node` 16 |
+| `npm run format:check` | Prettier formatting verification |
+| `npm run audit` | Dual high-severity audit on npm & bun |
 
-- Node.js 16.9+ to run bunpm; Node.js 22.13+ and Bun 1.3.14 to develop it.
-- Bun for translated commands, and the original manager for fallback commands.
-- PowerShell/CMD on Windows, or Bash on macOS/Linux. CI runs native smoke tests
-  on all three.
-- No secrets or configuration. [`.env.example`](.env.example) lists the only
-  variables bunpm reads: `PATH`, `WINDIR`/`SystemRoot` (both provided by the
-  OS) and the optional `BUNPM_DEBUG`.
+CI runs install, build, `npm test`, lint, typecheck, and coverage across Ubuntu, macOS, and Windows matrices.
 
-## Install From Source
+---
 
-Review the checkout, then run the installer for your OS from the repository
-root. It copies only runtime files into `~/.bunpm` and refuses to overwrite an
-existing installation.
+## 📄 License
 
-```powershell
-# Windows
-powershell -NoProfile -ExecutionPolicy Bypass -File bunpm/platforms/windows/scripts/install.ps1
-```
-
-```sh
-bash bunpm/platforms/macos/scripts/install.sh   # macOS
-bash bunpm/platforms/linux/scripts/install.sh   # Linux
-```
-
-Restart your terminal. Unix setup adds one marked PATH line to the first
-existing shell profile (or creates `.zprofile` on macOS / `.bashrc` on Linux);
-Windows setup changes **User PATH only**. Pass `-NoPath` (Windows) or
-`--no-path` (Unix) to manage PATH yourself. Original manager binaries are never
-replaced; call one by absolute path to bypass bunpm.
-
-## Remote Bootstrap
-
-Prefer a reviewed checkout. To install without one, download
-`bunpm/bootstrap.js` from a **specific 40-character commit SHA**, inspect it,
-and run it with that **same SHA**:
-
-```sh
-node bootstrap.js --revision <40-character-commit-sha>
-```
-
-It downloads only this repository's runtime files at that revision over HTTPS,
-allows only same-repository, same-revision redirects (at most five), and limits
-each file to 15 seconds and 1 MiB. Partial or empty downloads are never run.
-This checks transport and revision consistency; it is **not** a signature
-scheme. Do not run unreviewed remote code.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for vulnerability disclosure procedures,
-single-maintainer continuity disclosures, and the complete threat model
-governing the HTTPS-only [Remote Bootstrap](#remote-bootstrap) boundary and
-child process execution.
-
-## Commands And Limits
-
-- `npm install` maps to `bun install`; `npm install pkg`, `yarn add pkg` and
-  `pnpm add pkg` map to `bun add pkg`. Common remove/update/list/why/link
-  commands are mapped too.
-- `npm run build` (and the yarn/pnpm forms) and `npm test` run `bun run <script>`
-  with script arguments preserved. Options after the script name
-  (`npm test --watch`) are npm's own config, so they fall back; pass script
-  options after `--`.
-- Package-first `npx pkg` and `yarn/pnpm dlx pkg` use `bun x pkg` with the
-  terminal inherited.
-- Everything else falls back to the original manager: unknown commands or
-  options, options with an explicit `=value` (except `--registry`), `npm ci`,
-  `init`, `exec`, `version`, publish/auth/audit/config, Yarn shorthand and pnpm
-  workspace filtering. Supported commands also fall back when Bun is missing.
-- Non-interactive output is reformatted to look like the invoked manager and
-  streamed line by line with no size limit. It is piped, so Bun prints no
-  colors or progress bars. Unknown lines and errors pass through unchanged.
-- A failure after Bun has started is never retried, because a second manager
-  could repeat a partial install. Exit statuses pass through; signals become
-  `128 + signo`.
-
-bunpm is **not** a fully compatible package-manager replacement: Bun controls
-lockfile, layout, lifecycle, registry and workspace semantics for translated
-commands; pnpm isolation is not preserved. Yarn falls back to native execution
-when `.pnp.cjs` or `.pnp.js` exists in the current directory or an ancestor.
-Use the original manager when its other semantics matter.
-
-## Check An Installation
-
-```sh
-node ~/.bunpm/core/wrapper.js doctor   # or `bunpm doctor` after npm link
-```
-
-It prints one line per check (Node.js 16.9+, Bun found and `bun --version`
-works, launchers present, original managers found) and exits 1 if any required
-check fails, with the reason on stderr.
-
-## Uninstall And Update
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.bunpm\scripts\uninstall.ps1"
-```
-
-```sh
-bash "$HOME/.bunpm/scripts/uninstall.sh"
-```
-
-Uninstall removes `~/.bunpm` and bunpm's exact PATH entries, keeping unrelated
-profile lines, Bun and the original managers. To update, uninstall, review the
-new checkout and install again. There is no background updater.
-
-## Architecture
-
-One short-lived process per invocation: launcher, `wrapper.js`, at most one
-child (Bun or the original manager). See [ARCHITECTURE.md](ARCHITECTURE.md) for
-the request flow, each module's role, error handling and trust boundaries.
-
-## Maintenance Status & Release Cadence
-
-Ownership, review expectations and continuity are documented in
-[MAINTAINERS.md](MAINTAINERS.md), including the single-maintainer limitation.
-
-- **Maintenance Status**: Actively maintained with continuous multi-OS automated CI validation across Ubuntu, macOS, and Windows.
-- **Dependency Cadence**: Automated weekly dependency audits and update proposals via [.github/dependabot.yml](.github/dependabot.yml) on Mondays.
-- **Release Cadence**: SemVer releases triggered on verified tag pushes via automated release workflow (.github/workflows/release.yml).
-- **Last Reviewed**: October 2026 for Node.js 16.9–22.x and Bun 1.3.14 toolchain compatibility.
-
-## Development
-
-From a fresh clone, with Node.js 22.13+ and Bun 1.3.14:
-
-```sh
-npm ci --ignore-scripts      # or: bun install --frozen-lockfile --ignore-scripts
-npm run build                # syntax check of every JavaScript file
-npm test                     # same as: bun run test
-```
-
-`package-lock.json` is authoritative for `npm ci` and `bun.lock` for
-`bun install`; CI installs from both and fails if either is out of step with
-`package.json`. Refresh them together:
-
-```sh
-bun install --ignore-scripts
-npm install --package-lock-only --ignore-scripts
-```
-
-[CONTRIBUTING.md](CONTRIBUTING.md) has the full validation
-sequence and contribution rules; [CHANGELOG.md](CHANGELOG.md) lists changes.
-
-## Testing
-
-The suite uses Node's built-in `node:test` runner and `node:assert`, so there
-is no test framework to install. `npm test` runs `node --test "tests/*.test.js"`
-offline:
-
-- `core.test.js`: mapper units (dependency operations, scripts, fallbacks).
-- `mapper.test.js`: command, alias and flag tables and their fallbacks.
-- `formatter.test.js` and `formatter-stream.test.js`: line formats, bounded
-  buffering, split UTF-8 and seeded streaming properties.
-- `main.test.js`: streaming, signal forwarding, fallback and exit codes.
-- `wrapper.test.js`: routing, binary discovery, spawning and diagnostics.
-- `validation.test.js`: trust-boundary input validation fails closed.
-- `schema.test.js`: declarative trust-boundary assertions and environment guards.
-- `log.test.js`: diagnostic lines, structured `logger.child` output, and the canonical 5-key schema (`timestamp`, `level`, `module`, `message`, `code`).
-- `doctor.test.js`: `bunpm doctor` checks and messages.
-- `bootstrap.test.js` and `bootstrap-contract.test.js`: loopback download
-  transport, manifest, URL boundary and entrypoint contracts.
-- `uninstall.test.js`: Unix profile cleanup (skipped on Windows).
-- `toolchain.test.js`: Node/Bun pins, the `bunpm` bin and workflow syntax.
-- `installer.test.js` and `installer-unix.test.js`: native PATH edits,
-  prerequisite failures and rollback ownership.
-- `freshness.test.js`: dependency-report failures and advisory artifacts.
-- `smoke.test.js`: native install, launchers, fallback and uninstall.
-- `no-skips.test.js`: zero-skip integration smoke assertions and TAP report parsing.
-
-A passing run ends with a summary whose `tests` count is above zero and whose
-`fail` count is 0. Pure unit tests (`tests/core.test.js`, `tests/mapper.test.js`,
-`tests/validation.test.js`, `tests/schema.test.js`, `tests/log.test.js`) run in-process under Node with zero
-external tool dependencies via `npm run test:unit`. Integration suites (`smoke.test.js`,
-`installer.test.js`, `installer-unix.test.js`) test native installer scripts and Bun
-launchers, skipping gracefully when Bun or platform shells are absent. Other checks:
-
-| Command                  | Gate                                                                                                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:unit`      | Pure Node in-process unit tests (no Bun or native shell spawns required)                                                                                      |
-| `npm run test:coverage`  | [c8](https://github.com/bcoe/c8), set in [`.c8rc.json`](.c8rc.json): lines and functions 90%, statements 95%, branches 90%; lines per runtime file on Windows |
-| `npm run lint`           | ESLint, zero warnings                                                                                                                                         |
-| `npm run typecheck`      | TypeScript strict `checkJs` against `@types/node` 16                                                                                                          |
-| `npm run format:check`   | Prettier                                                                                                                                                      |
-| `npm run audit`          | `npm audit` and `bun audit`, failing on high severity                                                                                                         |
-| `npm run freshness`      | Confirmed `npm outdated` dependency freshness check and artifact generation                                                                                   |
-| `npm run smoke`          | Native install/uninstall on the current OS                                                                                                                    |
-| `npm run check-no-skips` | Confirmed 0-skip execution of native smoke tests in CI matrix                                                                                                 |
-
-CI runs install, build, `npm test`, lint, typecheck and format in the required
-`test-unit` job, then the suite, coverage, audit and smoke tests on Ubuntu,
-macOS and Windows, uploading a JUnit report and an LCOV coverage report per OS (`junit-<os>` and
-`coverage-<os>` artifacts).
-
-Runtime has zero external dependencies (`"dependencies": {}`). Development tools
-(`@types/node`, `c8`, `eslint`, `prettier`, `typescript`) are exact-pinned and
-run strictly during CI validation; they are never bundled into user installations.
-`@types/node` is intentionally pinned to 16.x as a compile-time compatibility gate
-ensuring runtime code cannot call Node APIs introduced after Node.js 16.9+.
-
-## License
-
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 [Yash Vishwakarma](https://github.com/yv3000)

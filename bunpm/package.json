@@ -1,8 +1,12 @@
 {
-  "name": "bunpm",
+  "name": "bunpm-cli",
   "version": "2.3.8",
   "description": "Zero-runtime-dependency npm, npx, yarn and pnpm wrapper for Bun",
   "main": "core/wrapper.js",
+  "bin": {
+    "bunpm": "core/wrapper.js",
+    "bunpm-cli": "core/wrapper.js"
+  },
   "keywords": [
     "npm",
     "bun",
@@ -24,6 +28,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yv3000/bunpm.git"
+    "url": "git+https://github.com/yv3000/bunpm.git"
   }
 }
