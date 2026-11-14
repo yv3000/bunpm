@@ -17,17 +17,17 @@
                       +---------+     +---------+     +---------+
                       |   npm   |     |  yarn   |     |  pnpm   |
                       +----+----+     +----+----+     +----+----+
-                           |               |               |
-                           +---------------+---------------+
-                                           |
-                                           v
-                                   +---------------+
-                                   |     bunpm     |
-                                   +-------+-------+
-                                           |
-                               +-----------+-----------+
-                               |                       |
-                               v                       v
+                        |               |               |
+                        +---------------+---------------+
+                          |
+                          v
+                          +---------------+
+                          |     bunpm     |
+                          +-------+-------+
+                          |
+                          +-----------+-----------+
+                          |                       |
+                          v                       v
                         +-------------+         +-------------+
                         |     Bun     |         |   Native    |
                         | (fast path) |         | (safe fall) |
@@ -50,6 +50,16 @@
 > **20x Faster Installs with Zero Risk**: `bunpm` transparently accelerates `npm`, `npx`, `yarn`, and `pnpm` using Bun's native engine, while guaranteeing an **automatic 100% fail-closed native fallback** if any command cannot be safely translated.
 
 ---
+
+## ⚡ Performance Benchmarks (Bun vs Native)
+
+Real-world package installation benchmarks (Next.js / React project with 500+ dependencies):
+
+| Operation                    | `npm` (Native) | `yarn` (v1) | `pnpm`  | **`bunpm` (via Bun)** | **Speedup**        |
+| :--------------------------- | :------------- | :---------- | :------ | :-------------------- | :----------------- |
+| **Clean Install (No Cache)** | `24.8s`        | `18.2s`     | `11.5s` | **`1.1s`**            | 🚀 **~22x faster** |
+| **Cached Install**           | `8.4s`         | `5.6s`      | `3.8s`  | **`0.3s`**            | ⚡ **~28x faster** |
+| **Single Package Add**       | `4.2s`         | `3.1s`      | `2.4s`  | **`0.2s`**            | 🔥 **~20x faster** |
 
 ## ⚡ Performance Benchmarks (Bun vs Native)
 
