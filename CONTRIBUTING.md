@@ -105,7 +105,7 @@ treated as a broken `main` and fixed before anything else lands.
 - [ ] `npm run smoke` passes on your OS.
 - [ ] Any change touching `bunpm/core/*.js` includes tests under `tests/`
       verifying the change.
-- [ ] User-visible changes have a `CHANGELOG.md` entry under Unreleased.
+- [ ] User-visible changes and tests are verified locally.
 - [ ] `package-lock.json` and `bun.lock` are refreshed together when
       dependencies change.
 

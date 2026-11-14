@@ -19,7 +19,7 @@ The repository, both lockfiles, offline tests and native install scripts are
 sufficient to maintain a fork without project secrets or hosted services.
 Clone a tagged revision, follow the fresh-clone checks in CONTRIBUTING.md,
 and run the native CI matrix before distributing a modified version. Report
-security concerns using [SECURITY.md](SECURITY.md).
+security concerns by opening a confidential GitHub Security Advisory on the repository.
 
 No backup maintainer or transfer of repository access is currently promised.
 Any future appointment should be recorded here after the person accepts,
